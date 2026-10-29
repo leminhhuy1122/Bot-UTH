@@ -39,7 +39,13 @@ import {
   Layers,
   Lock,
   Unlock,
-  MessageSquare
+  MessageSquare,
+  UserPlus,
+  FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { BotConfig, BotKnowledgeItem } from '../../types/uth';
 import { initialBotConfig, initialKnowledgeBase } from '../../data/mockData';
@@ -56,6 +62,7 @@ import {
   fetchAdminBotConfig,
   saveAdminBotConfig,
   testAdminQuery,
+  deleteAdminStudent,
   AdminTestQueryResponse,
   TrainKnowledgeResponse,
   AdminStudentItem, 
@@ -70,6 +77,7 @@ import {
   OverviewStatsSkeleton, 
   AuditLogTableSkeleton 
 } from '../common/Skeleton';
+import { AddEditStudentModal, BatchStudentModal } from './StudentModals';
 
 interface AdminViewProps {
   onBackToPortal: () => void;
@@ -90,13 +98,31 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
   // Stats state
   const [stats, setStats] = useState<AdminStats | null>(null);
 
-  // Students state
+  // Students state (On-demand server-side pagination)
   const [students, setStudents] = useState<AdminStudentItem[]>([]);
+  const [totalStudentsCount, setTotalStudentsCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [facultyFilter, setFacultyFilter] = useState('Tất cả');
   const [tuitionFilter, setTuitionFilter] = useState('Tất cả');
   const [selectedStudent, setSelectedStudent] = useState<AdminStudentItem | null>(null);
   const [studentModalTab, setStudentModalTab] = useState<'grades' | 'schedule' | 'courses' | 'tuition'>('grades');
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<AdminStudentItem | null>(null);
+  const [isBatchStudentOpen, setIsBatchStudentOpen] = useState(false);
+
+  // Phân trang danh sách sinh viên (mặc định 10 sinh viên / trang)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const isFirstMount = useRef(true);
+
+  // Hàm hiển thị avatar minh họa UTH đồng bộ, không bao giờ bị lỗi
+  const getStudentAvatar = (st?: AdminStudentItem | null) => {
+    if (!st) return '/student_avatar_ai.svg';
+    if (st.gender === 'Nữ') return '/student_avatar_female.svg';
+    return '/student_avatar_ai.svg';
+  };
 
   // Knowledge base state
   const [knowledgeBase, setKnowledgeBase] = useState<BotKnowledgeItem[]>(initialKnowledgeBase);
@@ -126,27 +152,41 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<AdminTestQueryResponse | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, [searchTerm, facultyFilter, tuitionFilter]);
-
-  useEffect(() => {
-    if (activeTab === 'audit_logs') {
-      loadAuditLogs();
+  const loadStudents = async (
+    page: number = currentPage,
+    size: number = pageSize,
+    search: string = searchTerm,
+    faculty: string = facultyFilter,
+    tuition: string = tuitionFilter
+  ) => {
+    setIsLoadingStudents(true);
+    try {
+      const res = await fetchAdminStudents(search, faculty, tuition, page, size);
+      setStudents(res.data);
+      setTotalStudentsCount(res.total);
+      setTotalPages(res.totalPages);
+      setCurrentPage(res.page);
+    } catch {
+      showToast('Không thể tải danh sách sinh viên từ Neon.tech.', 'error');
+    } finally {
+      setIsLoadingStudents(false);
     }
-  }, [activeTab]);
+  };
 
   const loadData = async () => {
     setIsLoadingData(true);
     try {
       const [statsRes, studentsRes, kbRes, configRes] = await Promise.all([
         fetchAdminStats(),
-        fetchAdminStudents(searchTerm, facultyFilter, tuitionFilter),
+        fetchAdminStudents(searchTerm, facultyFilter, tuitionFilter, currentPage, pageSize),
         fetchAdminKnowledge(),
         fetchAdminBotConfig(),
       ]);
       setStats(statsRes);
-      setStudents(studentsRes);
+      setStudents(studentsRes.data);
+      setTotalStudentsCount(studentsRes.total);
+      setTotalPages(studentsRes.totalPages);
+      setCurrentPage(studentsRes.page);
       if (kbRes && kbRes.length > 0) {
         setKnowledgeBase(kbRes);
       }
@@ -157,6 +197,25 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
       setIsLoadingData(false);
     }
   };
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      loadData();
+      return;
+    }
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      loadStudents(1, pageSize, searchTerm, facultyFilter, tuitionFilter);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, facultyFilter, tuitionFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'audit_logs') {
+      loadAuditLogs();
+    }
+  }, [activeTab]);
 
   const loadAuditLogs = async () => {
     setIsLoadingLogs(true);
@@ -196,7 +255,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
         lastTrainedAt: res.details.trainedAt,
       }));
     } catch (err: any) {
-      showToast(err.message || 'Lỗi khi huấn luyện cơ sở tri thức AI.', 'danger', 'Lỗi huấn luyện');
+      showToast(err.message || 'Lỗi khi huấn luyện cơ sở tri thức AI.', 'error', 'Lỗi huấn luyện');
     } finally {
       setIsTraining(false);
     }
@@ -354,6 +413,28 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
     );
   };
 
+  const handleDeleteStudent = (st: AdminStudentItem) => {
+    showConfirm(
+      'Xác nhận xóa sinh viên',
+      `Bạn có chắc chắn muốn xóa sinh viên ${st.name} (MSSV: ${st.mssv}) khỏi hệ thống và Neon.tech PostgreSQL? Toàn bộ hồ sơ tài khoản và bảng điểm liên quan sẽ bị xóa vĩnh viễn.`,
+      async () => {
+        try {
+          await deleteAdminStudent(st.mssv);
+          setStudents((prev) => prev.filter((s) => s.mssv !== st.mssv));
+          showToast(`Đã xóa thành công sinh viên ${st.name} (${st.mssv}) khỏi Neon.tech!`, 'success');
+          if (selectedStudent?.mssv === st.mssv) {
+            setSelectedStudent(null);
+          }
+          loadData();
+        } catch (err: any) {
+          showToast(err.message || 'Lỗi khi xóa sinh viên.', 'error');
+        }
+      },
+      'danger',
+      'Xóa sinh viên'
+    );
+  };
+
   const handleSaveConfig = async () => {
     const success = await saveAdminBotConfig(config);
     if (success) {
@@ -409,6 +490,50 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
     }
   };
 
+  // Tính toán phân trang hiển thị (Server-side)
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + students.length, totalStudentsCount);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages || newPage === currentPage || isLoadingStudents) return;
+    setCurrentPage(newPage);
+    loadStudents(newPage, pageSize, searchTerm, facultyFilter, tuitionFilter);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    loadStudents(1, newSize, searchTerm, facultyFilter, tuitionFilter);
+  };
+
+  // Tạo danh sách số trang có dấu ba chấm thông minh
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range: number[] = [];
+    const rangeWithDots: (number | string)[] = [];
+    let l: number | undefined;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (const i of range) {
+      if (l !== undefined) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans select-none">
       {/* Top Header UTH Admin */}
@@ -459,7 +584,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Quản lý Sinh viên (20)</span>
+            <span>Quản lý Sinh viên ({totalStudentsCount || (stats?.totalStudents ?? 0)})</span>
           </button>
 
           <button
@@ -515,6 +640,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
       {/* Main Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* ===================== TAB 1: QUẢN LÝ SINH VIÊN ===================== */}
+
         {activeTab === 'students' && (
           <div className="space-y-5 animate-in fade-in duration-200">
             {/* Header controls & Filters */}
@@ -559,15 +685,35 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
                   <option value="Còn nợ">Còn nợ học phí</option>
                 </select>
 
-                <div className="text-xs text-slate-500 px-2 py-1 bg-slate-100 rounded-md font-medium">
-                  {students.length} sinh viên
+                <div className="text-xs text-slate-500 px-2 py-1 bg-slate-100 rounded-md font-medium font-mono">
+                  {totalStudentsCount} sinh viên
                 </div>
+
+                <div className="h-4 w-px bg-slate-200 hidden sm:block mx-0.5"></div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAddStudentOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#008272] hover:bg-[#006e60] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Thêm sinh viên</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsBatchStudentOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-teal-300 border border-slate-700 rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Nhập hàng loạt (CSV/JSON)</span>
+                </button>
               </div>
             </div>
 
             {/* Students Table or Skeleton */}
-            {isLoadingData ? (
-              <StudentTableSkeleton rows={8} />
+            {isLoadingData || isLoadingStudents ? (
+              <StudentTableSkeleton rows={pageSize} />
             ) : (
               <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
@@ -585,16 +731,31 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-700">
-                    {students.map((st) => (
+                    {students.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-slate-500">
+                          <div className="flex flex-col items-center justify-center">
+                            <Users className="w-10 h-10 text-slate-300 mb-2" />
+                            <p className="text-sm font-medium">Không tìm thấy sinh viên nào phù hợp.</p>
+                            <p className="text-xs text-slate-400 mt-1">Thử thay đổi từ khóa tìm kiếm hoặc chọn lại bộ lọc Khoa / Học phí.</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      students.map((st) => (
                       <tr key={st.mssv} className="hover:bg-teal-50/40 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center font-bold text-slate-700">
-                              {st.avatarUrl && st.avatarUrl.includes('svg') ? (
-                                <img src={st.avatarUrl} alt={st.name} className="w-full h-full object-cover" />
-                              ) : (
-                                st.name.charAt(0)
-                              )}
+                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-2xs">
+                              <img 
+                                src={getStudentAvatar(st)} 
+                                alt={st.name} 
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/student_avatar_ai.svg';
+                                }}
+                              />
                             </div>
                             <div>
                               <div className="font-semibold text-slate-900 text-sm">{st.name}</div>
@@ -662,21 +823,133 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
                         </td>
 
                         <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => {
-                              setSelectedStudent(st);
-                              setStudentModalTab('grades');
-                            }}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#008272] hover:bg-[#006e60] text-white font-medium rounded-lg text-xs shadow-xs transition-colors cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Chi tiết</span>
-                          </button>
+                          <div className="inline-flex items-center gap-1.5 justify-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedStudent(st);
+                                setStudentModalTab('grades');
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#008272] hover:bg-[#006e60] text-white font-medium rounded-lg text-xs shadow-xs transition-colors cursor-pointer"
+                              title="Xem chi tiết học tập & hồ sơ"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Chi tiết</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setEditingStudent(st)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg text-xs shadow-xs transition-colors cursor-pointer"
+                              title="Chỉnh sửa thông tin sinh viên"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Sửa</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStudent(st)}
+                              className="inline-flex items-center gap-1 px-2 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 font-medium rounded-lg text-xs transition-colors cursor-pointer"
+                              title="Xóa sinh viên khỏi Neon.tech"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    )))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* THANH ĐIỀU HƯỚNG PHÂN TRANG (PAGINATION) */}
+              <div className="bg-slate-50 px-4 py-3.5 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span>
+                    Hiển thị <strong>{totalStudentsCount > 0 ? startIndex + 1 : 0}</strong> - <strong>{endIndex}</strong> trên tổng số <strong>{totalStudentsCount}</strong> sinh viên
+                  </span>
+                  <div className="h-4 w-px bg-slate-300 hidden sm:block" />
+                  <div className="flex items-center gap-1.5">
+                    <span>Số lượng mỗi trang:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                      disabled={isLoadingStudents}
+                      className="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#008272]"
+                    >
+                      <option value={10}>10 sinh viên / trang</option>
+                      <option value={20}>20 sinh viên / trang</option>
+                      <option value={50}>50 sinh viên / trang</option>
+                      <option value={100}>100 sinh viên / trang</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Nút bấm điều hướng trang */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1 || isLoadingStudents}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Về trang đầu tiên (Trang 1)"
+                  >
+                    <ChevronsLeft className="w-3.5 h-3.5 text-slate-700" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || isLoadingStudents}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs font-medium text-slate-700 transition-colors"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Trước</span>
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {getPageNumbers().map((num, idx) => (
+                      typeof num === 'number' ? (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handlePageChange(num)}
+                          disabled={isLoadingStudents}
+                          className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            currentPage === num
+                              ? 'bg-[#008272] text-white shadow-xs'
+                              : 'bg-white border border-slate-200 hover:bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ) : (
+                        <span key={idx} className="px-1 text-slate-400 font-bold">…</span>
+                      )
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || isLoadingStudents}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-xs font-medium text-slate-700 transition-colors"
+                  >
+                    <span className="hidden sm:inline">Sau</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages || isLoadingStudents}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title={`Đến trang cuối cùng (Trang ${totalPages})`}
+                  >
+                    <ChevronsRight className="w-3.5 h-3.5 text-slate-700" />
+                  </button>
+                </div>
               </div>
             </div>
             )}
@@ -1615,12 +1888,15 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
             {/* Modal Header */}
             <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-slate-800 border-2 border-teal-400 overflow-hidden shrink-0 flex items-center justify-center font-bold text-white text-base">
-                  {selectedStudent.avatarUrl && selectedStudent.avatarUrl.includes('svg') ? (
-                    <img src={selectedStudent.avatarUrl} alt={selectedStudent.name} className="w-full h-full object-cover" />
-                  ) : (
-                    selectedStudent.name.charAt(0)
-                  )}
+                <div className="w-12 h-12 rounded-full bg-slate-800 border-2 border-teal-400 overflow-hidden shrink-0 flex items-center justify-center shadow-md">
+                  <img 
+                    src={getStudentAvatar(selectedStudent)} 
+                    alt={selectedStudent.name} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/student_avatar_ai.svg';
+                    }}
+                  />
                 </div>
                 <div>
                   <h3 className="font-bold text-base sm:text-lg flex items-center gap-2">
@@ -1860,8 +2136,22 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
             </div>
 
             {/* Modal Footer */}
-            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
               <button
+                type="button"
+                onClick={() => {
+                  const studentToEdit = selectedStudent;
+                  setSelectedStudent(null);
+                  setEditingStudent(studentToEdit);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs transition-colors"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Chỉnh sửa thông tin sinh viên</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setSelectedStudent(null)}
                 className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold cursor-pointer"
               >
@@ -2140,6 +2430,28 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
           </div>
         </div>
       )}
+
+      {/* ===================== MODAL THÊM SINH VIÊN MỚI ===================== */}
+      <AddEditStudentModal
+        isOpen={isAddStudentOpen}
+        onClose={() => setIsAddStudentOpen(false)}
+        onSaved={loadData}
+      />
+
+      {/* ===================== MODAL CHỈNH SỬA SINH VIÊN ===================== */}
+      <AddEditStudentModal
+        isOpen={!!editingStudent}
+        student={editingStudent}
+        onClose={() => setEditingStudent(null)}
+        onSaved={loadData}
+      />
+
+      {/* ===================== MODAL NHẬP HÀNG LOẠT (BATCH CSV/JSON) ===================== */}
+      <BatchStudentModal
+        isOpen={isBatchStudentOpen}
+        onClose={() => setIsBatchStudentOpen(false)}
+        onSuccess={loadData}
+      />
     </div>
   );
 };

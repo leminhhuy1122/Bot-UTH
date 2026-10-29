@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Query
 from pydantic import BaseModel
 from typing import List, Optional
 import time
+import math
 from datetime import datetime
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from backend.app.db.session import get_db
 from backend.app.models.user import User, StudentProfile
 from backend.app.models.knowledge import KnowledgeDocument
@@ -11,6 +14,7 @@ from backend.app.models.audit import AuditLog
 from backend.app.core.security import (
     decode_access_token, 
     security_shield,
+    hash_password,
     is_pii_or_confidential_attempt,
     GUEST_REFUSAL_MESSAGE,
     is_profanity_or_abuse,
@@ -133,25 +137,40 @@ async def list_students(
     search: Optional[str] = None,
     faculty: Optional[str] = None,
     tuition_status: Optional[str] = None,
+    page: int = Query(1, ge=1, description="Số thứ tự trang (bắt đầu từ 1)"),
+    page_size: Optional[int] = Query(None, ge=1, le=100, description="Số lượng sinh viên trên mỗi trang"),
+    pageSize: Optional[int] = Query(None, ge=1, le=100, description="Kích thước trang (alias)"),
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
-    """Lấy danh sách tất cả sinh viên với bộ lọc tìm kiếm."""
+    """Lấy danh sách sinh viên theo thuật toán phân trang On-demand / Lazy Loading phía máy chủ."""
+    limit_val = pageSize or page_size or 10
     query = db.query(StudentProfile)
 
-    if search:
-        search_fmt = f"%{search}%"
+    if search and search.strip():
+        search_fmt = f"%{search.strip()}%"
         query = query.filter(
-            (StudentProfile.mssv.like(search_fmt)) |
-            (StudentProfile.full_name.like(search_fmt)) |
-            (StudentProfile.major.like(search_fmt))
+            (StudentProfile.mssv.ilike(search_fmt)) |
+            (StudentProfile.full_name.ilike(search_fmt)) |
+            (StudentProfile.major.ilike(search_fmt))
         )
     if faculty and faculty != "Tất cả":
         query = query.filter(StudentProfile.faculty == faculty)
     if tuition_status and tuition_status != "Tất cả":
         query = query.filter(StudentProfile.tuition_status == tuition_status)
 
-    students = query.all()
+    # 1. Tính tổng số bản ghi khớp bộ lọc bằng SQL COUNT(*) cực nhanh
+    total_count = query.count()
+
+    # 2. Áp dụng phân trang theo yêu cầu (LIMIT & OFFSET)
+    # Lướt tới đâu chỉ tải đúng số lượng đó từ CSDL Neon.tech
+    offset_val = (page - 1) * limit_val
+    students = (
+        query.order_by(StudentProfile.mssv.asc())
+        .offset(offset_val)
+        .limit(limit_val)
+        .all()
+    )
     
     result = []
     for s in students:
@@ -181,9 +200,14 @@ async def list_students(
             "tuitionStatus": s.tuition_status
         })
 
+    total_pages = max(1, math.ceil(total_count / limit_val)) if total_count > 0 else 1
+
     return {
         "success": True,
-        "total": len(result),
+        "total": total_count,
+        "page": page,
+        "pageSize": limit_val,
+        "totalPages": total_pages,
         "data": result
     }
 
@@ -235,6 +259,464 @@ async def get_student_detail(
         }
     }
 
+class StudentCreateRequest(BaseModel):
+    mssv: str
+    name: str
+    gender: Optional[str] = "Nam"
+    birthDate: Optional[str] = "15/08/2005"
+    phone: Optional[str] = "0912 345 678"
+    email: Optional[str] = None
+    cohort: Optional[str] = "2023"
+    faculty: Optional[str] = "Công nghệ thông tin"
+    major: Optional[str] = "Công nghệ thông tin"
+    classId: Optional[str] = "CN23CLC01"
+    trainingType: Optional[str] = "Chất lượng cao"
+    avatarUrl: Optional[str] = "/student_avatar_ai.png"
+    status: Optional[str] = "Đang học"
+    accumulatedCredits: Optional[float] = 52.0
+    requiredCredits: Optional[float] = 145.0
+    trainingPoint: Optional[int] = 85
+    gpa10: Optional[float] = 8.0
+    gpa4: Optional[float] = 3.2
+    cpa4: Optional[float] = 3.2
+    ranking: Optional[str] = None
+    totalTuition: Optional[float] = 14850000.0
+    discountAmount: Optional[float] = 0.0
+    amountToPay: Optional[float] = 14850000.0
+    paidAmount: Optional[float] = 14850000.0
+    debtAmount: Optional[float] = 0.0
+    tuitionStatus: Optional[str] = None
+    password: Optional[str] = "123456"
+
+class StudentUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    gender: Optional[str] = None
+    birthDate: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    cohort: Optional[str] = None
+    faculty: Optional[str] = None
+    major: Optional[str] = None
+    classId: Optional[str] = None
+    trainingType: Optional[str] = None
+    avatarUrl: Optional[str] = None
+    status: Optional[str] = None
+    accumulatedCredits: Optional[float] = None
+    requiredCredits: Optional[float] = None
+    trainingPoint: Optional[int] = None
+    gpa10: Optional[float] = None
+    gpa4: Optional[float] = None
+    cpa4: Optional[float] = None
+    ranking: Optional[str] = None
+    totalTuition: Optional[float] = None
+    paidAmount: Optional[float] = None
+    debtAmount: Optional[float] = None
+    tuitionStatus: Optional[str] = None
+    password: Optional[str] = None
+
+class StudentBatchRequest(BaseModel):
+    students: List[StudentCreateRequest]
+
+@router.post("/students")
+async def create_student(
+    req: StudentCreateRequest,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Thêm 1 sinh viên mới vào hệ thống (tạo cả User login và StudentProfile)."""
+    clean_mssv = req.mssv.strip()
+    if not clean_mssv or not req.name.strip():
+        raise HTTPException(status_code=400, detail="Mã số sinh viên (MSSV) và Họ tên là bắt buộc.")
+
+    existing_user = db.query(User).filter_by(username=clean_mssv).first()
+    existing_profile = db.query(StudentProfile).filter_by(mssv=clean_mssv).first()
+    if existing_user or existing_profile:
+        raise HTTPException(status_code=400, detail=f"Mã sinh viên {clean_mssv} đã tồn tại trong hệ thống.")
+
+    ranking = req.ranking
+    if not ranking:
+        cpa = req.cpa4 if req.cpa4 is not None else 3.2
+        if cpa >= 3.6:
+            ranking = "Xuất sắc"
+        elif cpa >= 3.2:
+            ranking = "Giỏi"
+        elif cpa >= 2.5:
+            ranking = "Khá"
+        else:
+            ranking = "Trung bình"
+
+    total_t = req.totalTuition if req.totalTuition is not None else 14850000.0
+    paid_t = req.paidAmount if req.paidAmount is not None else total_t
+    debt_t = req.debtAmount if req.debtAmount is not None else max(0.0, total_t - paid_t)
+    tuition_stat = req.tuitionStatus or ("Đã hoàn thành" if debt_t <= 0 else "Còn nợ")
+
+    user = User(
+        username=clean_mssv,
+        email=req.email or f"{clean_mssv}@ut.edu.vn",
+        password_hash=hash_password(req.password or "123456"),
+        role="student",
+        is_active=True
+    )
+    db.add(user)
+    db.flush()
+
+    profile = StudentProfile(
+        user_id=user.id,
+        mssv=clean_mssv,
+        full_name=req.name.strip(),
+        gender=req.gender or "Nam",
+        birth_date=req.birthDate or "15/08/2005",
+        phone=req.phone or "0912 345 678",
+        email=req.email or f"{clean_mssv}@ut.edu.vn",
+        cohort=req.cohort or "2023",
+        faculty=req.faculty or "Công nghệ thông tin",
+        major=req.major or "Công nghệ thông tin",
+        class_id=req.classId or "CN23CLC01",
+        training_type=req.trainingType or "Chất lượng cao",
+        avatar_url=req.avatarUrl or "/student_avatar_ai.png",
+        status=req.status or "Đang học",
+        accumulated_credits=req.accumulatedCredits if req.accumulatedCredits is not None else 52.0,
+        required_credits=req.requiredCredits if req.requiredCredits is not None else 145.0,
+        training_point=req.trainingPoint if req.trainingPoint is not None else 85,
+        gpa10=req.gpa10 if req.gpa10 is not None else 8.0,
+        gpa4=req.gpa4 if req.gpa4 is not None else 3.2,
+        cpa4=req.cpa4 if req.cpa4 is not None else 3.2,
+        ranking=ranking,
+        total_tuition=total_t,
+        discount_amount=req.discountAmount or 0.0,
+        amount_to_pay=total_t - (req.discountAmount or 0.0),
+        paid_amount=paid_t,
+        debt_amount=debt_t,
+        tuition_status=tuition_stat
+    )
+    db.add(profile)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": f"Đã thêm thành công sinh viên {req.name} (MSSV: {clean_mssv})!",
+        "data": {
+            "mssv": profile.mssv,
+            "name": profile.full_name,
+            "gender": profile.gender,
+            "birthDate": profile.birth_date,
+            "phone": profile.phone,
+            "email": profile.email,
+            "cohort": profile.cohort,
+            "faculty": profile.faculty,
+            "major": profile.major,
+            "classId": profile.class_id,
+            "trainingType": profile.training_type,
+            "avatarUrl": profile.avatar_url,
+            "accumulatedCredits": profile.accumulated_credits,
+            "requiredCredits": profile.required_credits,
+            "trainingPoint": profile.training_point,
+            "gpa10": profile.gpa10,
+            "gpa4": profile.gpa4,
+            "cpa4": profile.cpa4,
+            "ranking": profile.ranking,
+            "totalTuition": profile.total_tuition,
+            "paidAmount": profile.paid_amount,
+            "debtAmount": profile.debt_amount,
+            "tuitionStatus": profile.tuition_status
+        }
+    }
+
+@router.put("/students/{mssv}")
+async def update_student(
+    mssv: str,
+    req: StudentUpdateRequest,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Cập nhật thông tin chi tiết của 1 sinh viên."""
+    profile = db.query(StudentProfile).filter_by(mssv=mssv).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy sinh viên có MSSV {mssv}.")
+
+    user = db.query(User).filter_by(id=profile.user_id).first()
+
+    if req.name is not None and req.name.strip():
+        profile.full_name = req.name.strip()
+    if req.gender is not None:
+        profile.gender = req.gender
+    if req.birthDate is not None:
+        profile.birth_date = req.birthDate
+    if req.phone is not None:
+        profile.phone = req.phone
+    if req.email is not None:
+        profile.email = req.email
+        if user:
+            user.email = req.email
+    if req.cohort is not None:
+        profile.cohort = req.cohort
+    if req.faculty is not None:
+        profile.faculty = req.faculty
+    if req.major is not None:
+        profile.major = req.major
+    if req.classId is not None:
+        profile.class_id = req.classId
+    if req.trainingType is not None:
+        profile.training_type = req.trainingType
+    if req.avatarUrl is not None:
+        profile.avatar_url = req.avatarUrl
+    if req.status is not None:
+        profile.status = req.status
+    if req.accumulatedCredits is not None:
+        profile.accumulated_credits = req.accumulatedCredits
+    if req.requiredCredits is not None:
+        profile.required_credits = req.requiredCredits
+    if req.trainingPoint is not None:
+        profile.training_point = req.trainingPoint
+    if req.gpa10 is not None:
+        profile.gpa10 = req.gpa10
+    if req.gpa4 is not None:
+        profile.gpa4 = req.gpa4
+    if req.cpa4 is not None:
+        profile.cpa4 = req.cpa4
+    if req.ranking is not None:
+        profile.ranking = req.ranking
+    if req.totalTuition is not None:
+        profile.total_tuition = req.totalTuition
+    if req.paidAmount is not None:
+        profile.paid_amount = req.paidAmount
+    if req.debtAmount is not None:
+        profile.debt_amount = req.debtAmount
+    if req.tuitionStatus is not None:
+        profile.tuition_status = req.tuitionStatus
+    elif req.debtAmount is not None:
+        profile.tuition_status = "Đã hoàn thành" if profile.debt_amount <= 0 else "Còn nợ"
+
+    if req.password and user:
+        user.password_hash = hash_password(req.password)
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": f"Đã cập nhật thành công thông tin sinh viên {profile.full_name}!",
+        "data": {
+            "mssv": profile.mssv,
+            "name": profile.full_name,
+            "gender": profile.gender,
+            "birthDate": profile.birth_date,
+            "phone": profile.phone,
+            "email": profile.email,
+            "cohort": profile.cohort,
+            "faculty": profile.faculty,
+            "major": profile.major,
+            "classId": profile.class_id,
+            "trainingType": profile.training_type,
+            "avatarUrl": profile.avatar_url,
+            "accumulatedCredits": profile.accumulated_credits,
+            "requiredCredits": profile.required_credits,
+            "trainingPoint": profile.training_point,
+            "gpa10": profile.gpa10,
+            "gpa4": profile.gpa4,
+            "cpa4": profile.cpa4,
+            "ranking": profile.ranking,
+            "totalTuition": profile.total_tuition,
+            "paidAmount": profile.paid_amount,
+            "debtAmount": profile.debt_amount,
+            "tuitionStatus": profile.tuition_status
+        }
+    }
+
+@router.delete("/students/{mssv}")
+async def delete_student(
+    mssv: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Xóa sinh viên khỏi hệ thống."""
+    profile = db.query(StudentProfile).filter_by(mssv=mssv).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy sinh viên có MSSV {mssv}.")
+
+    user = db.query(User).filter_by(id=profile.user_id).first()
+    student_name = profile.full_name
+    db.delete(profile)
+    if user:
+        db.delete(user)
+    db.commit()
+
+    return {
+        "success": True,
+        "message": f"Đã xóa thành công sinh viên {student_name} (MSSV: {mssv})!"
+    }
+
+# Hash sẵn mật khẩu sinh viên mặc định để tối ưu hiệu năng nạp hàng loạt (không tốn 100ms bcrypt cho mỗi record)
+DEFAULT_STUDENT_HASH = hash_password("123456")
+
+def normalize_mssv(raw_mssv: str) -> str:
+    """Chuẩn hóa MSSV, tự động khôi phục số 0 đầu nếu file Excel bị mất số 0 (ví dụ: 56205009912 -> 056205009912)."""
+    s = str(raw_mssv).strip()
+    if len(s) == 11 and s.isdigit() and s.startswith("56"):
+        return "0" + s
+    if len(s) < 12 and s.isdigit() and s.startswith("56"):
+        return s.zfill(12)
+    return s
+
+@router.post("/students/batch")
+async def batch_upsert_students(
+    req: StudentBatchRequest,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Nạp hàng loạt sinh viên từ JSON/CSV. Tự động loại bỏ trùng MSSV và trùng Email, không báo lỗi toàn bộ file."""
+    if not req.students:
+        raise HTTPException(status_code=400, detail="Danh sách sinh viên rỗng.")
+
+    # Chuẩn hóa MSSV và Email
+    normalized_students = []
+    for st in req.students:
+        raw_mssv = st.mssv.strip() if st.mssv else ""
+        if not raw_mssv or not st.name or not st.name.strip():
+            continue
+        clean_m = normalize_mssv(raw_mssv)
+        clean_e = (st.email.strip() if st.email else f"{clean_m}@ut.edu.vn").lower()
+        normalized_students.append((st, clean_m, clean_e))
+
+    if not normalized_students:
+        raise HTTPException(status_code=400, detail="Không tìm thấy sinh viên nào có MSSV hợp lệ.")
+
+    batch_mssvs = [m for _, m, _ in normalized_students]
+    batch_emails = [e for _, _, e in normalized_students]
+
+    # 1. Tra cứu MSSV và Email đã tồn tại trong CSDL qua 2 query duy nhất
+    existing_mssvs = set(
+        row[0] for row in db.query(StudentProfile.mssv).filter(StudentProfile.mssv.in_(batch_mssvs)).all()
+    )
+    existing_usernames = set(
+        row[0] for row in db.query(User.username).filter(User.username.in_(batch_mssvs)).all()
+    )
+    existing_emails = set(
+        row[0].lower() for row in db.query(User.email).filter(User.email.in_(batch_emails)).all()
+        if row[0]
+    )
+
+    existing_all_mssvs = existing_mssvs.union(existing_usernames)
+
+    created_count = 0
+    skipped_count = 0
+    skipped_list = []
+    seen_mssvs = set()
+    seen_emails = set()
+
+    for st, clean_mssv, clean_email in normalized_students:
+        # 2. Kiểm tra trùng MSSV
+        if clean_mssv in existing_all_mssvs or clean_mssv in seen_mssvs:
+            skipped_count += 1
+            reason = "MSSV đã tồn tại trong hệ thống" if clean_mssv in existing_all_mssvs else "MSSV bị lặp lại trong tệp"
+            skipped_list.append({
+                "mssv": clean_mssv,
+                "name": st.name.strip(),
+                "reason": reason
+            })
+            continue
+
+        # 3. Kiểm tra trùng Email
+        if clean_email in existing_emails or clean_email in seen_emails:
+            skipped_count += 1
+            reason = f"Email ({clean_email}) đã tồn tại trong hệ thống" if clean_email in existing_emails else "Email bị lặp lại trong tệp"
+            skipped_list.append({
+                "mssv": clean_mssv,
+                "name": st.name.strip(),
+                "reason": reason
+            })
+            continue
+
+        # Xếp loại học lực
+        ranking = st.ranking
+        if not ranking:
+            cpa = st.cpa4 if st.cpa4 is not None else 3.2
+            if cpa >= 3.6:
+                ranking = "Xuất sắc"
+            elif cpa >= 3.2:
+                ranking = "Giỏi"
+            elif cpa >= 2.5:
+                ranking = "Khá"
+            else:
+                ranking = "Trung bình"
+
+        total_t = st.totalTuition if st.totalTuition is not None else 14850000.0
+        paid_t = st.paidAmount if st.paidAmount is not None else total_t
+        debt_t = st.debtAmount if st.debtAmount is not None else max(0.0, total_t - paid_t)
+        tuition_stat = st.tuitionStatus or ("Đã hoàn thành" if debt_t <= 0 else "Còn nợ")
+
+        pwd_hash = (
+            DEFAULT_STUDENT_HASH 
+            if (not st.password or st.password == "123456") 
+            else hash_password(st.password)
+        )
+
+        # 4. Sử dụng SAVEPOINT (db.begin_nested()) để bảo vệ tuyệt đối: nếu xảy ra lỗi Unique ở 1 sinh viên, chỉ rollback riêng sinh viên đó!
+        try:
+            with db.begin_nested():
+                user = User(
+                    username=clean_mssv,
+                    email=clean_email,
+                    password_hash=pwd_hash,
+                    role="student",
+                    is_active=True
+                )
+                db.add(user)
+                db.flush()
+
+                profile = StudentProfile(
+                    user_id=user.id,
+                    mssv=clean_mssv,
+                    full_name=st.name.strip(),
+                    gender=st.gender or "Nam",
+                    birth_date=st.birthDate or "15/08/2005",
+                    phone=st.phone or "0912 345 678",
+                    email=clean_email,
+                    cohort=st.cohort or "2023",
+                    faculty=st.faculty or "Công nghệ thông tin",
+                    major=st.major or "Công nghệ thông tin",
+                    class_id=st.classId or "CN23CLC01",
+                    training_type=st.trainingType or "Chất lượng cao",
+                    avatar_url=st.avatarUrl or "/student_avatar_ai.png",
+                    status=st.status or "Đang học",
+                    accumulated_credits=st.accumulatedCredits if st.accumulatedCredits is not None else 52.0,
+                    required_credits=st.requiredCredits if st.requiredCredits is not None else 145.0,
+                    training_point=st.trainingPoint if st.trainingPoint is not None else 85,
+                    gpa10=st.gpa10 if st.gpa10 is not None else 8.0,
+                    gpa4=st.gpa4 if st.gpa4 is not None else 3.2,
+                    cpa4=st.cpa4 if st.cpa4 is not None else 3.2,
+                    ranking=ranking,
+                    total_tuition=total_t,
+                    paid_amount=paid_t,
+                    debt_amount=debt_t,
+                    tuition_status=tuition_stat
+                )
+                db.add(profile)
+                db.flush()
+
+            created_count += 1
+            seen_mssvs.add(clean_mssv)
+            seen_emails.add(clean_email)
+        except IntegrityError:
+            # SAVEPOINT tự động rollback riêng sinh viên này, các sinh viên khác trong gói vẫn nạp bình thường!
+            skipped_count += 1
+            skipped_list.append({
+                "mssv": clean_mssv,
+                "name": st.name.strip(),
+                "reason": "Trùng lặp dữ liệu trong CSDL (loại bỏ an toàn)"
+            })
+            continue
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": f"Đã nạp thành công {created_count} sinh viên mới! (Đã bỏ qua {skipped_count} sinh viên bị trùng MSSV hoặc Email)",
+        "addedCount": created_count,
+        "skippedCount": skipped_count,
+        "skippedList": skipped_list[:100],
+        "total": created_count
+    }
+
 # ----------------- 2. BẢNG THỐNG KÊ (ADMIN OVERVIEW STATS) -----------------
 
 @router.get("/stats")
@@ -242,15 +724,15 @@ async def get_dashboard_stats(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
-    """Lấy số liệu thống kê tổng quan cho trang Dashboard Admin."""
-    students = db.query(StudentProfile).all()
-    total_students = len(students)
-    debt_students = sum(1 for s in students if s.debt_amount > 0)
-    total_debt = sum(s.debt_amount for s in students)
-    avg_gpa4 = round(sum(s.gpa4 for s in students) / max(1, total_students), 2)
-    avg_tp = round(sum(s.training_point for s in students) / max(1, total_students), 1)
+    """Lấy số liệu thống kê tổng quan cho trang Dashboard Admin thông qua SQL Aggregates siêu nhanh."""
+    total_students = db.query(func.count(StudentProfile.id)).scalar() or 0
+    debt_students = db.query(func.count(StudentProfile.id)).filter(StudentProfile.debt_amount > 0).scalar() or 0
+    total_debt = float(db.query(func.coalesce(func.sum(StudentProfile.debt_amount), 0.0)).scalar() or 0.0)
+    avg_gpa4 = round(float(db.query(func.coalesce(func.avg(StudentProfile.gpa4), 0.0)).scalar() or 0.0), 2)
+    avg_tp = round(float(db.query(func.coalesce(func.avg(StudentProfile.training_point), 0.0)).scalar() or 0.0), 1)
 
-    faculties = list(set(s.faculty for s in students if s.faculty))
+    faculties_query = db.query(StudentProfile.faculty).distinct().filter(StudentProfile.faculty.isnot(None)).all()
+    faculties = [f[0] for f in faculties_query if f[0]]
 
     kb_count = db.query(KnowledgeDocument).count()
 

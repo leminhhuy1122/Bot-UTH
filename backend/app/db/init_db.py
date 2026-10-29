@@ -1,10 +1,24 @@
-from backend.app.db.session import engine, Base, SessionLocal
+from sqlalchemy import text
+from backend.app.db.session import engine, Base, SessionLocal, is_postgres, db_engine_type
 from backend.app.models.user import User, StudentProfile
 from backend.app.models.knowledge import KnowledgeDocument
 from backend.app.db.seed_20_students import seed_database
 
 def init_database():
     """Tạo bảng và nạp 20 sinh viên mẫu + 1 Admin ban đầu."""
+    print(f"🔌 Đang kết nối cơ sở dữ liệu: [{db_engine_type}]")
+
+    # Nếu đang dùng PostgreSQL / Neon.tech, cố gắng kích hoạt pgvector extension
+    if is_postgres:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                conn.commit()
+                print("⚡ Đã kích hoạt extension pgvector thành công trên Neon.tech PostgreSQL!")
+        except Exception as e:
+            # Bỏ qua nếu user không có quyền superuser hoặc extension đã được tạo
+            print(f"ℹ️ Kiểm tra extension pgvector: {e}")
+
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
@@ -14,7 +28,7 @@ def init_database():
         admin_exists = db.query(User).filter_by(username="admin").first()
 
         if student_count < 20 or not admin_exists:
-            print("🚀 Đang đồng bộ CSDL: Nạp 20 hồ sơ sinh viên UTH & 1 Admin...")
+            print(f"🚀 Đang đồng bộ CSDL ({db_engine_type}): Nạp 20 hồ sơ sinh viên UTH & 1 Admin...")
             seed_database()
 
         # Nạp tri thức ban đầu nếu chưa có

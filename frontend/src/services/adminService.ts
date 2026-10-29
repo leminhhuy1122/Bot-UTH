@@ -20,6 +20,7 @@ export interface AdminStudentItem {
   classId: string;
   trainingType: string;
   avatarUrl: string;
+  status?: string;
   accumulatedCredits: number;
   requiredCredits: number;
   trainingPoint: number;
@@ -50,12 +51,28 @@ export interface AdminStats {
   facultiesList: string[];
 }
 
-export async function fetchAdminStudents(search?: string, faculty?: string, tuitionStatus?: string): Promise<AdminStudentItem[]> {
+export interface FetchStudentsResult {
+  data: AdminStudentItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function fetchAdminStudents(
+  search?: string,
+  faculty?: string,
+  tuitionStatus?: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<FetchStudentsResult> {
   try {
     const params = new URLSearchParams();
-    if (search) params.append('search', search);
+    if (search && search.trim()) params.append('search', search.trim());
     if (faculty && faculty !== 'Tất cả') params.append('faculty', faculty);
     if (tuitionStatus && tuitionStatus !== 'Tất cả') params.append('tuition_status', tuitionStatus);
+    params.append('page', String(page));
+    params.append('pageSize', String(pageSize));
 
     const res = await fetch(`${API_BASE}/students?${params.toString()}`, {
       headers: {
@@ -67,15 +84,21 @@ export async function fetchAdminStudents(search?: string, faculty?: string, tuit
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
-        return json.data;
+        return {
+          data: json.data,
+          total: typeof json.total === 'number' ? json.total : json.data.length,
+          page: json.page || page,
+          pageSize: json.pageSize || pageSize,
+          totalPages: json.totalPages || Math.max(1, Math.ceil((json.total || json.data.length) / pageSize)),
+        };
       }
     }
     throw new Error('API fallback');
   } catch (err) {
-    // Client-side filtering fallback using seedStudentsData
+    // Fallback phân trang phía client khi offline
     let list = seedStudentsData as AdminStudentItem[];
-    if (search) {
-      const q = search.toLowerCase();
+    if (search && search.trim()) {
+      const q = search.trim().toLowerCase();
       list = list.filter(
         (s) => s.mssv.includes(q) || s.name.toLowerCase().includes(q) || s.major.toLowerCase().includes(q)
       );
@@ -86,7 +109,16 @@ export async function fetchAdminStudents(search?: string, faculty?: string, tuit
     if (tuitionStatus && tuitionStatus !== 'Tất cả') {
       list = list.filter((s) => s.tuitionStatus === tuitionStatus);
     }
-    return list;
+    const total = list.length;
+    const offset = (page - 1) * pageSize;
+    const paginated = list.slice(offset, offset + pageSize);
+    return {
+      data: paginated,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
   }
 }
 
@@ -109,6 +141,88 @@ export async function fetchStudentDetail(mssv: string): Promise<AdminStudentItem
     const found = (seedStudentsData as AdminStudentItem[]).find((s) => s.mssv === mssv);
     return found || null;
   }
+}
+
+export async function createAdminStudent(studentData: Partial<AdminStudentItem> & { password?: string }): Promise<{ success: boolean; message: string; data?: AdminStudentItem }> {
+  const res = await fetch(`${API_BASE}/students`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify(studentData),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || 'Không thể tạo mới sinh viên');
+  }
+  return data;
+}
+
+export async function updateAdminStudent(mssv: string, studentData: Partial<AdminStudentItem> & { password?: string }): Promise<{ success: boolean; message: string; data?: AdminStudentItem }> {
+  const res = await fetch(`${API_BASE}/students/${mssv}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify(studentData),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || 'Không thể cập nhật thông tin sinh viên');
+  }
+  return data;
+}
+
+export async function deleteAdminStudent(mssv: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`${API_BASE}/students/${mssv}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.detail || 'Không thể xóa sinh viên');
+  }
+  return data;
+}
+
+export interface BatchStudentResult {
+  success: boolean;
+  message: string;
+  addedCount: number;
+  skippedCount: number;
+  skippedList?: Array<{ mssv: string; name: string; reason: string }>;
+  total?: number;
+}
+
+export async function batchCreateAdminStudents(
+  students: (Partial<AdminStudentItem> & { password?: string })[]
+): Promise<BatchStudentResult> {
+  const res = await fetch(`${API_BASE}/students/batch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeader(),
+    },
+    body: JSON.stringify({ students }),
+  });
+  if (!res.ok) {
+    let errDetail = `Lỗi máy chủ (${res.status})`;
+    try {
+      const errJson = await res.json();
+      errDetail = errJson.detail || errJson.message || errDetail;
+    } catch {
+      const errText = await res.text();
+      if (errText) errDetail = errText;
+    }
+    throw new Error(errDetail);
+  }
+  const data = await res.json();
+  return data;
 }
 
 export async function fetchAdminStats(): Promise<AdminStats> {

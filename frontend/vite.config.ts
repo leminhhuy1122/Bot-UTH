@@ -1,3 +1,4 @@
+
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -15,8 +16,9 @@ export default defineConfig(() => {
       port: 3000,
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: 'http://127.0.0.1:8000',
           changeOrigin: true,
+          secure: false,
         },
       },
       hmr: process.env.DISABLE_HMR !== 'true',

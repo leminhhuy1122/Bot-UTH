@@ -263,7 +263,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <button
                 onClick={() => {
                   setShowForgotModal(false);
-                  handleQuickLogin();
+                  setUsername('056205008344');
+                  setPassword('123456');
                 }}
                 className="px-4 py-2 text-xs font-medium text-white bg-[#008272] hover:bg-[#007062] rounded-lg transition-colors cursor-pointer"
               >

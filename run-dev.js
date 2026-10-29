@@ -48,15 +48,19 @@ freePortIfBusy(3000);
 // 2. Tìm trình thông dịch Python hoạt động tốt trên hệ thống
 function getPythonCommand() {
   const candidates = [
+    'C:\\Users\\lemin\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe',
+    'C:\\Users\\lemin\\AppData\\Local\\Python\\bin\\python.exe',
     'py',
     'python',
     'python3',
-    'C:\\Users\\lemin\\AppData\\Local\\Python\\bin\\python.exe',
   ];
 
   for (const cmd of candidates) {
+    if (cmd.includes('\\') && !fs.existsSync(cmd)) {
+      continue;
+    }
     try {
-      execSync(`"${cmd}" --version`, { stdio: 'ignore' });
+      execSync(`"${cmd}" --version`, { stdio: 'pipe' });
       return cmd;
     } catch (e) {
       // Thử tiếp

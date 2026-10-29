@@ -9,6 +9,14 @@ if not env_path.exists():
 
 load_dotenv(dotenv_path=env_path)
 
+# Cấu hình CSDL & Neon.tech Services
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DATABASE_URL_UNPOOLED = os.getenv("DATABASE_URL_UNPOOLED", "").strip()
+NEON_BRANCH = os.getenv("NEON_BRANCH", "production")
+NEON_FUNCTION_HELLO_BASE_URL = os.getenv("NEON_FUNCTION_HELLO_BASE_URL", "").strip()
+NEON_REALTIME_URL = os.getenv("NEON_REALTIME_URL", "").strip()
+NEON_REALTIME_SECRET = os.getenv("NEON_REALTIME_SECRET", "").strip()
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 PORT = int(os.getenv("PORT", 8000))
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -19,4 +27,3 @@ CORS_ORIGINS = [
     "http://127.0.0.1:5173",
     "*"
 ]
-

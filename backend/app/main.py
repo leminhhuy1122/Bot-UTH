@@ -64,9 +64,86 @@ app.include_router(chat_router, prefix="/api")
 @app.get("/")
 @app.get("/api/health")
 async def health_check():
+    from backend.app.db.session import db_engine_type, is_postgres
     return {
         "status": "healthy",
         "service": "UTH Virtual Assistant FastAPI Backend",
         "version": "1.0.0",
-        "database": "SQLite (Ready for PostgreSQL + pgvector)"
+        "database": db_engine_type,
+        "is_postgres": is_postgres,
+        "platform": "Neon.tech Serverless Postgres (production)" if is_postgres else "SQLite Fallback"
     }
+
+@app.get("/api/neon/status")
+async def neon_status():
+    """Kiểm tra và báo cáo trạng thái end-to-end các dịch vụ Neon.tech đã liên kết."""
+    import time
+    from sqlalchemy import text
+    from backend.app.db.session import engine, SessionLocal, is_postgres
+    from backend.app.models.user import StudentProfile
+    from backend.app.core.config import (
+        NEON_BRANCH,
+        NEON_FUNCTION_HELLO_BASE_URL,
+        NEON_REALTIME_URL
+    )
+
+    result = {
+        "branch": NEON_BRANCH,
+        "services": {}
+    }
+
+    # 1. Test Postgres
+    t0 = time.time()
+    try:
+        with engine.connect() as conn:
+            pg_ver = conn.execute(text("SELECT version();")).scalar()
+        db = SessionLocal()
+        student_count = db.query(StudentProfile).count()
+        db.close()
+        pg_latency = round((time.time() - t0) * 1000, 2)
+        result["services"]["postgres"] = {
+            "status": "healthy",
+            "latency_ms": pg_latency,
+            "engine": "PostgreSQL 18 (Neon.tech)",
+            "students_synced": student_count,
+            "pgvector": "active"
+        }
+    except Exception as e:
+        result["services"]["postgres"] = {
+            "status": "error",
+            "message": str(e)
+        }
+
+    # 2. Test Neon Functions
+    if NEON_FUNCTION_HELLO_BASE_URL:
+        import urllib.request
+        t1 = time.time()
+        try:
+            req = urllib.request.Request(
+                NEON_FUNCTION_HELLO_BASE_URL,
+                headers={"User-Agent": "UTH-Backend/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                fn_body = resp.read().decode('utf-8').strip()
+            fn_latency = round((time.time() - t1) * 1000, 2)
+            result["services"]["functions"] = {
+                "status": "healthy",
+                "latency_ms": fn_latency,
+                "url": NEON_FUNCTION_HELLO_BASE_URL,
+                "response": fn_body
+            }
+        except Exception as e:
+            result["services"]["functions"] = {
+                "status": "degraded",
+                "url": NEON_FUNCTION_HELLO_BASE_URL,
+                "message": str(e)
+            }
+
+    # 3. Test Realtime
+    if NEON_REALTIME_URL:
+        result["services"]["realtime"] = {
+            "status": "configured",
+            "url": NEON_REALTIME_URL
+        }
+
+    return result

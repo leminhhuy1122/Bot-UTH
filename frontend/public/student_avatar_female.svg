@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="240" height="280">
+  <defs>
+    <linearGradient id="bgGradF" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="skinGradF" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="100%" stop-color="#fbcfe8"/>
+    </linearGradient>
+    <linearGradient id="hairGradF" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="shirtGradF" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fdf2f8"/>
+    </linearGradient>
+    <filter id="cardShadowF" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="240" height="280" fill="url(#bgGradF)" rx="16"/>
+
+  <!-- Back Hair (Long hair falling on shoulders) -->
+  <path d="M 65 110 C 60 170, 60 230, 80 250 L 160 250 C 180 230, 180 170, 175 110 Z" fill="url(#hairGradF)"/>
+
+  <!-- Shoulders & Body / Collared Shirt -->
+  <path d="M 45 280 C 45 230, 75 205, 120 205 C 165 205, 195 230, 195 280 Z" fill="url(#shirtGradF)" filter="url(#cardShadowF)"/>
+  
+  <!-- Collar Wings -->
+  <path d="M 98 190 L 120 218 L 110 220 L 88 198 Z" fill="#ffffff" stroke="#fbcfe8" stroke-width="0.8"/>
+  <path d="M 142 190 L 120 218 L 130 220 L 152 198 Z" fill="#ffffff" stroke="#fbcfe8" stroke-width="0.8"/>
+
+  <!-- Neck -->
+  <path d="M 108 150 L 132 150 L 134 198 L 106 198 Z" fill="#fed7aa"/>
+
+  <!-- Head / Face -->
+  <path d="M 85 108 C 85 65, 155 65, 155 108 C 155 152, 140 170, 120 170 C 100 170, 85 152, 85 108 Z" fill="url(#skinGradF)"/>
+
+  <!-- Hair (Front Style & Bangs) -->
+  <path d="M 80 100 C 80 62, 98 42, 120 42 C 142 42, 160 62, 160 100 C 152 75, 138 72, 120 72 C 102 72, 88 75, 80 100 Z" fill="url(#hairGradF)"/>
+  <!-- Side hair strands -->
+  <path d="M 80 95 C 75 125, 76 160, 84 175 C 88 160, 86 125, 84 95 Z" fill="#1e293b"/>
+  <path d="M 160 95 C 165 125, 164 160, 156 175 C 152 160, 154 125, 156 95 Z" fill="#1e293b"/>
+
+  <!-- Eyebrows -->
+  <path d="M 94 102 Q 102 98 110 102" stroke="#334155" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M 130 102 Q 138 98 146 102" stroke="#334155" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+  <!-- Eyes with eyelashes -->
+  <ellipse cx="102" cy="112" rx="4.5" ry="3.5" fill="#0f172a"/>
+  <circle cx="103.5" cy="110.5" r="1.2" fill="#ffffff"/>
+  <path d="M 97 109 L 95 107" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 106 108 L 109 106" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+
+  <ellipse cx="138" cy="112" rx="4.5" ry="3.5" fill="#0f172a"/>
+  <circle cx="139.5" cy="110.5" r="1.2" fill="#ffffff"/>
+  <path d="M 134 108 L 131 106" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 143 109 L 145 107" stroke="#334155" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- Cheeks Blush -->
+  <circle cx="95" cy="126" r="6" fill="#f43f5e" opacity="0.25"/>
+  <circle cx="145" cy="126" r="6" fill="#f43f5e" opacity="0.25"/>
+
+  <!-- Nose -->
+  <path d="M 120 110 L 119 125 L 122 125" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Smile -->
+  <path d="M 110 140 Q 120 148 130 140" stroke="#e11d48" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M 114 141 Q 120 145 126 141" stroke="#fda4af" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+  <!-- UTH Badge -->
+  <rect x="145" y="235" width="28" height="12" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+  <text x="148" y="244" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0d796e">UTH</text>
+  <circle cx="168" cy="241" r="2" fill="#d32f2f"/>
+</svg>

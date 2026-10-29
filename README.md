@@ -10,8 +10,7 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React 19](https://img.shields.io/badge/Frontend-React%2019-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Vite](https://img.shields.io/badge/Bundler-Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
-[![Tailwind CSS v4](https://img.shields.io/badge/Styling-Tailwind%20CSS%20v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Neon PostgreSQL](https://img.shields.io/badge/Database-Neon.tech%20Postgres-00E599?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech)
 [![Google Gemini AI](https://img.shields.io/badge/AI%20Model-Google%20Gemini-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev)
 [![Python NLP RAG](https://img.shields.io/badge/Search-Python%20NLP%20RAG-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
@@ -134,7 +133,8 @@ Dự án kết hợp giữa **Cổng thông tin đào tạo tín chỉ** và **T
 │  └── PII Masking Filter: Tự động che dấu dữ liệu nhạy cảm (CCCD, SĐT)       │
 │                                                                             │
 │  [3. Tầng Dữ Liệu & Audit (Data Layer)]                                     │
-│  ├── In-Memory Store / SQLite Database                                      │
+│  ├── Neon.tech Serverless PostgreSQL (pgvector RAG + PgBouncer Pooler)      │
+│  ├── SQLite Local Fallback (Tự động chuyển đổi nếu chưa có DATABASE_URL)   │
 │  ├── Seed Data: 20 hồ sơ sinh viên UTH chuẩn hóa                            │
 │  └── Security Audit Logger: Lưu vết mọi truy vấn và cảnh báo xâm phạm       │
 └─────────────────────────────────────────────────────────────────────────────┘

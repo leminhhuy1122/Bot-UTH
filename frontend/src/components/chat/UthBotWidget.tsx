@@ -606,10 +606,11 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                 >
                   {/* Rounded capsule wrapper with paperclip */}
                   <div className="flex-1 bg-white border border-slate-200 rounded-full px-4 py-2 flex items-center shadow-2xs focus-within:border-[#007062] focus-within:ring-2 focus-within:ring-[#007062]/20 transition-all">
-                    <Paperclip 
-                      className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer -rotate-45 mr-2.5 shrink-0 transition-colors" 
-                      title="Đính kèm tệp / hình ảnh (Sắp ra mắt)"
-                    />
+                    <span title="Đính kèm tệp / hình ảnh (Sắp ra mắt)">
+                      <Paperclip 
+                        className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer -rotate-45 mr-2.5 shrink-0 transition-colors" 
+                      />
+                    </span>
                     <input
                       ref={inputRef}
                       type="text"
