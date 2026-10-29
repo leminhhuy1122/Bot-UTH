@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" width="240" height="280">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fbd3b6"/>
+      <stop offset="100%" stop-color="#f5ba93"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="uthBadge" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0d796e"/>
+      <stop offset="100%" stop-color="#d32f2f"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="240" height="280" fill="url(#bgGrad)" rx="16"/>
+
+  <!-- Subtle Studio Backdrop Glow -->
+  <circle cx="120" cy="110" r="90" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Shoulders & Body / White Collared Shirt -->
+  <path d="M 40 280 C 40 225, 75 200, 120 200 C 165 200, 200 225, 200 280 Z" fill="url(#shirtGrad)" filter="url(#cardShadow)"/>
+  
+  <!-- Shirt Placket & Shadow -->
+  <path d="M 116 205 L 124 205 L 123 280 L 117 280 Z" fill="#e2e8f0"/>
+  <circle cx="120" cy="235" r="2.5" fill="#94a3b8"/>
+  <circle cx="120" cy="260" r="2.5" fill="#94a3b8"/>
+
+  <!-- UTH Logo Badge on Chest -->
+  <rect x="145" y="235" width="28" height="12" rx="3" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+  <text x="148" y="244" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0d796e">UTH</text>
+  <circle cx="168" cy="241" r="2" fill="#d32f2f"/>
+
+  <!-- Collar Wings -->
+  <path d="M 98 185 L 120 215 L 110 218 L 88 194 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+  <path d="M 142 185 L 120 215 L 130 218 L 152 194 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+
+  <!-- Neck -->
+  <path d="M 106 150 L 134 150 L 136 195 L 104 195 Z" fill="#f5ba93"/>
+  <path d="M 104 180 C 114 190, 126 190, 136 180 L 136 195 L 104 195 Z" fill="#eab085"/>
+
+  <!-- Head / Face -->
+  <path d="M 82 105 C 82 60, 158 60, 158 105 C 158 152, 142 172, 120 172 C 98 172, 82 152, 82 105 Z" fill="url(#skinGrad)"/>
+
+  <!-- Ears -->
+  <path d="M 80 110 C 76 100, 76 125, 84 125 Z" fill="#f5ba93"/>
+  <path d="M 160 110 C 164 100, 164 125, 156 125 Z" fill="#f5ba93"/>
+
+  <!-- Hair (Neat College Student Cut) -->
+  <path d="M 78 98 C 76 65, 95 45, 120 45 C 146 45, 164 62, 162 98 C 152 75, 136 78, 122 76 C 104 74, 92 84, 78 98 Z" fill="url(#hairGrad)"/>
+  <!-- Front Fringe -->
+  <path d="M 88 78 C 100 70, 115 72, 124 76 C 115 84, 100 86, 88 78 Z" fill="#1e293b"/>
+  <path d="M 124 74 C 136 70, 148 76, 154 84 C 146 86, 134 82, 124 74 Z" fill="#1e293b"/>
+
+  <!-- Eyebrows -->
+  <path d="M 92 102 Q 102 99 110 102" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M 130 102 Q 138 99 148 102" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+  <!-- Eyes -->
+  <ellipse cx="102" cy="112" rx="5" ry="3.5" fill="#0f172a"/>
+  <circle cx="103.5" cy="110.5" r="1.2" fill="#ffffff"/>
+  <ellipse cx="138" cy="112" rx="5" ry="3.5" fill="#0f172a"/>
+  <circle cx="139.5" cy="110.5" r="1.2" fill="#ffffff"/>
+
+  <!-- Nose -->
+  <path d="M 120 108 L 118 128 L 123 128" stroke="#d9996e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Friendly Confident Smile -->
+  <path d="M 108 142 Q 120 152 132 142" stroke="#b91c1c" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M 112 143 Q 120 148 128 143" stroke="#fca5a5" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+
+  <!-- Bottom Student Tag Overlay -->
+  <rect x="30" y="254" width="180" height="20" rx="10" fill="#0f172a" opacity="0.85"/>
+  <text x="120" y="267.5" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">NGUYỄN VĂN A · UTH 2026</text>
+</svg>

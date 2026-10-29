@@ -1,0 +1,6 @@
+{
+  "name": "Cổng Sinh Viên & Trợ Lý Ảo UTH",
+  "description": "Cổng thông tin đào tạo, hồ sơ sinh viên và trợ lý ảo thông minh Đại học Giao thông Vận tải TP.HCM (UTH).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

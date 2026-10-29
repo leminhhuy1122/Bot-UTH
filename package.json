@@ -1,0 +1,25 @@
+{
+  "name": "cong-sinh-vien-va-tro-ly-ao-uth",
+  "version": "1.0.0",
+  "description": "Cổng Sinh Viên & Trợ Lý Ảo UTH - Hệ thống tích hợp Frontend React Vite & Backend FastAPI",
+  "private": true,
+  "scripts": {
+    "dev": "node run-dev.js",
+    "start": "node run-dev.js",
+    "frontend": "npm run dev:client --prefix frontend",
+    "backend": "py backend/run.py",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend"
+  },
+  "keywords": [
+    "uth",
+    "student-portal",
+    "virtual-assistant",
+    "gemini",
+    "fastapi",
+    "react"
+  ],
+  "author": "UTH Development Team",
+  "license": "ISC"
+}
+
