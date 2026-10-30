@@ -1,0 +1,13 @@
+{
+  "auto_backup_enabled": true,
+  "frequency": "weekly",
+  "time_of_day": "03:30",
+  "scope": "full",
+  "retention_count": 10,
+  "retention_days": 30,
+  "max_storage_mb": 1024,
+  "notify_on_success": true,
+  "notify_on_failure": true,
+  "last_run_time": null,
+  "last_status": "idle"
+}

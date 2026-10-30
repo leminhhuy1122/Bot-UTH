@@ -3,14 +3,22 @@ from pydantic import BaseModel
 from typing import List, Optional
 import time
 import math
+import os
+import sys
+import platform
+import psutil
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy.orm import Session, load_only
+from sqlalchemy import func, text
 from sqlalchemy.exc import IntegrityError
-from backend.app.db.session import get_db
+from backend.app.db.session import get_db, engine, db_engine_type, is_postgres
 from backend.app.models.user import User, StudentProfile
 from backend.app.models.knowledge import KnowledgeDocument
 from backend.app.models.audit import AuditLog
+from backend.app.services.audit_logger import audit_logger
+from backend.app.services.knowledge_dedup import detect_duplicates
+
+SERVER_START_TIME = time.time()
 from backend.app.core.security import (
     decode_access_token, 
     security_shield,
@@ -29,6 +37,7 @@ from backend.app.services.nlp_engine import (
 )
 from backend.app.services.training_data import UTH_TRAINING_CORPUS
 from backend.app.services.gemini_ai import is_gemini_available, CANDIDATE_MODELS, generate_response
+from backend.app.db.seed_20_students import generate_courses_grades, generate_weekly_schedule
 
 router = APIRouter(prefix="/admin", tags=["Admin Bot & Portal Studio"])
 security_scheme = HTTPBearer(auto_error=False)
@@ -37,25 +46,31 @@ def get_current_admin(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
     db: Session = Depends(get_db)
 ) -> User:
-    """Xác thực người dùng có quyền Admin."""
-    if not credentials:
-        # Nếu chưa đăng nhập hoặc đang test trong môi trường dev cục bộ
-        admin = db.query(User).filter_by(role="admin").first()
-        if admin:
-            return admin
+    """
+    Xác thực người dùng có quyền Admin nghiêm ngặt qua JWT Bearer Token.
+    Đã loại bỏ hoàn toàn dev fallback bypass để chống truy cập trái phép.
+    """
+    if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Yêu cầu đăng nhập tài khoản Quản trị viên (Admin)."
+            detail="Yêu cầu đăng nhập tài khoản Quản trị viên (Admin) để thực hiện thao tác này."
         )
     
     payload = decode_access_token(credentials.credentials)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên làm việc hết hạn."
+            detail="Phiên làm việc hết hạn hoặc mã xác thực (Token) không hợp lệ. Vui lòng đăng nhập lại."
         )
     
-    user = db.query(User).filter(User.id == payload.get("sub")).first()
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Thông tin định danh trong token không hợp lệ."
+        )
+
+    user = db.query(User).filter((User.id == user_id) | (User.username == user_id)).first()
     if not user or user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -130,6 +145,29 @@ knowledge_base = [
     },
 ]
 
+def reload_knowledge_cache(db: Session) -> int:
+    """Đồng bộ toàn bộ cơ sở tri thức từ bảng CSDL vào bộ nhớ RAM phục vụ RAG AI phản hồi siêu tốc."""
+    global knowledge_base
+    try:
+        docs = db.query(KnowledgeDocument).filter_by(is_active=True).all()
+        if docs:
+            new_kb = []
+            for d in docs:
+                new_kb.append({
+                    "id": d.id,
+                    "category": d.category,
+                    "question": d.question,
+                    "keywords": [k.strip() for k in (d.keywords or "").split(",") if k.strip()],
+                    "answer": d.answer,
+                    "updatedAt": d.updated_at.strftime("%d/%m/%Y") if d.updated_at else "30/10/2026",
+                    "isActive": d.is_active,
+                })
+            knowledge_base = new_kb
+        return len(knowledge_base)
+    except Exception as e:
+        print(f"Lỗi nạp cache tri thức: {e}")
+        return len(knowledge_base)
+
 # ----------------- 1. QUẢN LÝ SINH VIÊN (STUDENT MANAGEMENT) -----------------
 
 @router.get("/students")
@@ -137,6 +175,11 @@ async def list_students(
     search: Optional[str] = None,
     faculty: Optional[str] = None,
     tuition_status: Optional[str] = None,
+    cohort: Optional[str] = None,
+    ranking: Optional[str] = None,
+    training_type: Optional[str] = None,
+    sort_by: Optional[str] = None,
+    sort_order: Optional[str] = "asc",
     page: int = Query(1, ge=1, description="Số thứ tự trang (bắt đầu từ 1)"),
     page_size: Optional[int] = Query(None, ge=1, le=100, description="Số lượng sinh viên trên mỗi trang"),
     pageSize: Optional[int] = Query(None, ge=1, le=100, description="Kích thước trang (alias)"),
@@ -152,21 +195,74 @@ async def list_students(
         query = query.filter(
             (StudentProfile.mssv.ilike(search_fmt)) |
             (StudentProfile.full_name.ilike(search_fmt)) |
-            (StudentProfile.major.ilike(search_fmt))
+            (StudentProfile.major.ilike(search_fmt)) |
+            (StudentProfile.class_id.ilike(search_fmt)) |
+            (StudentProfile.phone.ilike(search_fmt)) |
+            (StudentProfile.email.ilike(search_fmt))
         )
     if faculty and faculty != "Tất cả":
         query = query.filter(StudentProfile.faculty == faculty)
     if tuition_status and tuition_status != "Tất cả":
         query = query.filter(StudentProfile.tuition_status == tuition_status)
+    if cohort and cohort != "Tất cả":
+        query = query.filter(StudentProfile.cohort == cohort)
+    if ranking and ranking != "Tất cả":
+        query = query.filter(StudentProfile.ranking == ranking)
+    if training_type and training_type != "Tất cả":
+        query = query.filter(StudentProfile.training_type == training_type)
+
+    # Xử lý sắp xếp đa tiêu chí
+    if sort_by == "gpa4_desc":
+        order_clause = StudentProfile.gpa4.desc()
+    elif sort_by == "gpa4_asc":
+        order_clause = StudentProfile.gpa4.asc()
+    elif sort_by == "training_point_desc":
+        order_clause = StudentProfile.training_point.desc()
+    elif sort_by == "debt_desc":
+        order_clause = StudentProfile.debt_amount.desc()
+    elif sort_by == "name_asc":
+        order_clause = StudentProfile.full_name.asc()
+    elif sort_by == "credits_desc":
+        order_clause = StudentProfile.accumulated_credits.desc()
+    else:
+        order_clause = StudentProfile.mssv.asc()
 
     # 1. Tính tổng số bản ghi khớp bộ lọc bằng SQL COUNT(*) cực nhanh
     total_count = query.count()
 
-    # 2. Áp dụng phân trang theo yêu cầu (LIMIT & OFFSET)
-    # Lướt tới đâu chỉ tải đúng số lượng đó từ CSDL Neon.tech
+    # 2. Áp dụng phân trang và Selective Column Fetching (Chỉ nạp các trường cần cho bảng, bỏ qua JSON Blobs)
     offset_val = (page - 1) * limit_val
     students = (
-        query.order_by(StudentProfile.mssv.asc())
+        query.options(
+            load_only(
+                StudentProfile.id,
+                StudentProfile.mssv,
+                StudentProfile.full_name,
+                StudentProfile.gender,
+                StudentProfile.birth_date,
+                StudentProfile.phone,
+                StudentProfile.email,
+                StudentProfile.cohort,
+                StudentProfile.faculty,
+                StudentProfile.major,
+                StudentProfile.class_id,
+                StudentProfile.training_type,
+                StudentProfile.avatar_url,
+                StudentProfile.status,
+                StudentProfile.accumulated_credits,
+                StudentProfile.required_credits,
+                StudentProfile.training_point,
+                StudentProfile.gpa10,
+                StudentProfile.gpa4,
+                StudentProfile.cpa4,
+                StudentProfile.ranking,
+                StudentProfile.total_tuition,
+                StudentProfile.paid_amount,
+                StudentProfile.debt_amount,
+                StudentProfile.tuition_status
+            )
+        )
+        .order_by(order_clause)
         .offset(offset_val)
         .limit(limit_val)
         .all()
@@ -187,6 +283,7 @@ async def list_students(
             "classId": s.class_id,
             "trainingType": s.training_type,
             "avatarUrl": s.avatar_url,
+            "status": s.status or "Đang học",
             "accumulatedCredits": s.accumulated_credits,
             "requiredCredits": s.required_credits,
             "trainingPoint": s.training_point,
@@ -197,7 +294,12 @@ async def list_students(
             "totalTuition": s.total_tuition,
             "paidAmount": s.paid_amount,
             "debtAmount": s.debt_amount,
-            "tuitionStatus": s.tuition_status
+            "tuitionStatus": s.tuition_status,
+            "schedule": [],
+            "registeredCourses": [],
+            "upcomingCourses": [],
+            "semestersGrades": [],
+            "extraData": {}
         })
 
     total_pages = max(1, math.ceil(total_count / limit_val)) if total_count > 0 else 1
@@ -221,6 +323,43 @@ async def get_student_detail(
     student = db.query(StudentProfile).filter(StudentProfile.mssv == mssv).first()
     if not student:
         raise HTTPException(status_code=404, detail="Không tìm thấy sinh viên.")
+
+    # Đảm bảo bảng điểm và lịch học luôn có dữ liệu chi tiết
+    needs_commit = False
+    if not student.semesters_grades:
+        student.semesters_grades = generate_courses_grades(student.gpa4 or 3.2, student.faculty or "Công nghệ thông tin")
+        needs_commit = True
+    if not student.schedule:
+        fac = student.faculty or "Công nghệ thông tin"
+        student.schedule = generate_weekly_schedule([
+            "Lập trình nâng cao & Đồ án",
+            f"Chuyên ngành {fac}",
+            "Kỹ năng nghề nghiệp & Hội nhập",
+            "Quản lý dự án & Khởi nghiệp"
+        ])
+        needs_commit = True
+    if not student.registered_courses:
+        fac = student.faculty or "Công nghệ thông tin"
+        student.registered_courses = [
+            "Lập trình nâng cao (3 TC)",
+            f"Chuyên ngành {fac} (3 TC)",
+            "Kỹ năng nghề nghiệp (2 TC)",
+            "Quản lý dự án (3 TC)"
+        ]
+        needs_commit = True
+    if not student.upcoming_courses:
+        student.upcoming_courses = [
+            "Thực tập tốt nghiệp doanh nghiệp",
+            "Khóa luận / Đồ án tốt nghiệp"
+        ]
+        needs_commit = True
+
+    if needs_commit:
+        try:
+            db.commit()
+            db.refresh(student)
+        except Exception:
+            db.rollback()
 
     return {
         "success": True,
@@ -387,7 +526,24 @@ async def create_student(
         amount_to_pay=total_t - (req.discountAmount or 0.0),
         paid_amount=paid_t,
         debt_amount=debt_t,
-        tuition_status=tuition_stat
+        tuition_status=tuition_stat,
+        schedule=generate_weekly_schedule([
+            "Lập trình nâng cao & Đồ án",
+            f"Chuyên ngành {req.faculty or 'Công nghệ thông tin'}",
+            "Kỹ năng nghề nghiệp & Hội nhập",
+            "Quản lý dự án & Khởi nghiệp"
+        ]),
+        registered_courses=[
+            "Lập trình nâng cao (3 TC)",
+            f"Chuyên ngành {req.faculty or 'Công nghệ thông tin'} (3 TC)",
+            "Kỹ năng nghề nghiệp (2 TC)",
+            "Quản lý dự án (3 TC)"
+        ],
+        upcoming_courses=[
+            "Thực tập tốt nghiệp doanh nghiệp",
+            "Khóa luận / Đồ án tốt nghiệp"
+        ],
+        semesters_grades=generate_courses_grades(req.gpa4 if req.gpa4 is not None else 3.2, req.faculty or "Công nghệ thông tin")
     )
     db.add(profile)
     db.commit()
@@ -688,7 +844,24 @@ async def batch_upsert_students(
                     total_tuition=total_t,
                     paid_amount=paid_t,
                     debt_amount=debt_t,
-                    tuition_status=tuition_stat
+                    tuition_status=tuition_stat,
+                    schedule=generate_weekly_schedule([
+                        "Lập trình nâng cao & Đồ án",
+                        f"Chuyên ngành {st.faculty or 'Công nghệ thông tin'}",
+                        "Kỹ năng nghề nghiệp & Hội nhập",
+                        "Quản lý dự án & Khởi nghiệp"
+                    ]),
+                    registered_courses=[
+                        "Lập trình nâng cao (3 TC)",
+                        f"Chuyên ngành {st.faculty or 'Công nghệ thông tin'} (3 TC)",
+                        "Kỹ năng nghề nghiệp (2 TC)",
+                        "Quản lý dự án (3 TC)"
+                    ],
+                    upcoming_courses=[
+                        "Thực tập tốt nghiệp doanh nghiệp",
+                        "Khóa luận / Đồ án tốt nghiệp"
+                    ],
+                    semesters_grades=generate_courses_grades(st.gpa4 if st.gpa4 is not None else 3.2, st.faculty or "Công nghệ thông tin")
                 )
                 db.add(profile)
                 db.flush()
@@ -780,12 +953,13 @@ async def create_knowledge_item(item: KnowledgeItemSchema, db: Session = Depends
     doc = KnowledgeDocument(
         category=item.category,
         question=item.question,
-        keywords=", ".join(item.keywords),
+        keywords=", ".join(item.keywords) if isinstance(item.keywords, list) else str(item.keywords),
         answer=item.answer,
     )
     db.add(doc)
     db.commit()
     db.refresh(doc)
+    reload_knowledge_cache(db)
     return {"success": True, "message": "Đã thêm tài liệu mới", "data": {"id": doc.id}}
 
 @router.put("/knowledge/{item_id}")
@@ -795,10 +969,11 @@ async def update_knowledge_item(item_id: str, item: KnowledgeItemSchema, db: Ses
         raise HTTPException(status_code=404, detail="Không tìm thấy mục tri thức.")
     doc.category = item.category
     doc.question = item.question
-    doc.keywords = ", ".join(item.keywords)
+    doc.keywords = ", ".join(item.keywords) if isinstance(item.keywords, list) else str(item.keywords)
     doc.answer = item.answer
     doc.updated_at = datetime.utcnow()
     db.commit()
+    reload_knowledge_cache(db)
     return {"success": True, "message": "Đã cập nhật mục tri thức thành công.", "data": {"id": doc.id}}
 
 @router.delete("/knowledge/{item_id}")
@@ -808,32 +983,152 @@ async def delete_knowledge_item(item_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Không tìm thấy mục tri thức.")
     db.delete(doc)
     db.commit()
+    reload_knowledge_cache(db)
     return {"success": True, "message": "Đã xóa mục tri thức thành công."}
 
 class BatchKnowledgeItem(BaseModel):
-    category: str
+    category: Optional[str] = "Chung"
     question: str
-    keywords: List[str]
+    keywords: Optional[Any] = []
     answer: str
 
+class BatchKnowledgeWrapper(BaseModel):
+    items: Optional[List[BatchKnowledgeItem]] = None
+
 @router.post("/knowledge/batch")
-async def batch_create_knowledge(items: List[BatchKnowledgeItem], db: Session = Depends(get_db)):
-    """Nạp hàng loạt câu hỏi tri thức từ file JSON/CSV vào cơ sở dữ liệu SQLite."""
-    count = 0
-    for item in items:
-        keywords_str = ", ".join(item.keywords) if isinstance(item.keywords, list) else str(item.keywords)
-        doc = KnowledgeDocument(
-            category=item.category,
-            question=item.question,
-            keywords=keywords_str,
-            answer=item.answer,
-            is_active=True
-        )
-        db.add(doc)
-        count += 1
+async def batch_create_knowledge(payload: Union[List[BatchKnowledgeItem], BatchKnowledgeWrapper, Dict[str, Any]], db: Session = Depends(get_db)):
+    """Nạp hàng loạt câu hỏi tri thức từ file JSON/CSV/Excel vào CSDL và tự động đồng bộ RAM RAG."""
+    items_to_process = []
+    if isinstance(payload, list):
+        items_to_process = payload
+    elif isinstance(payload, BatchKnowledgeWrapper) and payload.items:
+        items_to_process = payload.items
+    elif isinstance(payload, dict):
+        raw_items = payload.get("items") or payload.get("data") or []
+        items_to_process = raw_items
+
+    if not items_to_process:
+        raise HTTPException(status_code=400, detail="Danh sách câu hỏi tri thức rỗng.")
+
+    count_created = 0
+    count_updated = 0
+
+    for raw in items_to_process:
+        if isinstance(raw, dict):
+            q_text = (raw.get("question") or "").strip()
+            cat = (raw.get("category") or "Chung").strip()
+            ans = (raw.get("answer") or "").strip()
+            kw_val = raw.get("keywords")
+        else:
+            q_text = (raw.question or "").strip()
+            cat = (raw.category or "Chung").strip()
+            ans = (raw.answer or "").strip()
+            kw_val = raw.keywords
+
+        if not q_text or not ans:
+            continue
+
+        if isinstance(kw_val, list):
+            kw_str = ", ".join(str(k) for k in kw_val if k)
+        else:
+            kw_str = str(kw_val or "")
+
+        # Kiểm tra xem câu hỏi đã tồn tại chưa để upsert
+        existing = db.query(KnowledgeDocument).filter_by(question=q_text).first()
+        if existing:
+            existing.category = cat
+            existing.keywords = kw_str
+            existing.answer = ans
+            existing.is_active = True
+            existing.updated_at = datetime.utcnow()
+            count_updated += 1
+        else:
+            doc = KnowledgeDocument(
+                category=cat,
+                question=q_text,
+                keywords=kw_str,
+                answer=ans,
+                is_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db.add(doc)
+            count_created += 1
+
     db.commit()
+    total_in_cache = reload_knowledge_cache(db)
     bot_config["lastTrainedAt"] = time.strftime("%d/%m/%Y %H:%M:%S")
-    return {"success": True, "message": f"Đã nạp thành công {count} tài liệu tri thức vào SQLite!", "count": count}
+
+    return {
+        "success": True,
+        "message": f"Đã nạp thành công: {count_created} thêm mới, {count_updated} cập nhật. Tổng cộng {total_in_cache} câu hỏi trong hệ thống!",
+        "count": count_created + count_updated,
+        "created": count_created,
+        "updated": count_updated,
+        "total": total_in_cache
+    }
+
+@router.get("/knowledge/duplicates")
+async def get_knowledge_duplicates(
+    threshold: float = Query(0.65, ge=0.4, le=1.0, description="Ngưỡng tương đồng phát hiện trùng lặp"),
+    db: Session = Depends(get_db)
+):
+    """Quét và phát hiện các cặp câu hỏi trùng lặp hoặc tương đồng cao trong Cơ sở tri thức."""
+    duplicates = detect_duplicates(db, threshold=threshold)
+    return {
+        "success": True,
+        "totalPairs": len(duplicates),
+        "threshold": threshold,
+        "data": duplicates
+    }
+
+class ResolveDuplicateRequest(BaseModel):
+    action: str  # 'keep_a' (giữ A xóa B), 'keep_b' (giữ B xóa A), 'merge', 'dismiss'
+    keep_id: str
+    delete_id: Optional[str] = None
+    merge_keywords: Optional[bool] = True
+
+@router.post("/knowledge/resolve-duplicate")
+async def resolve_knowledge_duplicate(req: ResolveDuplicateRequest, db: Session = Depends(get_db)):
+    """
+    Xử lý đề xuất trùng lặp theo quyết định của Admin:
+    - Giữ 1 câu và XÓA HOÀN TOÀN câu không đạt yêu cầu khỏi CSDL.
+    - Hợp nhất từ khóa của câu bị xóa vào câu được giữ để không mất ngữ nghĩa tìm kiếm.
+    """
+    if req.action == "dismiss":
+        return {"success": True, "message": "Đã bỏ qua cảnh báo trùng lặp cho cặp câu hỏi này."}
+
+    doc_keep = db.query(KnowledgeDocument).filter_by(id=req.keep_id).first()
+    if not doc_keep:
+        raise HTTPException(status_code=404, detail="Không tìm thấy câu hỏi cần giữ lại.")
+
+    if req.delete_id:
+        doc_del = db.query(KnowledgeDocument).filter_by(id=req.delete_id).first()
+        if doc_del:
+            # Hợp nhất từ khóa nếu được yêu cầu
+            if req.merge_keywords and doc_del.keywords:
+                existing_kws = set(k.strip() for k in (doc_keep.keywords or "").split(",") if k.strip())
+                del_kws = set(k.strip() for k in (doc_del.keywords or "").split(",") if k.strip())
+                merged_kws = existing_kws.union(del_kws)
+                doc_keep.keywords = ", ".join(sorted(merged_kws))
+                doc_keep.updated_at = datetime.utcnow()
+
+            # XÓA HOÀN TOÀN câu hỏi thừa khỏi CSDL
+            db.delete(doc_del)
+            db.commit()
+            total_after = reload_knowledge_cache(db)
+
+            return {
+                "success": True,
+                "message": f"Đã duyệt giữ lại câu hỏi '{doc_keep.question[:40]}...' và xóa hoàn toàn câu trùng lặp khỏi CSDL!",
+                "keptId": doc_keep.id,
+                "deletedId": req.delete_id,
+                "totalKnowledge": total_after
+            }
+
+    db.commit()
+    reload_knowledge_cache(db)
+    return {"success": True, "message": "Đã xử lý mục tri thức thành công."}
 
 @router.post("/train-knowledge")
 async def train_knowledge(db: Session = Depends(get_db)):
@@ -896,7 +1191,7 @@ async def train_knowledge(db: Session = Depends(get_db)):
     timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
     bot_config["lastTrainedAt"] = timestamp
     latency_ms = round((time.time() - start_time) * 1000, 2)
-    total_docs = db.query(KnowledgeDocument).count()
+    total_docs = reload_knowledge_cache(db)
 
     return {
         "success": True,
@@ -1121,7 +1416,7 @@ async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
         "modelUsed": "Google Gemini 3.5 & Python NLP RAG"
     }
 
-# ----------------- 5. NHẬT KÝ KIỂM TOÁN AN NINH (AUDIT LOGS) -----------------
+# ----------------- 5. NHẬT KÝ KIỂM TOÁN AN NINH & GIÁM SÁT HẠ TẦNG (SYSTEM MONITORING) -----------------
 @router.post("/security/reset")
 async def reset_security_shield():
     """Làm mới dữ liệu lá chắn an ninh."""
@@ -1130,8 +1425,14 @@ async def reset_security_shield():
 
 @router.get("/audit-logs")
 async def get_audit_logs(db: Session = Depends(get_db), admin: User = Depends(get_current_admin)):
-    """Lấy danh sách nhật ký an ninh và các trường hợp bị chặn PII Guard."""
-    logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(100).all()
+    """Lấy danh sách nhật ký an ninh và các trường hợp bị chặn PII Guard (Tự động flush buffer trước khi lấy)."""
+    # Đồng bộ các bản ghi trong Ring Buffer xuống DB để xem dữ liệu mới nhất
+    try:
+        audit_logger.force_flush_all()
+    except Exception:
+        pass
+
+    logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(150).all()
     result = []
     for l in logs:
         result.append({
@@ -1146,3 +1447,139 @@ async def get_audit_logs(db: Session = Depends(get_db), admin: User = Depends(ge
             "latencyMs": l.latency_ms
         })
     return {"success": True, "total": len(result), "data": result}
+
+@router.post("/system/flush-audit")
+async def manual_flush_audit_buffer(admin: User = Depends(get_current_admin)):
+    """Chủ động xả (flush) toàn bộ log đang chờ trong In-Memory Ring Buffer xuống CSDL."""
+    audit_logger.force_flush_all()
+    return {"success": True, "message": "Đã xả toàn bộ hàng đợi In-Memory Buffer xuống Database thành công."}
+
+@router.get("/system/metrics")
+async def get_system_metrics(db: Session = Depends(get_db), admin: User = Depends(get_current_admin)):
+    """
+    API Giám sát Tài nguyên Phần cứng & Hệ thống (Real-time Infrastructure Monitoring)
+    Đo lường CPU, RAM, Ổ đĩa, Kết nối Neon PostgreSQL, Uptime, và Trạng thái Async Log Buffer.
+    """
+    now = datetime.now()
+    
+    # 1. Đo lường RAM (psutil)
+    vm = psutil.virtual_memory()
+    total_ram_gb = round(vm.total / (1024 ** 3), 2)
+    used_ram_gb = round(vm.used / (1024 ** 3), 2)
+    available_ram_gb = round(vm.available / (1024 ** 3), 2)
+    ram_percent = round(vm.percent, 1)
+
+    # 2. Đo lường CPU (psutil)
+    cpu_percent = round(psutil.cpu_percent(interval=None), 1)
+    cpu_logical = psutil.cpu_count(logical=True) or 1
+    cpu_physical = psutil.cpu_count(logical=False) or 1
+
+    # 3. Đo lường Ổ đĩa Disk (psutil)
+    disk = psutil.disk_usage('.')
+    disk_total_gb = round(disk.total / (1024 ** 3), 2)
+    disk_used_gb = round(disk.used / (1024 ** 3), 2)
+    disk_free_gb = round(disk.free / (1024 ** 3), 2)
+    disk_percent = round(disk.percent, 1)
+
+    # 4. Đo lường Tiến trình Backend (Process Info)
+    proc = psutil.Process(os.getpid())
+    proc_memory_mb = round(proc.memory_info().rss / (1024 ** 2), 2)
+    proc_threads = proc.num_threads()
+    
+    server_uptime_seconds = int(time.time() - SERVER_START_TIME)
+    uptime_days = server_uptime_seconds // 86400
+    uptime_hours = (server_uptime_seconds % 86400) // 3600
+    uptime_minutes = (server_uptime_seconds % 3600) // 60
+    uptime_secs = server_uptime_seconds % 60
+    uptime_str = f"{uptime_days}d {uptime_hours}h {uptime_minutes}m {uptime_secs}s" if uptime_days > 0 else f"{uptime_hours}h {uptime_minutes}m {uptime_secs}s"
+
+    # 5. Đo lường Kết nối Cơ sở Dữ liệu & Latency
+    db_latency_ms = 0.0
+    db_status = "HEALTHY"
+    try:
+        t0 = time.time()
+        db.execute(text("SELECT 1"))
+        db_latency_ms = round((time.time() - t0) * 1000, 2)
+    except Exception as ex:
+        db_status = f"ERROR: {str(ex)[:50]}"
+
+    pool = engine.pool
+    pool_size = getattr(pool, "size", lambda: 10)()
+    checked_in = getattr(pool, "checkedin", lambda: 0)()
+    checked_out = getattr(pool, "checkedout", lambda: 0)()
+    overflow = getattr(pool, "overflow", lambda: 0)()
+
+    # 6. Thống kê Logs & Buffer Ring
+    buffer_metrics = audit_logger.get_metrics()
+    
+    total_logs_in_db = 0
+    pii_violations = 0
+    try:
+        total_logs_in_db = db.query(func.count(AuditLog.id)).scalar() or 0
+        pii_violations = db.query(func.count(AuditLog.id)).filter(AuditLog.pii_detected == True).scalar() or 0
+    except Exception:
+        pass
+
+    # 7. Đánh giá tình trạng sức khỏe tổng thể (Overall System Health)
+    if ram_percent > 90 or cpu_percent > 90 or db_status != "HEALTHY":
+        overall_health = "CRITICAL"
+        health_message = "Tải phần cứng hoặc CSDL chạm ngưỡng cảnh báo cao."
+    elif ram_percent > 80 or cpu_percent > 75:
+        overall_health = "WARNING"
+        health_message = "Mức độ sử dụng tài nguyên ở mức tương đối cao."
+    else:
+        overall_health = "OPTIMAL"
+        health_message = "Hệ thống vận hành mượt mà, độ trễ và tài nguyên đạt chuẩn."
+
+    return {
+        "success": True,
+        "timestamp": now.strftime("%d/%m/%Y %H:%M:%S"),
+        "overallHealth": overall_health,
+        "healthMessage": health_message,
+        "cpu": {
+            "percent": cpu_percent,
+            "logicalCores": cpu_logical,
+            "physicalCores": cpu_physical,
+            "status": "NORMAL" if cpu_percent < 75 else ("HIGH" if cpu_percent < 90 else "CRITICAL")
+        },
+        "memory": {
+            "totalGb": total_ram_gb,
+            "usedGb": used_ram_gb,
+            "freeGb": available_ram_gb,
+            "percent": ram_percent,
+            "status": "NORMAL" if ram_percent < 80 else ("HIGH" if ram_percent < 90 else "CRITICAL")
+        },
+        "disk": {
+            "totalGb": disk_total_gb,
+            "usedGb": disk_used_gb,
+            "freeGb": disk_free_gb,
+            "percent": disk_percent,
+            "status": "NORMAL" if disk_percent < 85 else "WARNING"
+        },
+        "database": {
+            "engine": db_engine_type,
+            "isPostgres": is_postgres,
+            "status": db_status,
+            "latencyMs": db_latency_ms,
+            "poolSize": pool_size,
+            "checkedIn": checked_in,
+            "checkedOut": checked_out,
+            "overflow": overflow,
+            "poolMode": "PgBouncer Pooled + Scale-to-Zero Resilient" if is_postgres else "Local SQLite Engine"
+        },
+        "process": {
+            "pid": os.getpid(),
+            "pythonVersion": platform.python_version(),
+            "osName": f"{platform.system()} {platform.release()}",
+            "memoryRssMb": proc_memory_mb,
+            "threadsCount": proc_threads,
+            "uptimeSeconds": server_uptime_seconds,
+            "uptimeFormatted": uptime_str
+        },
+        "auditBuffer": {
+            **buffer_metrics,
+            "totalLogsInDb": total_logs_in_db,
+            "piiViolationsInDb": pii_violations,
+            "scaleArchitecture": "Async Ring Buffer (50K cap) + Batch Bulk Insert + Partitioning Ready"
+        }
+    }

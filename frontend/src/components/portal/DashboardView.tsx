@@ -16,9 +16,9 @@ import {
   serviceItems,
   semestersData
 } from '../../data/mockData';
-import { ServiceItem, ScheduleEvent, SemesterData } from '../../types/uth';
+import { ServiceItem, ScheduleEvent, SemesterData, StudentProfile } from '../../types/uth';
 import { useAuth } from '../../contexts/AuthContext';
-import { getStudentSchedule, getStudentGrades } from '../../services/studentService';
+import { getStudentSchedule, getStudentGrades, getStudentProfile } from '../../services/studentService';
 import { DashboardSkeleton } from '../common/Skeleton';
 
 interface DashboardViewProps {
@@ -31,7 +31,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onGoToPublicPortal
 }) => {
   const { session } = useAuth();
-  const student = session.student || initialStudentProfile;
+  const initialStudent = session.student || initialStudentProfile;
+
+  // Quản lý thông tin sinh viên hiển thị động (hỗ trợ cập nhật avatar tức thì)
+  const [currentStudent, setCurrentStudent] = useState<StudentProfile>(initialStudent);
 
   // Quản lý view hiển thị: 'dashboard' (Trang chủ) hoặc 'calendar' (Thời khóa biểu tuần)
   const [activeView, setActiveView] = useState<'dashboard' | 'calendar'>('dashboard');
@@ -47,6 +50,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [botInitialQuery, setBotInitialQuery] = useState<string | undefined>();
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
 
+  // Đồng bộ student từ session khi thay đổi
+  useEffect(() => {
+    if (session.student) {
+      setCurrentStudent(session.student);
+    }
+  }, [session.student]);
+
   // Lắng nghe tín hiệu click logo từ Header để luôn đảm bảo chuyển về Dashboard
   useEffect(() => {
     const handleGoHome = () => {
@@ -58,12 +68,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     };
   }, []);
 
+  // Tải dữ liệu thật từ Backend (Schedule, Grades, Profile mới nhất từ CSDL)
   useEffect(() => {
     let isMounted = true;
     setIsLoadingDashboard(true);
-    Promise.all([getStudentSchedule(), getStudentGrades()])
-      .then(([schedData, gradesData]) => {
+
+    Promise.all([
+      getStudentProfile(),
+      getStudentSchedule(), 
+      getStudentGrades()
+    ])
+      .then(([profData, schedData, gradesData]) => {
         if (!isMounted) return;
+        if (profData && profData.mssv) {
+          setCurrentStudent((prev) => ({
+            ...prev,
+            ...profData,
+            avatarUrl: profData.avatarUrl || prev.avatarUrl,
+          }));
+        }
         if (schedData && schedData.length > 0) {
           setEvents(schedData);
         }
@@ -78,10 +101,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           }, 200);
         }
       });
+
     return () => {
       isMounted = false;
     };
-  }, [student.mssv]);
+  }, [initialStudent.mssv]);
 
   // Mở trang thời khóa biểu toàn màn hình khi chọn ngày trên lịch tháng
   const handleOpenScheduleForDate = (date: string) => {
@@ -108,7 +132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     <div className="min-h-screen bg-[#f1f5f9] flex flex-col font-sans">
       {/* Header thanh điều hướng UTH - Đã kết nối hàm onGoHome */}
       <Header
-        student={student}
+        student={currentStudent}
         onLogout={onLogout}
         onOpenCardModal={() => setIsCardModalOpen(true)}
         onOpenScheduleModal={handleOpenFullSchedule}
@@ -134,7 +158,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between">
                   <StudentInfoCard
-                    student={student}
+                    student={currentStudent}
                     onOpenCardModal={() => setIsCardModalOpen(true)}
                   />
 
@@ -196,10 +220,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       />
 
       <StudentCardModal
-        student={student}
+        student={currentStudent}
         isOpen={isCardModalOpen}
         onClose={() => setIsCardModalOpen(false)}
       />
+
+
 
       <ScheduleModal
         events={events}
@@ -210,7 +236,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       <ServiceModal
         service={selectedService}
-        student={student}
+        student={currentStudent}
         isOpen={isServiceModalOpen}
         onClose={() => setIsServiceModalOpen(false)}
         onOpenChatWithQuery={handleOpenBotWithQuery}

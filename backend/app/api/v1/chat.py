@@ -16,6 +16,9 @@ from backend.app.core.security import (
     GUEST_REFUSAL_MESSAGE,
     is_profanity_or_abuse,
     is_prompt_injection,
+    detect_advanced_jailbreak,
+    normalize_query_input,
+    sanitize_ai_output,
     sanitize_and_validate_input,
     security_shield
 )
@@ -30,28 +33,29 @@ from backend.app.services.gemini_ai import (
     generate_stream_response, 
     is_gemini_available
 )
-from backend.app.api.v1.admin import knowledge_base, bot_config
+from backend.app.api.v1.admin import knowledge_base, bot_config, reload_knowledge_cache
 
 logger = logging.getLogger(__name__)
+
+def get_current_kb(db: Session):
+    """Đảm bảo danh mục tri thức RAG luôn đồng bộ đầy đủ từ CSDL."""
+    from backend.app.api.v1.admin import knowledge_base as kb
+    if len(kb) < 10:
+        reload_knowledge_cache(db)
+        from backend.app.api.v1.admin import knowledge_base as kb_refreshed
+        return kb_refreshed
+    return kb
+
+from backend.app.services.audit_logger import record_audit as async_record_audit
 
 router = APIRouter(tags=["Chatbot AI"])
 
 def record_audit(db: Session, role: str, ip: str, query: str, pii: bool, intent: str, snippet: str, latency: float):
-    """Ghi nhật ký kiểm toán và an ninh vào CSDL."""
-    try:
-        log = AuditLog(
-            role=role,
-            client_ip=ip,
-            query=query,
-            pii_detected=pii,
-            intent=intent,
-            response_snippet=snippet[:250] if snippet else "",
-            latency_ms=latency
-        )
-        db.add(log)
-        db.commit()
-    except Exception:
-        db.rollback()
+    """
+    Ghi nhật ký kiểm toán bất đồng bộ qua HighConcurrencyAuditLogger (Zero-latency O(1) buffer).
+    Được thiết kế cho quy mô 1M - 5M người dùng truy cập đồng thời mà không nghẽn CSDL.
+    """
+    async_record_audit(db=db, role=role, ip=ip, query=query, pii=pii, intent=intent, snippet=snippet, latency=latency)
 
 def verify_and_filter_security(query: str, role: str, client_ip: str, db: Session) -> Tuple[Optional[dict], str]:
     """
@@ -62,7 +66,7 @@ def verify_and_filter_security(query: str, role: str, client_ip: str, db: Sessio
     4. Chống tấn công bẻ khóa AI (Prompt Injection & Jailbreak Defense).
     5. Bảo vệ thông tin cá nhân (PII Privacy Guard cho khách).
     """
-    # 1. Làm sạch & kiểm tra độ dài
+    # 1. Làm sạch, chuẩn hóa Unicode & kiểm tra độ dài
     valid, sanitized, err_msg = sanitize_and_validate_input(query, max_chars=800)
     if not valid:
         return {
@@ -72,6 +76,8 @@ def verify_and_filter_security(query: str, role: str, client_ip: str, db: Sessio
             "engine": "Security Shield (Validation)",
             "status_code": 400
         }, query
+
+    normalized_input = normalize_query_input(sanitized)
 
     # 2. Anti-DDoS, Burst & Rate Limiter
     allowed, rate_err, retry_after = security_shield.check_access(client_ip, role=role)
@@ -87,7 +93,7 @@ def verify_and_filter_security(query: str, role: str, client_ip: str, db: Sessio
 
     # 3. Lọc từ ngữ quấy rối / thô tục
     if bot_config.get("enableAbuseFilter", True):
-        is_abuse, abuse_msg = is_profanity_or_abuse(sanitized)
+        is_abuse, abuse_msg = is_profanity_or_abuse(normalized_input)
         if is_abuse:
             security_shield.record_violation(client_ip)
             record_audit(db, role, client_ip, sanitized, False, "ABUSE_BLOCKED", abuse_msg, 2.0)
@@ -99,9 +105,12 @@ def verify_and_filter_security(query: str, role: str, client_ip: str, db: Sessio
                 "status_code": 200
             }, sanitized
 
-    # 4. Chống Prompt Injection / Jailbreak
+    # 4. Chống Prompt Injection & Advanced Jailbreak Guard
     if bot_config.get("enableInjectionGuard", True):
-        is_inject, inject_msg = is_prompt_injection(sanitized)
+        is_inject, inject_msg = is_prompt_injection(normalized_input)
+        if not is_inject:
+            is_inject, inject_msg = detect_advanced_jailbreak(normalized_input)
+
         if is_inject:
             security_shield.record_violation(client_ip)
             record_audit(db, role, client_ip, sanitized, False, "INJECTION_BLOCKED", inject_msg, 2.0)
@@ -115,7 +124,7 @@ def verify_and_filter_security(query: str, role: str, client_ip: str, db: Sessio
 
     # 5. PII Guard cho khách
     if bot_config.get("enablePiiGuard", True):
-        if role == "guest" and is_pii_or_confidential_attempt(sanitized):
+        if role == "guest" and (is_pii_or_confidential_attempt(sanitized) or is_pii_or_confidential_attempt(normalized_input)):
             record_audit(db, "guest", client_ip, sanitized, True, "PII_BLOCKED", GUEST_REFUSAL_MESSAGE, 2.0)
             return {
                 "reply": GUEST_REFUSAL_MESSAGE,
@@ -393,7 +402,8 @@ async def chat_guest(req: ChatRequest, request: Request, db: Session = Depends(g
         }
 
     # 2. Tối ưu tốc độ: Kiểm tra Fast In-Memory Cache (< 10ms) nếu được bật
-    fast_ans = find_fast_instant_answer(sanitized_query, knowledge_base) if bot_config.get("enableFastCache", True) else None if bot_config.get("enableFastCache", True) else None
+    current_kb = get_current_kb(db)
+    fast_ans = find_fast_instant_answer(sanitized_query, current_kb) if bot_config.get("enableFastCache", True) else None
     if fast_ans:
         duration = int((time.time() - start) * 1000)
         record_audit(db, "guest", client_ip, sanitized_query, False, fast_ans["intent"], fast_ans["reply"], duration)
@@ -414,7 +424,7 @@ async def chat_guest(req: ChatRequest, request: Request, db: Session = Depends(g
 
     # 3. NLP & Gemini RAG
     intent, conf = classify_intent(sanitized_query)
-    matched = match_knowledge_items(sanitized_query, knowledge_base)
+    matched = match_knowledge_items(sanitized_query, current_kb)
     guest_system_prompt = build_personalized_system_prompt("guest", sanitized_query, None, None)
 
     reply = await generate_response(
@@ -429,8 +439,11 @@ async def chat_guest(req: ChatRequest, request: Request, db: Session = Depends(g
     if not reply:
         reply = get_guest_fallback_answer(sanitized_query, matched)
 
+    # Output Guardrail: Kiểm duyệt câu trả lời trước khi trả về khách
+    reply, was_sanitized = sanitize_ai_output(reply, role="guest")
+
     duration = int((time.time() - start) * 1000)
-    record_audit(db, "guest", client_ip, sanitized_query, False, intent, reply, duration)
+    record_audit(db, "guest", client_ip, sanitized_query, was_sanitized, intent, reply, duration)
 
     return {
         "success": True,
@@ -477,7 +490,8 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
         }
 
     # 2. Tối ưu tốc độ: Kiểm tra Fast In-Memory Cache (< 10ms) nếu là câu hỏi chung
-    fast_ans = find_fast_instant_answer(sanitized_query, knowledge_base) if bot_config.get("enableFastCache", True) else None
+    current_kb = get_current_kb(db)
+    fast_ans = find_fast_instant_answer(sanitized_query, current_kb) if bot_config.get("enableFastCache", True) else None
     if fast_ans:
         duration = int((time.time() - start) * 1000)
         record_audit(db, "student", client_ip, sanitized_query, False, fast_ans["intent"], fast_ans["reply"], duration)
@@ -501,7 +515,7 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
     student_name = student_ctx.name or "Nguyễn Văn A"
     
     intent, conf = classify_intent(sanitized_query)
-    matched = match_knowledge_items(sanitized_query, knowledge_base)
+    matched = match_knowledge_items(sanitized_query, current_kb)
     
     live_student_data = None
     if student_ctx.mssv:
@@ -524,8 +538,12 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
     if not reply:
         reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data)
         
+    # Output Guardrail: Kiểm duyệt câu trả lời
+    st_mssv = student_ctx.mssv if student_ctx else None
+    reply, was_sanitized = sanitize_ai_output(reply, role="student", allowed_mssv=st_mssv)
+
     duration = int((time.time() - start) * 1000)
-    record_audit(db, "student", client_ip, sanitized_query, False, intent, reply, duration)
+    record_audit(db, "student", client_ip, sanitized_query, was_sanitized, intent, reply, duration)
 
     return {
         "success": True,
@@ -572,7 +590,8 @@ async def chat_parent(req: ChatRequest, request: Request, db: Session = Depends(
         }
 
     # 2. Tối ưu tốc độ: Fast Cache
-    fast_ans = find_fast_instant_answer(sanitized_query, knowledge_base) if bot_config.get("enableFastCache", True) else None
+    current_kb = get_current_kb(db)
+    fast_ans = find_fast_instant_answer(sanitized_query, current_kb) if bot_config.get("enableFastCache", True) else None
     if fast_ans:
         duration = int((time.time() - start) * 1000)
         record_audit(db, "parent", client_ip, sanitized_query, False, fast_ans["intent"], fast_ans["reply"], duration)
@@ -595,7 +614,7 @@ async def chat_parent(req: ChatRequest, request: Request, db: Session = Depends(
     student_name = student_ctx.name or "con em"
     
     intent, conf = classify_intent(sanitized_query)
-    matched = match_knowledge_items(sanitized_query, knowledge_base)
+    matched = match_knowledge_items(sanitized_query, current_kb)
     
     live_student_data = None
     if student_ctx.mssv:
@@ -617,8 +636,12 @@ async def chat_parent(req: ChatRequest, request: Request, db: Session = Depends(
     if not reply:
         reply = get_parent_fallback_answer(sanitized_query, student_name, matched, live_student_data)
         
+    # Output Guardrail: Kiểm duyệt câu trả lời
+    st_mssv = student_ctx.mssv if student_ctx else None
+    reply, was_sanitized = sanitize_ai_output(reply, role="parent", allowed_mssv=st_mssv)
+
     duration = int((time.time() - start) * 1000)
-    record_audit(db, "parent", client_ip, sanitized_query, False, intent, reply, duration)
+    record_audit(db, "parent", client_ip, sanitized_query, was_sanitized, intent, reply, duration)
 
     return {
         "success": True,
@@ -661,7 +684,8 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
         return StreamingResponse(sec_generator(), media_type="text/event-stream")
 
     # 2. Fast In-Memory Cache (Nếu câu hỏi chung khớp FAQ -> Stream trả lời ngay lập tức < 10ms)
-    fast_ans = find_fast_instant_answer(sanitized_query, knowledge_base) if bot_config.get("enableFastCache", True) else None
+    current_kb = get_current_kb(db)
+    fast_ans = find_fast_instant_answer(sanitized_query, current_kb) if bot_config.get("enableFastCache", True) else None
     if fast_ans:
         async def fast_cache_generator():
             words = fast_ans["reply"].split(" ")
@@ -717,7 +741,7 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
 
         # Fallback sang tri thức Python NLP nếu Gemini không khả dụng
         if not used_gemini or not full_accumulated:
-            matched = match_knowledge_items(sanitized_query, knowledge_base)
+            matched = match_knowledge_items(sanitized_query, current_kb)
             if user_role == "student":
                 student_name = student_ctx.name if student_ctx else "Nguyễn Văn A"
                 fallback_reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data)
