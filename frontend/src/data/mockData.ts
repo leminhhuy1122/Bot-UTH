@@ -2,7 +2,7 @@ import { StudentProfile, ScheduleEvent, SemesterData, ServiceItem, BotKnowledgeI
 
 export const initialStudentProfile: StudentProfile = {
   mssv: '056205008344',
-  name: 'Nguyễn Văn A',
+  name: 'Trần Minh Hiếu',
   cohort: '2023',
   gender: 'Nam',
   birthDate: '15/08/2005',
@@ -12,7 +12,7 @@ export const initialStudentProfile: StudentProfile = {
   faculty: 'Công nghệ thông tin',
   major: 'Công nghệ thông tin',
   specialization: 'Công nghệ thông tin',
-  avatarUrl: '/student_avatar_ai.png',
+  avatarUrl: '/HT2.jpg',
   email: '056205008344@ut.edu.vn',
   phone: '0912 345 678',
   classId: 'CN23CLC01',

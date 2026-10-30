@@ -1,18 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Calendar, Bell, ChevronDown, User, LogOut, Shield, KeyRound, ExternalLink, X } from 'lucide-react';
+import {
+  Menu,
+  Bell,
+  Calendar as CalendarIcon,
+  ChevronDown,
+  LogOut,
+  IdCard
+} from 'lucide-react';
 import { StudentProfile } from '../../types/uth';
-import { NotificationModal } from '../modals/NotificationModal';
-import { ChangePasswordModal } from '../modals/ChangePasswordModal';
 import { NavDrawer } from './NavDrawer';
-import { useToast } from '../../contexts/ToastContext';
 
 interface HeaderProps {
-  student: StudentProfile;
+  student: StudentProfile | any;
   onLogout: () => void;
-  onOpenCardModal: () => void;
-  onOpenScheduleModal: () => void;
-  weeklyScheduleCount: number;
-  onGoToPublicPortal?: () => void;
+  onOpenCardModal?: () => void;
+  onOpenScheduleModal?: () => void;
+  weeklyScheduleCount?: number;
+  onGoHome?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,20 +24,36 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onOpenCardModal,
   onOpenScheduleModal,
-  weeklyScheduleCount,
-  onGoToPublicPortal,
+  weeklyScheduleCount = 1,
+  onGoHome,
 }) => {
-  const { showToast } = useToast();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isNavDrawerOpen, setIsNavDrawerOpen] = useState(false);
-  const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Lấy họ tên sinh viên trực tiếp từ props dữ liệu hệ thống
+  const studentName =
+    student?.fullName ||
+    student?.name ||
+    student?.hoTen ||
+    'Sinh viên';
+
+  const mssv = student?.mssv || student?.studentId || '';
+
+  // Xử lý khi nhấn vào Logo UTH để về trang chính
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onGoHome) {
+      onGoHome();
+    }
+    window.dispatchEvent(new CustomEvent('uth:go-home'));
+  };
+
+  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowUserMenu(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -42,154 +62,153 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 shadow-xs">
-        {/* Top green accent line matching UTH system */}
-        <div className="h-1 w-full bg-[#0d796e]" />
+      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40 select-none shadow-2xs">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* Left: Hamburger + UTH Logo */}
-          <div className="flex items-center gap-4">
-            <button 
-              title="Menu điều hướng hệ sinh thái UTH"
-              onClick={() => setIsNavDrawerOpen(true)}
-              className="p-1.5 rounded-md text-[#0d796e] hover:bg-teal-50 transition-colors cursor-pointer"
+          {/* ================= GÓC TRÁI: NÚT 3 GẠCH VÀ LOGO UTH ================= */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Nút 3 gạch Menu trượt */}
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="text-[#00695c] hover:text-[#004d40] p-1.5 rounded-lg hover:bg-slate-100/80 transition-colors cursor-pointer"
+              title="Danh mục menu"
             >
-              <Menu className="w-6 h-6 stroke-[2.5]" />
+              <Menu className="w-6 h-6 stroke-[2.2]" />
             </button>
 
-            <a href="#" className="flex items-center gap-2">
-              <img 
-                src="/uth_logo.png" 
-                alt="UTH University Logo" 
-                className="h-8 sm:h-9 object-contain"
-              />
-            </a>
+            {/* Logo UTH: Nhấn vào để quay về Dashboard */}
+            <div
+              onClick={handleLogoClick}
+              role="button"
+              tabIndex={0}
+              title="Quay về Trang chủ UTH"
+              className="flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:opacity-85 transition-all select-none py-1 group"
+            >
+              <span className="text-[28px] sm:text-[31px] font-serif font-black text-[#00897b] leading-none tracking-tighter">
+                UTH
+              </span>
+
+              <div className="flex flex-col justify-between h-[25px] sm:h-[27px] text-[7.5px] sm:text-[8.5px] font-black text-[#d32f2f] leading-none tracking-tight uppercase">
+                <span>UNIVERSITY</span>
+                <span>OF TRANSPORT</span>
+                <span>HOCHIMINH CITY</span>
+              </div>
+            </div>
           </div>
 
-          {/* Right: Actions & User Dropdown */}
-          <div className="flex items-center gap-2.5 sm:gap-4">
-            {/* Calendar button with badge */}
-            <div className="relative">
-              <button
-                onClick={onOpenScheduleModal}
-                title="Lịch học trong tuần"
-                className="relative p-2 text-slate-600 hover:text-[#0d796e] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <Calendar className="w-5 h-5" />
-                {weeklyScheduleCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">
-                    {weeklyScheduleCount}
-                  </span>
-                )}
-              </button>
-            </div>
+          {/* ================= GÓC PHẢI: LỊCH, THÔNG BÁO, TÀI KHOẢN ================= */}
+          <div className="flex items-center gap-3 sm:gap-4">
 
-            {/* Bell Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setIsNotifModalOpen(true)}
-                title="Xem thông báo học vụ UTH"
-                className="relative p-2 text-slate-600 hover:text-[#0d796e] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
-              </button>
-            </div>
+            {/* Icon lịch kèm số đếm đỏ */}
+            <button
+              type="button"
+              onClick={onOpenScheduleModal}
+              className="relative p-2 text-teal-800 hover:bg-teal-50 rounded-xl transition-colors cursor-pointer"
+              title="Lịch học trong tuần"
+            >
+              <div className="w-8 h-8 rounded-lg border border-teal-600/60 bg-teal-50/40 flex items-center justify-center text-teal-700">
+                <CalendarIcon className="w-4 h-4" />
+              </div>
+              {weeklyScheduleCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[17px] h-[17px] bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-xs ring-2 ring-white">
+                  {weeklyScheduleCount}
+                </span>
+              )}
+            </button>
 
-            {/* User Profile Dropdown matching the red border in user image */}
-            <div className="relative" ref={menuRef}>
+            {/* Chuông thông báo */}
+            <button
+              type="button"
+              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              title="Thông báo"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+
+            {/* Tài khoản sinh viên: Chỉ hiển thị họ tên + mũi tên trỏ xuống */}
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 px-3 py-1.5 border border-[#d32f2f] hover:bg-red-50/40 rounded-sm text-slate-800 text-sm font-medium transition-colors cursor-pointer"
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <span className="truncate max-w-[120px] sm:max-w-none">{student.name}</span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
+                <span className="text-xs sm:text-sm font-semibold text-slate-800">
+                  {studentName}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in duration-100">
-                  {/* Mini student header in menu */}
-                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60">
-                    <p className="text-sm font-bold text-slate-900">{student.name}</p>
-                    <p className="text-xs text-slate-500 font-mono mt-0.5">MSSV: {student.mssv}</p>
-                    <p className="text-xs text-teal-700 font-medium">{student.faculty}</p>
+              {/* Menu thả xuống */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-800 truncate">{studentName}</p>
+                    {mssv && (
+                      <p className="text-[11px] text-slate-500 font-mono mt-0.5">MSSV: {mssv}</p>
+                    )}
                   </div>
 
                   <div className="py-1">
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        onOpenCardModal();
-                      }}
-                      className="w-full px-4 py-2 text-xs text-slate-700 hover:bg-teal-50 hover:text-teal-800 flex items-center gap-2.5 transition-colors cursor-pointer text-left"
-                    >
-                      <User className="w-4 h-4 text-teal-600" />
-                      <span>Xem Thẻ sinh viên điện tử</span>
-                    </button>
+                    {onOpenCardModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onOpenCardModal();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-900 transition-colors text-left cursor-pointer"
+                      >
+                        <IdCard className="w-4 h-4 text-teal-600" />
+                        <span>Xem thẻ sinh viên</span>
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        setIsPasswordModalOpen(true);
-                      }}
-                      className="w-full px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer text-left"
-                    >
-                      <KeyRound className="w-4 h-4 text-slate-500" />
-                      <span>Đổi mật khẩu tài khoản</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        showToast(`Quy chế đào tạo tín chỉ UTH Khóa ${student.cohort} - Ngành ${student.major}`, 'info', 'Quy chế đào tạo');
-                      }}
-                      className="w-full px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer text-left"
-                    >
-                      <Shield className="w-4 h-4 text-slate-500" />
-                      <span>Quy chế đào tạo tín chỉ</span>
-                    </button>
+                    {onOpenScheduleModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onOpenScheduleModal();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-900 transition-colors text-left cursor-pointer"
+                      >
+                        <CalendarIcon className="w-4 h-4 text-teal-600" />
+                        <span>Thời khóa biểu tuần</span>
+                      </button>
+                    )}
                   </div>
 
-                  <div className="pt-1 border-t border-slate-100">
+                  <div className="border-t border-slate-100 pt-1 mt-1">
                     <button
+                      type="button"
                       onClick={() => {
-                        setShowUserMenu(false);
+                        setIsDropdownOpen(false);
                         onLogout();
                       }}
-                      className="w-full px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors text-left cursor-pointer"
                     >
-                      <LogOut className="w-4 h-4" />
-                      <span>Đăng xuất (Về màn hình Elearning)</span>
+                      <LogOut className="w-4 h-4 text-red-500" />
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
+
           </div>
+
         </div>
       </header>
 
-      {/* Nav Drawer */}
+      {/* Menu Drawer trượt */}
       <NavDrawer
-        isOpen={isNavDrawerOpen}
-        onClose={() => setIsNavDrawerOpen(false)}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
         student={student}
-        onOpenSchedule={onOpenScheduleModal}
-        onOpenNotifications={() => setIsNotifModalOpen(true)}
-        onGoToPublicPortal={onGoToPublicPortal}
-      />
-
-      {/* Notification Modal */}
-      <NotificationModal
-        isOpen={isNotifModalOpen}
-        onClose={() => setIsNotifModalOpen(false)}
-      />
-
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        studentName={student.name}
+        onLogout={onLogout}
+        onOpenCardModal={onOpenCardModal}
+        onOpenScheduleModal={onOpenScheduleModal}
       />
     </>
   );

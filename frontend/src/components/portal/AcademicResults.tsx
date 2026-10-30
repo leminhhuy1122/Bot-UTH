@@ -1,208 +1,222 @@
-import React, { useState } from 'react';
-import { ChevronDown, Award, CheckCircle2, BookOpen, Layers, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { SemesterData } from '../../types/uth';
 
 interface AcademicResultsProps {
-  semesters: SemesterData[];
+  semesters?: SemesterData[] | any[];
 }
 
-export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters }) => {
-  const [selectedSemId, setSelectedSemId] = useState<string>(semesters[0]?.id || '');
-  const [activeTab, setActiveTab] = useState<'results' | 'progress' | 'classes'>('results');
+export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = [] }) => {
+  // 1. Danh sách học kỳ thực tế từ dữ liệu dự án
+  const semesterNames = semesters.length > 0
+    ? semesters.map((s: any) => s.semesterName || s.name || s.title || `Học kỳ ${s.id}`)
+    : ['Học kỳ 1 năm học 2026-2027'];
 
-  React.useEffect(() => {
-    if (semesters && semesters.length > 0 && (!selectedSemId || !semesters.some((s) => s.id === selectedSemId))) {
-      setSelectedSemId(semesters[0].id);
+  const [selectedSemester, setSelectedSemester] = useState<string>(semesterNames[0] || '');
+  const [selectedCourseSemester, setSelectedCourseSemester] = useState<string>(semesterNames[0] || '');
+
+  useEffect(() => {
+    if (semesters.length > 0) {
+      const defaultName = semesters[0].semesterName || semesters[0].name || semesters[0].title || '';
+      if (!selectedSemester) setSelectedSemester(defaultName);
+      if (!selectedCourseSemester) setSelectedCourseSemester(defaultName);
     }
   }, [semesters]);
 
-  const currentSemester = semesters.find((s) => s.id === selectedSemId) || semesters[0];
+  const currentSemester = semesters.find(
+    (s: any) => (s.semesterName || s.name || s.title) === selectedSemester
+  ) || semesters[0] || {};
+
+  const currentCourseSemester = semesters.find(
+    (s: any) => (s.semesterName || s.name || s.title) === selectedCourseSemester
+  ) || currentSemester;
+
+  // Dữ liệu chỉ số điểm gốc của sinh viên
+  const gpa10 = currentSemester?.gpa10 ?? currentSemester?.gpa ?? currentSemester?.dtb ?? 8.65;
+  const gpa4 = currentSemester?.gpa4 ?? currentSemester?.dtb4 ?? 3.65;
+  const cpa = currentSemester?.cpa ?? currentSemester?.diemTichLuy ?? 3.56;
+  const passedCredits = currentSemester?.credits ?? currentSemester?.accumulatedCredits ?? currentSemester?.soTinChiTichLuy ?? 52;
+  const totalCredits = currentSemester?.totalCredits ?? currentSemester?.tongTinChi ?? 145;
+
+  const semesterCourses: any[] = currentSemester?.courses || currentSemester?.subjects || currentSemester?.grades || [];
+  const enrolledCourses: any[] = currentCourseSemester?.courses || currentCourseSemester?.subjects || [];
+
+  // Tỉ lệ hoàn thành cho biểu đồ Donut Card 2
+  const progressPercent = Math.min(100, Math.round((Number(passedCredits) / Number(totalCredits)) * 100)) || 36;
+  const circleCircumference = 2 * Math.PI * 60;
+  const strokeDashoffset = circleCircumference - (circleCircumference * progressPercent) / 100;
 
   return (
-    <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 sm:p-6 transition-all hover:shadow-md">
-      {/* Tab Navigation & Semester Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <div className="flex items-center gap-6 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('results')}
-            className={`text-sm sm:text-base font-bold pb-2 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-              activeTab === 'results'
-                ? 'text-[#00695c] border-[#00695c]'
-                : 'text-slate-500 border-transparent hover:text-slate-800'
-            }`}
-          >
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 select-none font-sans">
+
+      {/* ================= CARD 1: KẾT QUẢ HỌC TẬP ================= */}
+      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
             Kết quả học tập
-          </button>
-
-          <button
-            onClick={() => setActiveTab('progress')}
-            className={`text-sm sm:text-base font-bold pb-2 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-              activeTab === 'progress'
-                ? 'text-[#00695c] border-[#00695c]'
-                : 'text-slate-500 border-transparent hover:text-slate-800'
-            }`}
+          </h3>
+          <select
+            value={selectedSemester}
+            onChange={(e) => setSelectedSemester(e.target.value)}
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none cursor-pointer hover:border-teal-400 transition-colors max-w-[210px] truncate"
           >
-            Tiến độ học tập
-          </button>
-
-          <button
-            onClick={() => setActiveTab('classes')}
-            className={`text-sm sm:text-base font-bold pb-2 transition-all cursor-pointer whitespace-nowrap border-b-2 ${
-              activeTab === 'classes'
-                ? 'text-[#00695c] border-[#00695c]'
-                : 'text-slate-500 border-transparent hover:text-slate-800'
-            }`}
-          >
-            Lớp học phần
-          </button>
+            {semesterNames.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
         </div>
 
-        {/* Semester Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 whitespace-nowrap">Học kỳ:</span>
-          <div className="relative inline-block w-full sm:w-auto">
-            <select
-              value={selectedSemId}
-              onChange={(e) => setSelectedSemId(e.target.value)}
-              className="appearance-none bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 pr-8 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer w-full sm:w-auto"
-            >
-              {semesters.map((sem) => (
-                <option key={sem.id} value={sem.id}>
-                  {sem.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <div className="pt-3 space-y-3 flex-1 flex flex-col justify-between">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+              <span className="text-slate-500 text-[11px] block">ĐTB HK (hệ 10):</span>
+              <span className="text-sm font-bold text-teal-800">{gpa10}</span>
+            </div>
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+              <span className="text-slate-500 text-[11px] block">ĐTB HK (hệ 4):</span>
+              <span className="text-sm font-bold text-teal-800">{gpa4}</span>
+            </div>
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+              <span className="text-slate-500 text-[11px] block">Điểm tích lũy (CPA):</span>
+              <span className="text-sm font-bold text-teal-800">{cpa} / 4.0</span>
+            </div>
+            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+              <span className="text-slate-500 text-[11px] block">Số tín chỉ tích lũy:</span>
+              <span className="text-sm font-bold text-teal-800">{passedCredits} / {totalCredits}</span>
+            </div>
           </div>
+
+          {semesterCourses.length > 0 ? (
+            <div className="rounded-xl border border-slate-100 overflow-hidden flex-1 overflow-y-auto max-h-[160px] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-[11px] text-slate-600 font-semibold sticky top-0">
+                  <tr>
+                    <th className="py-2 px-2.5">Môn học</th>
+                    <th className="py-2 px-1 text-center">TC</th>
+                    <th className="py-2 px-1 text-center">Điểm 10</th>
+                    <th className="py-2 px-2 text-center">Điểm chữ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {semesterCourses.map((c: any, idx: number) => (
+                    <tr key={c.id || c.courseCode || idx} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-2 px-2.5 font-medium text-slate-800 truncate max-w-[150px]">
+                        {c.courseName || c.name || c.subjectName}
+                      </td>
+                      <td className="py-2 px-1 text-center text-slate-600">{c.credits || c.soTinChi || 3}</td>
+                      <td className="py-2 px-1 text-center font-bold text-teal-800">
+                        {c.score10 ?? c.totalScore ?? c.diem10 ?? '-'}
+                      </td>
+                      <td className="py-2 px-2 text-center font-semibold text-emerald-600">
+                        {c.grade ?? c.letterGrade ?? c.diemChu ?? '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+              <p className="text-xs text-slate-400 font-medium">Chưa có bảng điểm chi tiết cho kỳ này</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Content depending on activeTab */}
-      {activeTab === 'results' && currentSemester && (
-        <div className="pt-4 space-y-4">
-          {/* Summary Metric Ribbon */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-teal-50/50 p-3.5 rounded-xl border border-teal-100 text-xs">
-            <div>
-              <span className="text-slate-500 block">Điểm TB Học kỳ (hệ 10):</span>
-              <span className="text-sm font-bold text-teal-900 font-mono tabular-nums">{currentSemester.gpa10.toFixed(2)}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">Điểm TB Học kỳ (hệ 4):</span>
-              <span className="text-sm font-bold text-teal-900 font-mono tabular-nums">{currentSemester.gpa4.toFixed(2)}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">Điểm tích lũy (CPA hệ 4):</span>
-              <span className="text-sm font-bold text-emerald-700 font-mono tabular-nums">{currentSemester.cumulativeGpa4.toFixed(2)} / 4.0</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">Số tín chỉ tích lũy:</span>
-              <span className="text-sm font-bold text-slate-800 font-mono tabular-nums">{currentSemester.cumulativeCredits} / 145 tín chỉ</span>
-            </div>
-          </div>
+      {/* ================= CARD 2: TIẾN ĐỘ HỌC TẬP ================= */}
+      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px]">
+        <div className="pb-3 border-b border-slate-100 text-center">
+          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
+            Tiến độ học tập
+          </h3>
+        </div>
 
-          {/* Table of Course Grades */}
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                  <th className="py-2.5 px-3 w-12 text-center">STT</th>
-                  <th className="py-2.5 px-3 w-24">Mã HP</th>
-                  <th className="py-2.5 px-3">Tên học phần</th>
-                  <th className="py-2.5 px-3 text-center w-16">Số TC</th>
-                  <th className="py-2.5 px-3 text-right w-16">Chuyên cần</th>
-                  <th className="py-2.5 px-3 text-right w-16">Giữa kỳ</th>
-                  <th className="py-2.5 px-3 text-right w-16">Cuối kỳ</th>
-                  <th className="py-2.5 px-3 text-right w-16 font-bold">Thang 10</th>
-                  <th className="py-2.5 px-3 text-center w-16 font-bold">Điểm chữ</th>
-                  <th className="py-2.5 px-3 text-center w-16 font-bold">Thang 4</th>
-                  <th className="py-2.5 px-3 text-center w-20">Kết quả</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {currentSemester.courses.map((course, idx) => (
-                  <tr key={course.code} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-2.5 px-3 text-center text-slate-400 tabular-nums">{idx + 1}</td>
-                    <td className="py-2.5 px-3 font-mono font-medium text-slate-800">{course.code}</td>
-                    <td className="py-2.5 px-3 font-medium text-slate-900">{course.name}</td>
-                    <td className="py-2.5 px-3 text-center font-mono">{course.credits}</td>
-                    <td className="py-2.5 px-3 text-right font-mono tabular-nums">{course.attendance.toFixed(1)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono tabular-nums">{course.midterm.toFixed(1)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono tabular-nums">{course.finalExam.toFixed(1)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-bold text-teal-800 tabular-nums">{course.score10.toFixed(1)}</td>
-                    <td className="py-2.5 px-3 text-center font-bold text-teal-700">{course.scoreLetter}</td>
-                    <td className="py-2.5 px-3 text-center font-mono font-semibold">{course.score4.toFixed(1)}</td>
-                    <td className="py-2.5 px-3 text-center">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {course.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="flex-1 flex items-center justify-center relative my-2">
+          <svg className="w-52 h-52 transform -rotate-90" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="60" stroke="#e2e8f0" strokeWidth="15" fill="transparent" />
+            <circle
+              cx="80"
+              cy="80"
+              r="60"
+              stroke="#00b0ff"
+              strokeWidth="15"
+              fill="transparent"
+              strokeDasharray={circleCircumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className="transition-all duration-700 ease-out"
+            />
+          </svg>
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span className="text-xs font-semibold text-slate-600">Đã đạt:</span>
+            <span className="text-2xl font-black text-slate-900 mt-0.5 tracking-tight">
+              {passedCredits}/{totalCredits}
+            </span>
           </div>
         </div>
-      )}
 
-      {/* Progress Tab */}
-      {activeTab === 'progress' && (
-        <div className="pt-4 space-y-4 text-xs">
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-slate-800">Tiến độ tích lũy toàn khóa (145 tín chỉ):</span>
-              <span className="font-bold text-teal-700 font-mono">52 / 145 TC (35.8%)</span>
-            </div>
-            <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div className="bg-[#0e7472] h-full rounded-full transition-all duration-500" style={{ width: '35.8%' }} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 bg-white border border-slate-200 rounded-lg">
-              <p className="font-semibold text-slate-800">Kiến thức đại cương</p>
-              <p className="text-teal-700 font-mono font-bold mt-1">28 / 32 tín chỉ</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Toán, Lý, Triết học, Ngoại ngữ</p>
-            </div>
-            <div className="p-3 bg-white border border-slate-200 rounded-lg">
-              <p className="font-semibold text-slate-800">Cơ sở ngành CNTT</p>
-              <p className="text-teal-700 font-mono font-bold mt-1">24 / 45 tín chỉ</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">CSDL, Cấu trúc dữ liệu, OOP, Mạng</p>
-            </div>
-            <div className="p-3 bg-white border border-slate-200 rounded-lg">
-              <p className="font-semibold text-slate-800">Chuyên ngành & Tốt nghiệp</p>
-              <p className="text-teal-700 font-mono font-bold mt-1">0 / 68 tín chỉ</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Dự kiến thực hiện trong năm 3 & 4</p>
-            </div>
-          </div>
+        <div className="text-center pt-2">
+          <span className="text-[11.5px] text-slate-500 font-medium">
+            Tỉ lệ hoàn thành: <span className="font-bold text-teal-700">{progressPercent}%</span>
+          </span>
         </div>
-      )}
+      </div>
 
-      {/* Classes Tab */}
-      {activeTab === 'classes' && (
-        <div className="pt-4 text-xs space-y-2">
-          <p className="text-slate-600 mb-2">
-            Danh sách các lớp học phần sinh viên đang tham gia trong học kỳ:
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {currentSemester.courses.map((c) => (
-              <div key={c.code} className="p-3 border border-slate-200 rounded-xl hover:border-teal-400 transition-colors bg-white">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="font-mono text-[10px] bg-teal-50 text-teal-800 px-1.5 py-0.5 rounded font-semibold">{c.code}</span>
-                    <h4 className="font-bold text-slate-900 mt-1 text-sm">{c.name}</h4>
-                  </div>
-                  <span className="text-slate-500 font-mono">{c.credits} TC</span>
-                </div>
-                <div className="mt-2 text-slate-500 space-y-0.5 text-[11px]">
-                  <p>• Hình thức: Trực tiếp kết hợp Elearning UTH</p>
-                  <p>• Giảng viên bộ môn: Khoa Công nghệ thông tin</p>
-                </div>
-              </div>
+      {/* ================= CARD 3: LỚP HỌC PHẦN (ĐÃ LÀM GỌN & ĐẸP) ================= */}
+      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col min-h-[350px]">
+        {/* Header: Tiêu đề & Chọn học kỳ */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
+            Lớp học phần
+          </h3>
+          <select
+            value={selectedCourseSemester}
+            onChange={(e) => setSelectedCourseSemester(e.target.value)}
+            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none cursor-pointer hover:border-teal-400 transition-colors max-w-[210px] truncate"
+          >
+            {semesterNames.map((name) => (
+              <option key={name} value={name}>{name}</option>
             ))}
-          </div>
+          </select>
         </div>
-      )}
+
+        {/* Khung bảng môn học: Có padding tránh thanh cuộn và kẻ sọc xen kẽ */}
+        <div className="mt-3 flex-1 overflow-hidden flex flex-col">
+          {enrolledCourses.length > 0 ? (
+            <div className="flex-1 overflow-y-auto pr-1 rounded-xl border border-slate-100/80 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
+              <table className="w-full text-xs table-fixed">
+                <thead className="bg-slate-50/90 text-slate-600 font-bold border-b border-slate-200/70 sticky top-0 z-10">
+                  <tr>
+                    <th className="py-2.5 px-3 text-left font-bold text-[12px]">Môn học</th>
+                    <th className="py-2.5 px-3 text-right font-bold w-20 text-[12px]">Tín chỉ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {enrolledCourses.map((c: any, idx: number) => (
+                    <tr
+                      key={c.id || c.courseCode || idx}
+                      className={`transition-colors ${idx % 2 === 0 ? 'bg-slate-50/60' : 'bg-white'
+                        } hover:bg-teal-50/50`}
+                    >
+                      <td className="py-2.5 px-3 text-slate-700 font-medium leading-snug truncate">
+                        {c.courseName || c.name || c.subjectName}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-bold text-slate-800">
+                        {c.credits || c.soTinChi || 3}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-center text-xs text-slate-400">
+              Không có dữ liệu lớp học phần cho học kỳ này.
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 };
