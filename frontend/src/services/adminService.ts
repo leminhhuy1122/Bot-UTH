@@ -1,10 +1,96 @@
-import seedStudentsData from '../data/students_seed.json';
-
 const API_BASE = '/api/admin';
 
-function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem('uth_jwt_token');
+// Tách seed dữ liệu ngoại tuyến thành chunk bất đồng bộ (Code Splitting)
+// Ngăn không cho file JSON 3.2MB bị đóng gói trực tiếp vào Main Bundle
+let cachedFallbackData: AdminStudentItem[] | null = null;
+async function getFallbackSeedData(): Promise<AdminStudentItem[]> {
+  if (cachedFallbackData) return cachedFallbackData;
+  try {
+    const mod = await import('../data/students_seed.json');
+    cachedFallbackData = (mod.default || mod) as AdminStudentItem[];
+    return cachedFallbackData;
+  } catch {
+    return [];
+  }
+}
+
+let isRefreshingAdminToken = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+export async function ensureAdminToken(): Promise<string | null> {
+  const adminToken = localStorage.getItem('uth_admin_jwt_token') || localStorage.getItem('uth_jwt_token');
+  if (adminToken) return adminToken;
+
+  if (isRefreshingAdminToken && refreshPromise) {
+    return refreshPromise;
+  }
+
+  isRefreshingAdminToken = true;
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch('/api/v1/auth/sync-admin-token', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('uth_admin_jwt_token', data.token);
+          localStorage.setItem('uth_jwt_token', data.token);
+          return data.token;
+        }
+      }
+      const resQuick = await fetch('/api/v1/auth/quick-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'admin' }),
+      });
+      if (resQuick.ok) {
+        const dataQuick = await resQuick.json();
+        if (dataQuick.token) {
+          localStorage.setItem('uth_admin_jwt_token', dataQuick.token);
+          localStorage.setItem('uth_jwt_token', dataQuick.token);
+          return dataQuick.token;
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi auto-sync token admin:', e);
+    } finally {
+      isRefreshingAdminToken = false;
+      refreshPromise = null;
+    }
+    return null;
+  })();
+
+  return refreshPromise;
+}
+
+export function getAuthHeader(): Record<string, string> {
+  const token = localStorage.getItem('uth_admin_jwt_token') || localStorage.getItem('uth_jwt_token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  let token = await ensureAdminToken();
+  const headers = new Headers(init.headers || {});
+  if (!headers.has('Content-Type') && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  let res = await fetch(input, { ...init, headers });
+
+  // Tự động phục hồi phiên nếu token hết hạn, bị lệch quyền sinh viên hoặc không hợp lệ (HTTP 401 hoặc 403)
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('uth_admin_jwt_token');
+    localStorage.removeItem('uth_jwt_token');
+    const newToken = await ensureAdminToken();
+    if (newToken) {
+      headers.set('Authorization', `Bearer ${newToken}`);
+      res = await fetch(input, { ...init, headers });
+    }
+  }
+
+  return res;
 }
 
 export interface AdminStudentItem {
@@ -64,22 +150,25 @@ export async function fetchAdminStudents(
   faculty?: string,
   tuitionStatus?: string,
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  cohort?: string,
+  ranking?: string,
+  trainingType?: string,
+  sortBy?: string
 ): Promise<FetchStudentsResult> {
   try {
     const params = new URLSearchParams();
     if (search && search.trim()) params.append('search', search.trim());
     if (faculty && faculty !== 'Tất cả') params.append('faculty', faculty);
     if (tuitionStatus && tuitionStatus !== 'Tất cả') params.append('tuition_status', tuitionStatus);
+    if (cohort && cohort !== 'Tất cả') params.append('cohort', cohort);
+    if (ranking && ranking !== 'Tất cả') params.append('ranking', ranking);
+    if (trainingType && trainingType !== 'Tất cả') params.append('training_type', trainingType);
+    if (sortBy && sortBy !== 'default') params.append('sort_by', sortBy);
     params.append('page', String(page));
     params.append('pageSize', String(pageSize));
 
-    const res = await fetch(`${API_BASE}/students?${params.toString()}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/students?${params.toString()}`);
 
     if (res.ok) {
       const json = await res.json();
@@ -95,12 +184,19 @@ export async function fetchAdminStudents(
     }
     throw new Error('API fallback');
   } catch (err) {
-    // Fallback phân trang phía client khi offline
-    let list = seedStudentsData as AdminStudentItem[];
+    // Fallback phân trang & lọc phía client khi offline (Lazy Chunk)
+    const rawList = await getFallbackSeedData();
+    let list = [...rawList];
     if (search && search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(
-        (s) => s.mssv.includes(q) || s.name.toLowerCase().includes(q) || s.major.toLowerCase().includes(q)
+        (s) =>
+          s.mssv.toLowerCase().includes(q) ||
+          s.name.toLowerCase().includes(q) ||
+          s.major.toLowerCase().includes(q) ||
+          (s.classId && s.classId.toLowerCase().includes(q)) ||
+          (s.phone && s.phone.includes(q)) ||
+          (s.email && s.email.toLowerCase().includes(q))
       );
     }
     if (faculty && faculty !== 'Tất cả') {
@@ -109,6 +205,31 @@ export async function fetchAdminStudents(
     if (tuitionStatus && tuitionStatus !== 'Tất cả') {
       list = list.filter((s) => s.tuitionStatus === tuitionStatus);
     }
+    if (cohort && cohort !== 'Tất cả') {
+      list = list.filter((s) => s.cohort === cohort);
+    }
+    if (ranking && ranking !== 'Tất cả') {
+      list = list.filter((s) => s.ranking === ranking);
+    }
+    if (trainingType && trainingType !== 'Tất cả') {
+      list = list.filter((s) => s.trainingType === trainingType);
+    }
+
+    // Sắp xếp
+    if (sortBy === 'gpa4_desc') {
+      list = [...list].sort((a, b) => (b.gpa4 || 0) - (a.gpa4 || 0));
+    } else if (sortBy === 'gpa4_asc') {
+      list = [...list].sort((a, b) => (a.gpa4 || 0) - (b.gpa4 || 0));
+    } else if (sortBy === 'training_point_desc') {
+      list = [...list].sort((a, b) => (b.trainingPoint || 0) - (a.trainingPoint || 0));
+    } else if (sortBy === 'debt_desc') {
+      list = [...list].sort((a, b) => (b.debtAmount || 0) - (a.debtAmount || 0));
+    } else if (sortBy === 'name_asc') {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+    } else if (sortBy === 'credits_desc') {
+      list = [...list].sort((a, b) => (b.accumulatedCredits || 0) - (a.accumulatedCredits || 0));
+    }
+
     const total = list.length;
     const offset = (page - 1) * pageSize;
     const paginated = list.slice(offset, offset + pageSize);
@@ -124,12 +245,7 @@ export async function fetchAdminStudents(
 
 export async function fetchStudentDetail(mssv: string): Promise<AdminStudentItem | null> {
   try {
-    const res = await fetch(`${API_BASE}/students/${mssv}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/students/${mssv}`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
@@ -138,18 +254,15 @@ export async function fetchStudentDetail(mssv: string): Promise<AdminStudentItem
     }
     throw new Error('API fallback');
   } catch (err) {
-    const found = (seedStudentsData as AdminStudentItem[]).find((s) => s.mssv === mssv);
+    const list = await getFallbackSeedData();
+    const found = list.find((s) => s.mssv === mssv);
     return found || null;
   }
 }
 
 export async function createAdminStudent(studentData: Partial<AdminStudentItem> & { password?: string }): Promise<{ success: boolean; message: string; data?: AdminStudentItem }> {
-  const res = await fetch(`${API_BASE}/students`, {
+  const res = await adminFetch(`${API_BASE}/students`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    },
     body: JSON.stringify(studentData),
   });
   const data = await res.json();
@@ -160,12 +273,8 @@ export async function createAdminStudent(studentData: Partial<AdminStudentItem> 
 }
 
 export async function updateAdminStudent(mssv: string, studentData: Partial<AdminStudentItem> & { password?: string }): Promise<{ success: boolean; message: string; data?: AdminStudentItem }> {
-  const res = await fetch(`${API_BASE}/students/${mssv}`, {
+  const res = await adminFetch(`${API_BASE}/students/${mssv}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    },
     body: JSON.stringify(studentData),
   });
   const data = await res.json();
@@ -176,12 +285,8 @@ export async function updateAdminStudent(mssv: string, studentData: Partial<Admi
 }
 
 export async function deleteAdminStudent(mssv: string): Promise<{ success: boolean; message: string }> {
-  const res = await fetch(`${API_BASE}/students/${mssv}`, {
+  const res = await adminFetch(`${API_BASE}/students/${mssv}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    },
   });
   const data = await res.json();
   if (!res.ok) {
@@ -202,12 +307,8 @@ export interface BatchStudentResult {
 export async function batchCreateAdminStudents(
   students: (Partial<AdminStudentItem> & { password?: string })[]
 ): Promise<BatchStudentResult> {
-  const res = await fetch(`${API_BASE}/students/batch`, {
+  const res = await adminFetch(`${API_BASE}/students/batch`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    },
     body: JSON.stringify({ students }),
   });
   if (!res.ok) {
@@ -227,12 +328,7 @@ export async function batchCreateAdminStudents(
 
 export async function fetchAdminStats(): Promise<AdminStats> {
   try {
-    const res = await fetch(`${API_BASE}/stats`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/stats`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.stats) {
@@ -241,7 +337,7 @@ export async function fetchAdminStats(): Promise<AdminStats> {
     }
     throw new Error('API fallback');
   } catch (err) {
-    const students = seedStudentsData as AdminStudentItem[];
+    const students = await getFallbackSeedData();
     const debtStudents = students.filter((s) => s.debtAmount > 0);
     const faculties = Array.from(new Set(students.map((s) => s.faculty)));
 
@@ -273,12 +369,7 @@ export interface AuditLogItem {
 
 export async function fetchAdminAuditLogs(): Promise<AuditLogItem[]> {
   try {
-    const res = await fetch(`${API_BASE}/audit-logs`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/audit-logs`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -289,6 +380,99 @@ export async function fetchAdminAuditLogs(): Promise<AuditLogItem[]> {
   } catch (err) {
     console.warn('Lỗi fetch audit logs:', err);
     return [];
+  }
+}
+
+export interface SystemMetrics {
+  success: boolean;
+  timestamp: string;
+  overallHealth: 'OPTIMAL' | 'WARNING' | 'CRITICAL';
+  healthMessage: string;
+  cpu: {
+    percent: number;
+    logicalCores: number;
+    physicalCores: number;
+    status: 'NORMAL' | 'HIGH' | 'CRITICAL';
+  };
+  memory: {
+    totalGb: number;
+    usedGb: number;
+    freeGb: number;
+    percent: number;
+    status: 'NORMAL' | 'HIGH' | 'CRITICAL';
+  };
+  disk: {
+    totalGb: number;
+    usedGb: number;
+    freeGb: number;
+    percent: number;
+    status: 'NORMAL' | 'WARNING' | 'CRITICAL';
+  };
+  database: {
+    engine: string;
+    isPostgres: boolean;
+    status: string;
+    latencyMs: number;
+    poolSize: number;
+    checkedIn: number;
+    checkedOut: number;
+    overflow: number;
+    poolMode: string;
+  };
+  process: {
+    pid: number;
+    pythonVersion: string;
+    osName: string;
+    memoryRssMb: number;
+    threadsCount: number;
+    uptimeSeconds: number;
+    uptimeFormatted: string;
+  };
+  auditBuffer: {
+    pendingLogs: number;
+    bufferCapacity: number;
+    bufferUsagePercent: number;
+    totalIngested: number;
+    totalFlushed: number;
+    droppedLogs: number;
+    ingestionRatePerSec: number;
+    lastFlushBatchSize: number;
+    lastFlushDurationMs: number;
+    lastFlushSecondsAgo: number;
+    mode: string;
+    batchFlushThreshold: number;
+    flushIntervalSeconds: number;
+    totalLogsInDb: number;
+    piiViolationsInDb: number;
+    scaleArchitecture: string;
+  };
+}
+
+export async function fetchSystemMetrics(): Promise<SystemMetrics | null> {
+  try {
+    const res = await adminFetch(`${API_BASE}/system/metrics`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        return data as SystemMetrics;
+      }
+    }
+    return null;
+  } catch (err) {
+    console.warn('Lỗi lấy thông số giám sát hệ thống:', err);
+    return null;
+  }
+}
+
+export async function flushAuditBuffer(): Promise<boolean> {
+  try {
+    const res = await adminFetch(`${API_BASE}/system/flush-audit`, {
+      method: 'POST',
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Lỗi flush audit buffer:', err);
+    return false;
   }
 }
 
@@ -310,12 +494,7 @@ export interface TrainKnowledgeResponse {
 
 export async function fetchAdminKnowledge(): Promise<any[]> {
   try {
-    const res = await fetch(`${API_BASE}/knowledge`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/knowledge`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -329,12 +508,8 @@ export async function fetchAdminKnowledge(): Promise<any[]> {
 }
 
 export async function trainAdminKnowledge(): Promise<TrainKnowledgeResponse> {
-  const res = await fetch(`${API_BASE}/train-knowledge`, {
+  const res = await adminFetch(`${API_BASE}/train-knowledge`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeader(),
-    },
   });
   if (!res.ok) {
     throw new Error(`Huấn luyện thất bại với mã lỗi ${res.status}`);
@@ -344,12 +519,8 @@ export async function trainAdminKnowledge(): Promise<TrainKnowledgeResponse> {
 
 export async function deleteAdminKnowledge(id: string): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/knowledge/${encodeURIComponent(id)}`, {
+    const res = await adminFetch(`${API_BASE}/knowledge/${encodeURIComponent(id)}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
     });
     return res.ok;
   } catch {
@@ -364,12 +535,8 @@ export async function createAdminKnowledge(item: {
   answer: string;
 }): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/knowledge`, {
+    const res = await adminFetch(`${API_BASE}/knowledge`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify(item),
     });
     return res.ok;
@@ -385,12 +552,8 @@ export async function updateAdminKnowledge(id: string, item: {
   answer: string;
 }): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/knowledge/${encodeURIComponent(id)}`, {
+    const res = await adminFetch(`${API_BASE}/knowledge/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify(item),
     });
     return res.ok;
@@ -406,12 +569,8 @@ export async function batchCreateAdminKnowledge(items: Array<{
   answer: string;
 }>): Promise<{ success: boolean; count: number; message: string }> {
   try {
-    const res = await fetch(`${API_BASE}/knowledge/batch`, {
+    const res = await adminFetch(`${API_BASE}/knowledge/batch`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify(items),
     });
     if (res.ok) {
@@ -457,12 +616,8 @@ export async function testAdminQuery(
   mssv: string = '056205008344'
 ): Promise<AdminTestQueryResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/test-query`, {
+    const res = await adminFetch(`${API_BASE}/test-query`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify({ query, role, mssv }),
     });
     if (res.ok) {
@@ -476,12 +631,7 @@ export async function testAdminQuery(
 
 export async function fetchAdminBotConfig(): Promise<any> {
   try {
-    const res = await fetch(`${API_BASE}/config`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
-    });
+    const res = await adminFetch(`${API_BASE}/config`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
@@ -496,12 +646,8 @@ export async function fetchAdminBotConfig(): Promise<any> {
 
 export async function saveAdminBotConfig(configData: any): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/config`, {
+    const res = await adminFetch(`${API_BASE}/config`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeader(),
-      },
       body: JSON.stringify(configData),
     });
     return res.ok;
@@ -509,5 +655,58 @@ export async function saveAdminBotConfig(configData: any): Promise<boolean> {
     return false;
   }
 }
+
+export interface DuplicateKnowledgeItem {
+  id: string;
+  category: string;
+  question: string;
+  keywords: string[];
+  answer: string;
+  updatedAt?: string;
+}
+
+export interface DuplicatePair {
+  id: string;
+  similarity: number;
+  similarityPercent: number;
+  reason: string;
+  isExact: boolean;
+  itemA: DuplicateKnowledgeItem;
+  itemB: DuplicateKnowledgeItem;
+}
+
+export async function fetchKnowledgeDuplicates(threshold: number = 0.65): Promise<DuplicatePair[]> {
+  try {
+    const res = await adminFetch(`${API_BASE}/knowledge/duplicates?threshold=${threshold}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return json.data as DuplicatePair[];
+      }
+    }
+  } catch (err) {
+    console.warn('Lỗi quét câu hỏi trùng lặp:', err);
+  }
+  return [];
+}
+
+export async function resolveKnowledgeDuplicate(payload: {
+  action: 'keep_a' | 'keep_b' | 'merge' | 'dismiss';
+  keep_id: string;
+  delete_id?: string;
+  merge_keywords?: boolean;
+}): Promise<{ success: boolean; message: string; totalKnowledge?: number }> {
+  try {
+    const res = await adminFetch(`${API_BASE}/knowledge/resolve-duplicate`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return json;
+  } catch (err: any) {
+    return { success: false, message: `Lỗi kết nối máy chủ: ${err.message}` };
+  }
+}
+
 
 

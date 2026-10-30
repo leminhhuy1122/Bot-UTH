@@ -213,9 +213,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-[#008272] hover:bg-[#007062] active:bg-[#005e52] disabled:opacity-70 text-white text-sm font-medium rounded-lg shadow-xs transition-colors cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 bg-[#008272] hover:bg-[#007062] active:bg-[#005e52] disabled:opacity-70 text-white text-sm font-medium rounded-lg shadow-xs transition-colors cursor-pointer"
               >
-                {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
+                {isSubmitting ? 'Đang xác thực...' : 'Đăng nhập'}
               </button>
 
               <button
@@ -227,6 +227,70 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </button>
             </div>
           </form>
+
+          {/* Quick Fill Credentials (Tiện ích chọn nhanh tài khoản mẫu để đăng nhập kiểm thử) */}
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="text-[11px] font-semibold text-slate-500 mb-2">
+              Tài khoản mẫu thử nghiệm:
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername('056205008344');
+                  setPassword('123456');
+                  setErrorMessage('');
+                }}
+                className={`p-2 text-left rounded-lg border transition-all cursor-pointer ${
+                  username === '056205008344'
+                    ? 'border-[#008272] bg-teal-50/60 ring-1 ring-[#008272]'
+                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                }`}
+              >
+                <div className="text-xs font-bold text-slate-800">🎓 Sinh viên</div>
+                <div className="text-[10px] text-slate-500 font-mono">056205008344</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUsername('admin');
+                  setPassword('Admin@123');
+                  setErrorMessage('');
+                }}
+                className={`p-2 text-left rounded-lg border transition-all cursor-pointer ${
+                  username.toLowerCase() === 'admin'
+                    ? 'border-indigo-600 bg-indigo-50/60 ring-1 ring-indigo-600'
+                    : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                }`}
+              >
+                <div className="text-xs font-bold text-slate-800">🛡️ Quản trị viên</div>
+                <div className="text-[10px] text-slate-500 font-mono">admin / Admin@123</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Footer Navigation Links */}
+          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-center text-xs">
+            {onGoToParentPortal && (
+              <button
+                type="button"
+                onClick={onGoToParentPortal}
+                className="text-[#168277] hover:underline font-medium cursor-pointer"
+              >
+                👨‍👩‍👧 Dành cho Phụ huynh tra cứu học tập &rarr;
+              </button>
+            )}
+            {onContinueAsGuest && (
+              <button
+                type="button"
+                onClick={onContinueAsGuest}
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                Xem Cổng thông tin công khai & Trợ lý ảo &rarr;
+              </button>
+            )}
+          </div>
         </div>
       </main>
 

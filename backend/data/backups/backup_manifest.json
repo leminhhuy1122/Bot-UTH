@@ -1,0 +1,138 @@
+[
+  {
+    "id": "bak-20261030-172021-57b6a8",
+    "filename": "bak-20261030-172021-57b6a8.uthbak.gz",
+    "created_at": "30/10/2026 17:20:21",
+    "created_at_iso": "2026-10-30T17:20:21.779102",
+    "created_by": "admin",
+    "type": "pre_restore_snapshot",
+    "scope": "full",
+    "description": "Snapshot tự động bảo vệ trước khi khôi phục bản [bak-20261030-171956-824c88]",
+    "size_bytes": 250985,
+    "size_formatted": "245.1 KB",
+    "checksum_sha256": "f64bbd15792c25c1812515d721a5d219e5a493f955b2ab421767b4dbca804e4c",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919,
+      "knowledge_documents": 80,
+      "audit_logs": 22
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T17:20:21.779102",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  },
+  {
+    "id": "bak-20261030-171956-824c88",
+    "filename": "bak-20261030-171956-824c88.uthbak.gz",
+    "created_at": "30/10/2026 17:19:56",
+    "created_at_iso": "2026-10-30T17:19:56.098250",
+    "created_by": "admin",
+    "type": "manual",
+    "scope": "full",
+    "description": "test",
+    "size_bytes": 250796,
+    "size_formatted": "244.9 KB",
+    "checksum_sha256": "8fed16cbcfcf47362391bdfdd9d21ebaae40e0844abf682bee5a7bd4cb55ac80",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919,
+      "knowledge_documents": 80,
+      "audit_logs": 21
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T17:19:56.098250",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  },
+  {
+    "id": "bak-20261030-161901-96d5c7",
+    "filename": "bak-20261030-161901-96d5c7.uthbak.gz",
+    "created_at": "30/10/2026 16:19:01",
+    "created_at_iso": "2026-10-30T16:19:01.584123",
+    "created_by": "admin",
+    "type": "pre_restore_snapshot",
+    "scope": "full",
+    "description": "Snapshot tự động bảo vệ trước khi khôi phục bản [bak-20261030-161858-e5c8db]",
+    "size_bytes": 228106,
+    "size_formatted": "222.8 KB",
+    "checksum_sha256": "575bcee45fc5a0f100e88605dc04d3867d9d17d7a1a0f5d75c0ed6c85fcb7a0f",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919,
+      "knowledge_documents": 5,
+      "audit_logs": 14
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T16:19:01.584123",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  },
+  {
+    "id": "bak-20261030-161520-9b603c",
+    "filename": "bak-20261030-161520-9b603c.uthbak.gz",
+    "created_at": "30/10/2026 16:15:20",
+    "created_at_iso": "2026-10-30T16:15:20.673763",
+    "created_by": "admin",
+    "type": "pre_restore_snapshot",
+    "scope": "full",
+    "description": "Snapshot tự động bảo vệ trước khi khôi phục bản [bak-20261030-161517-a95a86]",
+    "size_bytes": 227826,
+    "size_formatted": "222.5 KB",
+    "checksum_sha256": "edf51d3a86092cb19b089ef8518ce980d7d6967e48052620c01afeded93ee957",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919,
+      "knowledge_documents": 5,
+      "audit_logs": 12
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T16:15:20.673763",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  },
+  {
+    "id": "bak-20261030-161517-a95a86",
+    "filename": "bak-20261030-161517-a95a86.uthbak.gz",
+    "created_at": "30/10/2026 16:15:17",
+    "created_at_iso": "2026-10-30T16:15:17.647170",
+    "created_by": "admin",
+    "type": "manual",
+    "scope": "students_only",
+    "description": "E2E Test Backup for Students Scope",
+    "size_bytes": 224744,
+    "size_formatted": "219.5 KB",
+    "checksum_sha256": "641d9314a5cb39433b93df0a067a55e7d9f8a15dfc75c1751a3abe73389e9d69",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T16:15:17.647170",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  },
+  {
+    "id": "bak-20261030-161041-701370",
+    "filename": "bak-20261030-161041-701370.uthbak.gz",
+    "created_at": "30/10/2026 16:10:41",
+    "created_at_iso": "2026-10-30T16:10:41.855614",
+    "created_by": "admin",
+    "type": "manual",
+    "scope": "full",
+    "description": "Test initial backup",
+    "size_bytes": 227714,
+    "size_formatted": "222.4 KB",
+    "checksum_sha256": "6a8c32980c43ba15b194f8150f4540fcf9a01769bb7783e88efb466a9deae6a2",
+    "records_count": {
+      "users": 920,
+      "student_profiles": 919,
+      "knowledge_documents": 5,
+      "audit_logs": 12
+    },
+    "status": "success",
+    "integrity": "verified",
+    "expires_at": "2026-11-29T16:10:41.855614",
+    "engine": "Neon.tech PostgreSQL (pgvector)"
+  }
+]

@@ -1,11 +1,15 @@
 import re
 import time
+import unicodedata
+import base64
 from datetime import datetime, timedelta
 from typing import Tuple, Optional, Dict, List
 import bcrypt
 import jwt
+from backend.app.core.config import JWT_SECRET_KEY
 
-SECRET_KEY = "uth_super_secure_jwt_secret_key_2026"
+# Sử dụng JWT Secret Key an toàn nạp từ biến môi trường
+SECRET_KEY = JWT_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 giờ
 
@@ -224,3 +228,83 @@ class IPSecurityShield:
 
 # Khởi tạo thể hiện lá chắn bảo vệ toàn cục
 security_shield = IPSecurityShield()
+
+# ----------------- 5. DUAL-LAYER AI DEFENSE & OUTPUT GUARDRAILS -----------------
+
+ADVANCED_JAILBREAK_PATTERNS = [
+    r'ignore\s+(all\s+|previous\s+|prior\s+)*(instructions?|rules?|prompts?|constraints?)',
+    r'bypass\s+(security|filter|guardrail|policy|restriction)',
+    r'(developer|dan|jailbreak|unrestricted|god)\s+mode',
+    r'(show|print|reveal|display|output)\s+(your\s+|the\s+)*(system\s+prompt|instructions?|hidden\s+rules)',
+    r'(emergency|admin|root|debug)\s+override',
+    r'quên\s+(hết|toàn bộ|mọi|tất cả)*\s*(chỉ dẫn|hướng dẫn|quy định|mệnh lệnh)',
+    r'(chế độ|quyền)\s+(nhà phát triển|quản trị|debug|vượt rào|bỏ qua kiểm duyệt)',
+    r'(in|hiển thị|tiết lộ)\s+(toàn bộ\s+)*(system prompt|lời nhắc hệ thống|dữ liệu bí mật)'
+]
+ADVANCED_JAILBREAK_COMPILED = [re.compile(p, re.IGNORECASE | re.UNICODE) for p in ADVANCED_JAILBREAK_PATTERNS]
+
+def normalize_query_input(text: str) -> str:
+    """
+    Chuẩn hóa chuỗi truy vấn đầu vào:
+    - Chuẩn hóa Unicode NFKC để chống kỹ thuật ẩn ký tự (homoglyphs / zero-width space).
+    - Giải mã chuỗi Base64 tiềm ẩn để quét nội dung độc hại.
+    - Chuyển đổi một số ký tự leetspeak cơ bản.
+    """
+    if not text:
+        return ""
+    # 1. Chuẩn hóa Unicode
+    cleaned = unicodedata.normalize('NFKC', text)
+    cleaned = re.sub(r'[\u200B-\u200D\uFEFF]', '', cleaned) # Xóa zero-width spaces
+
+    # 2. Thử giải mã nếu có tiền tố base64 hoặc chuỗi thuần base64
+    b64_match = re.search(r'(?:base64:)?([A-Za-z0-9+/=]{16,})', cleaned)
+    if b64_match:
+        try:
+            decoded = base64.b64decode(b64_match.group(1)).decode('utf-8', errors='ignore')
+            if len(decoded) > 3 and any(c.isalnum() for c in decoded):
+                cleaned += f" [DECODED_BASE64: {decoded}]"
+        except Exception:
+            pass
+
+    return cleaned
+
+def detect_advanced_jailbreak(text: str) -> Tuple[bool, str]:
+    """Phát hiện các đòn tấn công Prompt Injection / Jailbreak nâng cao."""
+    norm = normalize_query_input(text)
+    for pat in ADVANCED_JAILBREAK_COMPILED:
+        if pat.search(norm):
+            return True, "Phát hiện hành vi Prompt Injection hoặc cố ý ép AI vi phạm chính sách bảo mật."
+    return False, ""
+
+def sanitize_ai_output(reply_text: str, role: str = "guest", allowed_mssv: Optional[str] = None) -> Tuple[str, bool]:
+    """
+    Output Guardrail: Quét và kiểm duyệt phản hồi đầu ra từ AI trước khi trả về client:
+    - Che dấu số CCCD / CMND (12 chữ số).
+    - Che dấu số điện thoại riêng tư.
+    - Nếu vai trò là Khách vãng lai (guest) nhưng câu trả lời cố ý chứa dữ liệu điểm hoặc nợ học phí của sinh viên,
+      hệ thống lập tức thay thế bằng cảnh báo bảo vệ PII.
+    """
+    if not reply_text:
+        return "", False
+
+    was_sanitized = False
+    sanitized = reply_text
+
+    # 1. Che số CCCD / CMND (12 chữ số liên tiếp)
+    def mask_cccd(match):
+        nonlocal was_sanitized
+        was_sanitized = True
+        val = match.group(0)
+        return val[:4] + "****" + val[-4:]
+
+    sanitized = re.sub(r'\b\d{12}\b', mask_cccd, sanitized)
+
+    # 2. Nếu là Khách vãng lai mà câu trả lời lại có thông tin nhạy cảm về điểm số hoặc công nợ của SV
+    if role == "guest":
+        sensitive_keywords = ["điểm gpa", "điểm trung bình", "nợ học phí", "kết quả học tập", "bảng điểm môn"]
+        lower_sanitized = sanitized.lower()
+        if any(kw in lower_sanitized for kw in sensitive_keywords) and re.search(r'\b\d{10,12}\b', sanitized):
+            was_sanitized = True
+            return GUEST_REFUSAL_MESSAGE, True
+
+    return sanitized, was_sanitized

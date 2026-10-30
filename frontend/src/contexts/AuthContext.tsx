@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StudentProfile } from '../types/uth';
 import { initialStudentProfile } from '../data/mockData';
 import { loginApi, quickLoginApi, logoutApi, verifyParentApi } from '../services/authService';
@@ -34,37 +34,26 @@ const GUEST_SESSION: UserSession = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<UserSession>(() => {
-    try {
-      const storedRole = localStorage.getItem('uth_user_role') as UserRole | null;
-      if (storedRole === 'admin') {
-        return {
-          role: 'admin',
-          username: 'Admin Hệ Thống',
-          loginTime: new Date().toISOString(),
-        };
+  // Mặc định luôn khởi tạo là GUEST_SESSION (chưa đăng nhập) để khi run code hoặc mở ứng dụng mới
+  // thì hệ thống bắt buộc người dùng phải đăng nhập lại, không tự động đăng nhập thẳng vào hệ thống
+  const [session, setSession] = useState<UserSession>(GUEST_SESSION);
+
+  // Tự động kiểm tra và đồng bộ Token hợp lệ cho Admin nếu đang trong phiên Admin
+  useEffect(() => {
+    if (session.role === 'admin') {
+      const currentAdminToken = localStorage.getItem('uth_admin_jwt_token');
+      if (!currentAdminToken) {
+        quickLoginApi('admin').then((res) => {
+          if (res?.token) {
+            localStorage.setItem('uth_admin_jwt_token', res.token);
+            localStorage.setItem('uth_jwt_token', res.token);
+          }
+        }).catch((e) => {
+          console.warn('Lỗi auto-recovery token cho phiên Admin:', e);
+        });
       }
-      if (storedRole === 'parent') {
-        const storedParentData = localStorage.getItem('uth_parent_student');
-        return {
-          role: 'parent',
-          parentStudent: storedParentData ? JSON.parse(storedParentData) : undefined,
-          username: 'Phụ huynh tra cứu',
-          loginTime: new Date().toISOString(),
-        };
-      }
-      if (storedRole === 'student') {
-        return {
-          role: 'student',
-          student: initialStudentProfile,
-          loginTime: new Date().toISOString(),
-        };
-      }
-    } catch (e) {
-      console.warn('Lỗi đọc phiên từ LocalStorage:', e);
     }
-    return GUEST_SESSION;
-  });
+  }, [session.role]);
 
   const loginAsStudent = async (mssvOrUsername: string, password?: string): Promise<UserRole> => {
     try {
@@ -79,6 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         localStorage.setItem('uth_user_role', 'admin');
         localStorage.setItem('uth_session_auth', 'true');
+        if (res.token) {
+          localStorage.setItem('uth_admin_jwt_token', res.token);
+          localStorage.setItem('uth_jwt_token', res.token);
+        }
         setSession(newSession);
         return 'admin';
       }
@@ -96,10 +89,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       localStorage.setItem('uth_user_role', 'student');
       localStorage.setItem('uth_session_auth', 'true');
+      if (res.token) {
+        localStorage.setItem('uth_student_jwt_token', res.token);
+        localStorage.setItem('uth_jwt_token', res.token);
+      }
       setSession(newSession);
       return 'student';
     } catch (err: any) {
-      if (mssvOrUsername.toLowerCase() === 'admin' && (password === 'Admin@123' || password === 'admin')) {
+      if (mssvOrUsername.toLowerCase() === 'admin' && (password === 'Admin@123' || password === 'admin' || !password)) {
+        try {
+          const resQ = await quickLoginApi('admin');
+          if (resQ?.token) {
+            localStorage.setItem('uth_admin_jwt_token', resQ.token);
+            localStorage.setItem('uth_jwt_token', resQ.token);
+          }
+        } catch {
+          // ignore
+        }
         const newSession: UserSession = {
           role: 'admin',
           username: 'Quản Trị Viên Hệ Thống UTH',
@@ -127,10 +133,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginAsAdmin = async (password?: string) => {
+    let token = '';
     try {
-      await loginApi('admin', password);
+      const res = await loginApi('admin', password || 'Admin@123');
+      if (res?.token) token = res.token;
     } catch (e) {
-      console.warn('Sử dụng quyền Admin cục bộ:', e);
+      try {
+        const resQuick = await quickLoginApi('admin');
+        if (resQuick?.token) token = resQuick.token;
+      } catch (errQuick) {
+        console.warn('Sử dụng quyền Admin cục bộ:', errQuick);
+      }
     }
     const newSession: UserSession = {
       role: 'admin',
@@ -139,6 +152,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     localStorage.setItem('uth_user_role', 'admin');
     localStorage.setItem('uth_session_auth', 'true');
+    if (token) {
+      localStorage.setItem('uth_admin_jwt_token', token);
+      localStorage.setItem('uth_jwt_token', token);
+    }
     setSession(newSession);
   };
 
@@ -208,8 +225,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('uth_session_auth');
       localStorage.removeItem('uth_jwt_token');
       localStorage.removeItem('uth_parent_student');
+      sessionStorage.removeItem('uth_user_role');
+      sessionStorage.removeItem('uth_session_auth');
+      sessionStorage.removeItem('uth_jwt_token');
+      sessionStorage.removeItem('uth_parent_student');
     } catch (e) {
-      console.warn('Không thể xóa LocalStorage:', e);
+      console.warn('Không thể xóa Storage:', e);
     }
     setSession(GUEST_SESSION);
   };

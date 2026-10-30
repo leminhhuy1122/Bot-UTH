@@ -31,26 +31,35 @@ def get_current_student(
         )
     
     user_id = payload.get("sub")
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Không tìm thấy tài khoản người dùng."
+            detail="Thông tin định danh trong token không hợp lệ."
         )
-    
-    profile = db.query(StudentProfile).filter(StudentProfile.user_id == user.id).first()
+
+    # Truy vấn kết hợp O(1) qua Index khóa chính
+    profile = (
+        db.query(StudentProfile)
+        .join(User, StudentProfile.user_id == User.id)
+        .filter((User.id == user_id) | (User.username == user_id))
+        .first()
+    )
     if not profile:
-        # Nếu là admin hoặc không tìm thấy profile theo user_id, tìm theo username (nếu username là mssv)
-        profile = db.query(StudentProfile).filter(StudentProfile.mssv == user.username).first()
-    
-    if not profile:
-        # Fallback profile đầu tiên
-        profile = db.query(StudentProfile).first()
-    
+        # Nếu chưa map user_id, tra cứu theo username/mssv để tự động đồng bộ liên kết
+        user = db.query(User).filter((User.id == user_id) | (User.username == user_id)).first()
+        if user:
+            profile = db.query(StudentProfile).filter(StudentProfile.mssv == user.username).first()
+            if profile and profile.user_id != user.id:
+                profile.user_id = user.id
+                try:
+                    db.commit()
+                except Exception:
+                    db.rollback()
+
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy hồ sơ sinh viên tương ứng."
+            detail="Không tìm thấy hồ sơ sinh viên tương ứng với tài khoản này. Vui lòng liên hệ Phòng Đào tạo UTH."
         )
     return profile
 

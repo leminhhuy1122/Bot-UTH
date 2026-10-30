@@ -1,3 +1,9 @@
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 from sqlalchemy import text
 from backend.app.db.session import engine, Base, SessionLocal, is_postgres, db_engine_type
 from backend.app.models.user import User, StudentProfile
@@ -20,6 +26,29 @@ def init_database():
             print(f"ℹ️ Kiểm tra extension pgvector: {e}")
 
     Base.metadata.create_all(bind=engine)
+
+    # Tự động tạo các B-Tree Indexes phục vụ tối ưu hóa truy vấn quy mô lớn
+    index_statements = [
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_full_name ON student_profiles (full_name);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_faculty ON student_profiles (faculty);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_cohort ON student_profiles (cohort);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_class_id ON student_profiles (class_id);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_tuition_status ON student_profiles (tuition_status);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_gpa4 ON student_profiles (gpa4);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_training_point ON student_profiles (training_point);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_debt_amount ON student_profiles (debt_amount);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_faculty_cohort ON student_profiles (faculty, cohort);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_tuition_debt ON student_profiles (tuition_status, debt_amount);",
+        "CREATE INDEX IF NOT EXISTS ix_student_profiles_gpa_ranking ON student_profiles (gpa4, ranking);",
+    ]
+    with engine.connect() as conn:
+        for stmt in index_statements:
+            try:
+                conn.execute(text(stmt))
+            except Exception:
+                pass
+        conn.commit()
+
     db = SessionLocal()
 
     try:

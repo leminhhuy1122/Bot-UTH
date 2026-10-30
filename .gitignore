@@ -46,6 +46,8 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+*.uthbak.gz
+docs/extracted_docx_text.txt
 
 # Logs
 *.log

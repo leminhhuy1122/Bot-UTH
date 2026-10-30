@@ -6,8 +6,11 @@ interface StudentInfoCardProps {
   onOpenCardModal: () => void;
 }
 
-export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({ student, onOpenCardModal }) => {
-  // Lấy dữ liệu an toàn từ props student của bạn (giữ nguyên dữ liệu hiện tại)
+export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({ 
+  student, 
+  onOpenCardModal 
+}) => {
+  // Lấy dữ liệu an toàn từ props student (giữ nguyên dữ liệu hiện tại)
   const mssv = (student as any)?.mssv || (student as any)?.studentId || '';
   const hoTen = (student as any)?.fullName || (student as any)?.name || (student as any)?.hoTen || '';
   const ngaySinh = (student as any)?.dateOfBirth || (student as any)?.dob || (student as any)?.ngaySinh || '';
@@ -48,6 +51,9 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({ student, onOpe
                 src={avatarUrl}
                 alt={hoTen}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/student_avatar_ai.png';
+                }}
               />
             ) : (
               <div className="w-full h-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold text-xl">
