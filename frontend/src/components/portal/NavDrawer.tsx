@@ -1,171 +1,214 @@
-import React from 'react';
-import { 
-  X, 
-  BookOpen, 
-  GraduationCap, 
-  ExternalLink, 
-  Calendar, 
-  CreditCard, 
-  HelpCircle, 
-  Phone, 
-  MapPin, 
-  Library, 
-  FileCheck, 
-  Building2,
-  Users
+import React, { useState } from 'react';
+import {
+  ChevronRight,
+  ChevronDown,
+  Calendar as CalendarIcon,
+  X,
+  BookOpen,
+  GraduationCap,
+  CreditCard,
+  HelpCircle,
+  LogOut
 } from 'lucide-react';
 import { StudentProfile } from '../../types/uth';
 
 interface NavDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  student: StudentProfile;
-  onOpenSchedule: () => void;
-  onOpenNotifications: () => void;
-  onGoToPublicPortal?: () => void;
+  student?: StudentProfile | any;
+  onLogout?: () => void;
+  onOpenCardModal?: () => void;
+  onOpenScheduleModal?: () => void;
 }
 
 export const NavDrawer: React.FC<NavDrawerProps> = ({
   isOpen,
   onClose,
-  student,
-  onOpenSchedule,
-  onOpenNotifications,
-  onGoToPublicPortal,
+  onLogout,
+  onOpenScheduleModal,
 }) => {
-  if (!isOpen) return null;
+  // Quản lý đóng/mở menu con nếu người dùng bấm vào
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
 
-  const quickLinks = [
-    {
-      title: 'Thời khóa biểu & Lịch thi',
-      icon: <Calendar className="w-4 h-4 text-[#008272]" />,
-      action: () => { onClose(); onOpenSchedule(); },
-      badge: 'Trực tuyến',
-    },
-    {
-      title: 'Thông báo học vụ mới',
-      icon: <FileCheck className="w-4 h-4 text-indigo-600" />,
-      action: () => { onClose(); onOpenNotifications(); },
-    },
-    {
-      title: 'Cổng thông tin tuyển sinh & công khai',
-      icon: <Building2 className="w-4 h-4 text-sky-600" />,
-      action: () => { onClose(); if (onGoToPublicPortal) onGoToPublicPortal(); },
-    },
-    {
-      title: 'Thư viện Trung tâm UTH',
-      icon: <Library className="w-4 h-4 text-amber-600" />,
-      action: () => {
-        onClose();
-        window.open('https://lib.ut.edu.vn', '_blank');
-      },
-      external: true,
-    },
-    {
-      title: 'Cổng Elearning UTH chính thức',
-      icon: <GraduationCap className="w-4 h-4 text-emerald-600" />,
-      action: () => {
-        onClose();
-        window.open('https://el.ut.edu.vn', '_blank');
-      },
-      external: true,
-    },
-    {
-      title: 'Khảo sát ý kiến sinh viên',
-      icon: <Users className="w-4 h-4 text-purple-600" />,
-      action: () => {
-        onClose();
-        window.open('https://khaosat.ut.edu.vn', '_blank');
-      },
-      external: true,
-    },
-  ];
+  const toggleSubmenu = (menuKey: string) => {
+    setExpandedMenu(prev => prev === menuKey ? null : menuKey);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden select-none font-sans">
-      {/* Backdrop */}
-      <div 
-        onClick={onClose}
-        className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-200" 
-      />
+    <>
+      {/* 1. Lớp nền mờ (Backdrop) khi mở menu */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 bg-black/40 z-50 backdrop-blur-[1px] transition-opacity duration-300"
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Drawer Container (Sliding in from Left) */}
-      <div className="absolute inset-y-0 left-0 max-w-xs sm:max-w-sm w-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
-        {/* Top Header */}
-        <div className="p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <img src="/uth_logo.png" alt="UTH" className="h-8 object-contain bg-white px-2 py-0.5 rounded" />
-            <div>
-              <div className="font-bold text-sm leading-tight">ĐẠI HỌC GTVT TP.HCM</div>
-              <div className="text-[11px] text-teal-300">Cổng Sinh Viên Điện Tử</div>
+      {/* 2. Thanh Menu trượt chuẩn UTH */}
+      <aside
+        className={`fixed top-0 left-0 bottom-0 w-64 sm:w-72 bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out border-r border-slate-200 select-none ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+      >
+        {/* Header Drawer: Logo UTH & Tên trường đỏ chuẩn tỉ lệ */}
+        <div className="h-16 px-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[26px] font-serif font-black text-[#00897b] leading-none tracking-tighter">
+              UTH
+            </span>
+            <div className="flex flex-col justify-between h-[23px] text-[7.5px] font-black text-[#d32f2f] leading-none tracking-tight uppercase">
+              <span>UNIVERSITY</span>
+              <span>OF TRANSPORT</span>
+              <span>HOCHIMINH CITY</span>
             </div>
           </div>
-          <button 
+
+          {/* Nút đóng nhanh (ẩn mờ tinh tế) */}
+          <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-1 rounded-md cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-50 transition-colors"
+            title="Đóng menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Student Mini Card */}
-        <div className="p-4 bg-teal-50 border-b border-teal-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-sm shadow-xs shrink-0">
-            {student.name.charAt(0)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-xs text-slate-900 truncate">{student.name}</div>
-            <div className="text-[11px] text-teal-800 font-mono">MSSV: {student.mssv}</div>
-            <div className="text-[10px] text-slate-500 truncate">{student.major}</div>
-          </div>
-        </div>
+        {/* Danh sách 5 Menu chuẩn Portal UTH */}
+        <div className="flex-1 py-3 px-2 overflow-y-auto space-y-1 text-xs">
 
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-1">
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">
-            Hệ sinh thái dịch vụ UTH
-          </div>
-
-          {quickLinks.map((item, idx) => (
+          {/* 1. Mục: Học tập */}
+          <div>
             <button
-              key={idx}
-              onClick={item.action}
-              className="w-full px-3 py-2.5 rounded-xl hover:bg-slate-100 flex items-center justify-between text-xs text-slate-700 transition-colors cursor-pointer text-left group"
+              type="button"
+              onClick={() => toggleSubmenu('hoctap')}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#007b82] hover:bg-teal-50/60 font-semibold transition-colors cursor-pointer"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-slate-50 group-hover:bg-white transition-colors">
-                  {item.icon}
-                </div>
-                <span className="font-medium text-slate-800">{item.title}</span>
+              <div className="flex items-center gap-2.5">
+                <ChevronRight className="w-4 h-4 text-orange-500 stroke-[2.8]" />
+                <span className="text-[13px] tracking-tight">Học tập</span>
               </div>
-
-              {item.badge ? (
-                <span className="text-[10px] bg-teal-100 text-teal-800 font-semibold px-2 py-0.5 rounded-full">
-                  {item.badge}
-                </span>
-              ) : item.external ? (
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600" />
-              ) : null}
+              <ChevronDown className={`w-3.5 h-3.5 text-[#007b82] transition-transform duration-200 ${expandedMenu === 'hoctap' ? 'rotate-180' : ''}`} />
             </button>
-          ))}
+
+            {/* Sub-menu khi bấm vào Học tập */}
+            {expandedMenu === 'hoctap' && (
+              <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
+                <button
+                  type="button"
+                  onClick={() => { onClose(); onOpenScheduleModal?.(); }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors block"
+                >
+                  Thời khóa biểu tuần
+                </button>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Lịch thi học kỳ</div>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Chương trình đào tạo</div>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Đăng ký môn học</div>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Mục: Thông tin chung */}
+          <div>
+            <button
+              type="button"
+              onClick={() => toggleSubmenu('thongtin')}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#007b82] hover:bg-teal-50/60 font-semibold transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <ChevronRight className="w-4 h-4 text-orange-500 stroke-[2.8]" />
+                <span className="text-[13px] tracking-tight">Thông tin chung</span>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-[#007b82] transition-transform duration-200 ${expandedMenu === 'thongtin' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {expandedMenu === 'thongtin' && (
+              <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Lý lịch sinh viên</div>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Thông báo từ nhà trường</div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Mục: Công nợ */}
+          <div>
+            <button
+              type="button"
+              onClick={() => toggleSubmenu('congno')}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#007b82] hover:bg-teal-50/60 font-semibold transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <ChevronRight className="w-4 h-4 text-orange-500 stroke-[2.8]" />
+                <span className="text-[13px] tracking-tight">Công nợ</span>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-[#007b82] transition-transform duration-200 ${expandedMenu === 'congno' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {expandedMenu === 'congno' && (
+              <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Tra cứu học phí</div>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Thanh toán trực tuyến</div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Mục: Hỗ trợ */}
+          <div>
+            <button
+              type="button"
+              onClick={() => toggleSubmenu('hotro')}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#007b82] hover:bg-teal-50/60 font-semibold transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <ChevronRight className="w-4 h-4 text-orange-500 stroke-[2.8]" />
+                <span className="text-[13px] tracking-tight">Hỗ trợ</span>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-[#007b82] transition-transform duration-200 ${expandedMenu === 'hotro' ? 'rotate-180' : ''}`} />
+            </button>
+
+            {expandedMenu === 'hotro' && (
+              <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Gửi yêu cầu hỗ trợ (One-stop)</div>
+                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Biểu mẫu - Đơn từ</div>
+              </div>
+            )}
+          </div>
+
+          {/* 5. Mục: Hoạt động sinh viên (Không có mũi tên dropdown, icon lịch xanh ngọc) */}
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[#007b82] hover:bg-teal-50/60 font-semibold transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <CalendarIcon className="w-4 h-4 text-[#007b82] stroke-[2]" />
+                <span className="text-[13px] tracking-tight">Hoạt động sinh viên</span>
+              </div>
+            </button>
+          </div>
+
         </div>
 
-        {/* Footer Contact Info */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-500 space-y-2">
-          <div className="flex items-start gap-2">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-            <span>Cơ sở 1: Số 2 Võ Oanh, P.25, Bình Thạnh, TP.HCM</span>
+        {/* Nút đăng xuất nhanh ở chân Drawer */}
+        {onLogout && (
+          <div className="p-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onLogout();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Đăng xuất tài khoản</span>
+            </button>
           </div>
-          <div className="flex items-center gap-2">
-            <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Hotline hỗ trợ: (028) 3899 2862</span>
-          </div>
-          <div className="pt-2 text-center text-[10px] text-slate-400">
-            © 2026 UTH Virtual Assistant Ecosystem
-          </div>
-        </div>
-      </div>
-    </div>
+        )}
+      </aside>
+    </>
   );
 };
-

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, User, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { ScheduleEvent } from '../../types/uth';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -10,18 +10,15 @@ interface MonthCalendarProps {
 
 export const MonthCalendar: React.FC<MonthCalendarProps> = ({ events, onSelectEventDate }) => {
   const { showToast } = useToast();
-  const [selectedDay, setSelectedDay] = useState<number>(27);
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(1); // Tháng 10
+  const [selectedDay, setSelectedDay] = useState<number>(30);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(1);
   const monthsList = ['tháng 09 2026', 'tháng 10 2026', 'tháng 11 2026'];
   const activeMonth = monthsList[currentMonthIndex];
 
-  // Days in October 2026: 31 days. Oct 1, 2026 is a Thursday (index 4 in [CN, T2, T3, T4, T5, T6, T7])
+  // Tháng 10/2026: 31 ngày, ngày 1 bắt đầu vào Thứ 5 (offset = 4)
   const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
-  const firstDayOffset = 4; // Starts on Thursday
-
-  const getEventsForDay = (day: number) => {
-    return events.filter((e) => e.dayNumber === day);
-  };
+  const firstDayOffset = 4;
+  const eventDays = [6, 10, 13, 20, 23, 27];
 
   const handlePrevMonth = () => {
     if (currentMonthIndex > 0) {
@@ -39,128 +36,105 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({ events, onSelectEv
     }
   };
 
-  const selectedDayEvents = getEventsForDay(selectedDay);
-
   return (
-    <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 sm:p-6 transition-all hover:shadow-md flex flex-col justify-between">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 className="text-base font-bold text-[#00695c] tracking-tight">
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-5 flex flex-col justify-between h-full select-none">
+      {/* 1. Header: Tiêu đề & Cụm chọn tháng */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[15px] font-bold text-teal-800 tracking-tight">
           Lịch theo tháng
         </h3>
 
-        <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-md px-2 py-1">
-          <button 
+        <div className="flex items-center gap-1 text-[11px] text-slate-600 bg-slate-50 border border-slate-200/80 rounded-lg px-2 py-1 shadow-2xs">
+          <button
+            type="button"
             title="Tháng trước"
             onClick={handlePrevMonth}
-            className="hover:text-teal-700 p-0.5 cursor-pointer"
+            className="hover:text-teal-700 text-slate-400 p-0.5 cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <span className="font-medium flex items-center gap-1 px-1">
+          <span className="font-medium flex items-center gap-1.5 px-1">
             {activeMonth}
-            <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+            <CalendarIcon className="w-3 h-3 text-slate-400" />
           </span>
-          <button 
+          <button
+            type="button"
             title="Tháng sau"
             onClick={handleNextMonth}
-            className="hover:text-teal-700 p-0.5 cursor-pointer"
+            className="hover:text-teal-700 text-slate-400 p-0.5 cursor-pointer transition-colors"
           >
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="pt-3">
-        {/* Day of Week Headers */}
-        <div className="grid grid-cols-7 text-center text-xs font-semibold mb-2">
-          <span className="text-orange-600">CN</span>
-          <span className="text-slate-600">T2</span>
-          <span className="text-slate-600">T3</span>
-          <span className="text-slate-600">T4</span>
-          <span className="text-slate-600">T5</span>
-          <span className="text-slate-600">T6</span>
-          <span className="text-slate-600">T7</span>
-        </div>
-
-        {/* Days Matrix */}
-        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-          {/* Empty cells before start of month */}
-          {Array.from({ length: firstDayOffset }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-8" />
-          ))}
-
-          {daysInMonth.map((day) => {
-            const dayEvents = getEventsForDay(day);
-            const hasEvent = dayEvents.length > 0;
-            const isSelected = selectedDay === day;
-            // Highlight days from user screenshot: 6, 9, 13, 20, 23, 27, 30
-            const isHighlighted = [6, 9, 13, 20, 23, 27, 30].includes(day);
-            const isSunday = (day + firstDayOffset - 1) % 7 === 0;
-
-            let bgClass = 'hover:bg-slate-100 text-slate-700';
-            if (isHighlighted && !isSelected) {
-              bgClass = 'bg-[#b2dfdb]/70 text-[#004d40] font-semibold';
-            }
-            if (isSelected) {
-              bgClass = 'bg-[#b2dfdb] text-[#004d40] font-bold ring-2 ring-[#00897b]';
-            }
-
-            return (
-              <button
-                key={`day-${day}`}
-                onClick={() => {
-                  setSelectedDay(day);
-                  onSelectEventDate(`2026-10-${day.toString().padStart(2, '0')}`);
-                }}
-                className={`h-8 w-full rounded-md flex flex-col items-center justify-center relative transition-all cursor-pointer ${bgClass} ${
-                  isSunday ? 'text-orange-600 font-medium' : ''
-                }`}
-              >
-                <span className="leading-none">{day}</span>
-                {hasEvent && (
-                  <span className="flex gap-0.5 mt-0.5">
-                    <span className="w-1 h-1 rounded-full bg-emerald-600" />
-                    {day === 23 && <span className="w-1 h-1 rounded-full bg-emerald-600" />}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* 2. Hàng tiêu đề các thứ trong tuần */}
+      <div className="grid grid-cols-7 text-center text-[11px] font-semibold mb-2">
+        <span className="text-orange-500 font-bold">CN</span>
+        <span className="text-slate-400">T2</span>
+        <span className="text-slate-400">T3</span>
+        <span className="text-slate-400">T4</span>
+        <span className="text-slate-400">T5</span>
+        <span className="text-slate-400">T6</span>
+        <span className="text-slate-400">T7</span>
       </div>
 
-      {/* Selected Day Info strip */}
-      <div className="mt-4 pt-3 border-t border-slate-100 bg-teal-50/50 rounded-lg p-2.5">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-teal-900">
-            Ngày {selectedDay}/10/2026:
-          </span>
-          <span className="text-teal-700">
-            {selectedDayEvents.length > 0
-              ? `${selectedDayEvents.length} buổi học`
-              : 'Không có lịch học'}
-          </span>
-        </div>
+      {/* 3. Lưới các ngày: Form dáng gọn, bo tròn mềm */}
+      <div className="grid grid-cols-7 gap-y-1.5 gap-x-1 text-center text-xs flex-1 items-center">
+        {Array.from({ length: firstDayOffset }).map((_, i) => (
+          <div key={`empty-${i}`} className="h-8 sm:h-9 w-full" />
+        ))}
 
-        {selectedDayEvents.length > 0 ? (
-          <div className="mt-1.5 space-y-1">
-            {selectedDayEvents.map((ev) => (
-              <div key={ev.id} className="text-[11px] text-slate-700 bg-white p-2 rounded border border-teal-200/60 shadow-2xs">
-                <p className="font-semibold text-slate-900 truncate">{ev.courseName}</p>
-                <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-500">
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-teal-600" /> {ev.time}</span>
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-teal-600" /> {ev.room}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[11px] text-slate-500 italic mt-1">
-            Sinh viên tự học hoặc tham gia các hoạt động ngoại khóa.
-          </p>
-        )}
+        {daysInMonth.map((day) => {
+          const hasEvent = eventDays.includes(day);
+          const isToday = day === 30;
+
+          return (
+            <div key={`day-${day}`} className="flex justify-center items-center">
+              {hasEvent ? (
+                // Ngày có lịch học: Khối bo mềm màu xanh ngọc nhạt, chấm tròn tinh tế
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDay(day);
+                    onSelectEventDate(`2026-10-${day.toString().padStart(2, '0')}`);
+                  }}
+                  className="w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-lg bg-[#c8ebe6] hover:bg-[#b8e4de] flex flex-col items-center justify-center text-teal-900 text-[12px] font-semibold transition-all cursor-pointer shadow-2xs"
+                >
+                  <span className="leading-none">{day}</span>
+                  <div className="flex gap-0.5 mt-0.5 items-center justify-center">
+                    <span className="w-1 h-1 rounded-full bg-teal-700" />
+                    {day === 23 && <span className="w-1 h-1 rounded-full bg-teal-700" />}
+                  </div>
+                </button>
+              ) : isToday ? (
+                // Ngày 30: Viền bo góc vuông mềm, sắc nét
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDay(day);
+                    onSelectEventDate(`2026-10-${day.toString().padStart(2, '0')}`);
+                  }}
+                  className="w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-lg border-[1.5px] border-teal-800 bg-white flex items-center justify-center text-slate-800 text-[12px] font-bold cursor-pointer hover:bg-slate-50 transition-colors"
+                >
+                  {day}
+                </button>
+              ) : (
+                // Ngày bình thường: Gọn gàng, số nét mảnh
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDay(day);
+                    onSelectEventDate(`2026-10-${day.toString().padStart(2, '0')}`);
+                  }}
+                  className="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-slate-600 text-[12px] font-normal hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  {day}
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
