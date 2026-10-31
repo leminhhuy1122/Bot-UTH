@@ -206,6 +206,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 autoComplete="current-password"
                 required
               />
+              <p className="text-[11px] text-slate-500 mt-1.5 flex items-center justify-between">
+                <span>Mật khẩu mặc định: <strong className="text-[#168277]">123456</strong> hoặc <strong className="text-[#168277]">Ngày sinh</strong></span>
+              </p>
             </div>
 
             {/* Action buttons area: right-aligned */}

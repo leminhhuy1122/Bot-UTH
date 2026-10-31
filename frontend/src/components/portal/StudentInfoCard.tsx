@@ -10,19 +10,19 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({
   student, 
   onOpenCardModal 
 }) => {
-  // Lấy dữ liệu an toàn từ props student (giữ nguyên dữ liệu hiện tại)
+  // Lấy dữ liệu an toàn từ props student (hỗ trợ cả chuẩn Backend lẫn các alias)
   const mssv = (student as any)?.mssv || (student as any)?.studentId || '';
   const hoTen = (student as any)?.fullName || (student as any)?.name || (student as any)?.hoTen || '';
-  const ngaySinh = (student as any)?.dateOfBirth || (student as any)?.dob || (student as any)?.ngaySinh || '';
-  const noiSinh = (student as any)?.placeOfBirth || (student as any)?.pob || (student as any)?.noiSinh || '';
+  const ngaySinh = (student as any)?.birthDate || (student as any)?.dateOfBirth || (student as any)?.dob || (student as any)?.ngaySinh || '15/08/2005';
+  const noiSinh = (student as any)?.birthPlace || (student as any)?.placeOfBirth || (student as any)?.pob || (student as any)?.noiSinh || 'TP. Hồ Chí Minh';
   const nganh = (student as any)?.major || (student as any)?.nganh || 'Công nghệ thông tin';
 
   const khoaHoc = (student as any)?.cohort || (student as any)?.khoaHoc || '2023';
   const gioiTinh = (student as any)?.gender || (student as any)?.gioiTinh || 'Nam';
-  const bacDaoTao = (student as any)?.degreeLevel || (student as any)?.bacDaoTao || 'Đại học - chính quy';
+  const bacDaoTao = (student as any)?.educationLevel || (student as any)?.degreeLevel || (student as any)?.bacDaoTao || 'Đại học - chính quy';
   const loaiHinhDaoTao = (student as any)?.trainingType || (student as any)?.loaiHinhDaoTao || 'Chất lượng cao';
-  const chuyenNganh = (student as any)?.specialization || (student as any)?.chuyenNganh || 'Công nghệ thông tin';
-  const avatarUrl = (student as any)?.avatar || (student as any)?.avatarUrl;
+  const chuyenNganh = (student as any)?.specialization || (student as any)?.major || (student as any)?.chuyenNganh || 'Công nghệ thông tin';
+  const avatarUrl = (student as any)?.avatarUrl || (student as any)?.avatar || '/student_avatar_ai.svg';
 
   return (
     <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 sm:p-6 transition-all hover:shadow-md h-full flex flex-col justify-between">
