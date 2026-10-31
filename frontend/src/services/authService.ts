@@ -22,9 +22,13 @@ export async function loginApi(username: string, password?: string): Promise<Aut
       body: JSON.stringify({ username, password }),
     });
 
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      throw new Error('Máy chủ Backend (FastAPI cổng 8000) chưa được bật. Vui lòng mở chay_backend.bat hoặc chay_he_thong.bat.');
+    }
+
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || 'Đăng nhập không thành công');
+      throw new Error(errData.detail || 'Tên người dùng hoặc mật khẩu không chính xác');
     }
 
     const data: AuthResponse = await res.json();
@@ -33,6 +37,9 @@ export async function loginApi(username: string, password?: string): Promise<Aut
     }
     return data;
   } catch (error: any) {
+    if (error.message && (error.message.includes('Failed to fetch') || error.name === 'TypeError')) {
+      throw new Error('Không thể kết nối đến Backend (cổng 8000). Vui lòng chạy chay_backend.bat!');
+    }
     console.warn('Lỗi khi gọi API login:', error.message);
     throw error;
   }

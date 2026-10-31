@@ -119,3 +119,15 @@ export interface BotConfig {
   enableInjectionGuard?: boolean;
   lastTrainedAt: string;
 }
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  category: 'Học vụ' | 'Học phí' | 'Khảo sát' | 'Sự kiện' | 'Học bổng';
+  categoryColor: string;
+  date: string;
+  time: string;
+  content: string;
+  isRead: boolean;
+  priority?: 'high' | 'normal';
+}

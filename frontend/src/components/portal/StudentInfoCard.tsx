@@ -6,7 +6,8 @@ interface StudentInfoCardProps {
   onOpenCardModal: () => void;
 }
 
-export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({ 
+export const StudentInfoCard: React.FC<StudentInfoCardProps> = React.memo(({
+ 
   student, 
   onOpenCardModal 
 }) => {
@@ -27,32 +28,32 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({
   return (
     <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5 sm:p-6 transition-all hover:shadow-md h-full flex flex-col justify-between">
       {/* 1. Header Card */}
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-200/80">
-        <h2 className="text-base sm:text-lg font-bold text-[#00695c] tracking-tight">
+      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+        <h2 className="text-[17px] font-bold text-[#00695c] tracking-tight">
           Thông tin sinh viên
         </h2>
         <button
           type="button"
           onClick={onOpenCardModal}
-          className="text-xs sm:text-sm font-semibold text-[#00897b] hover:text-[#004d40] hover:underline uppercase tracking-wide cursor-pointer transition-colors"
+          className="text-xs sm:text-[13px] font-bold text-[#00897b] hover:text-[#004d40] hover:underline uppercase tracking-wide cursor-pointer transition-colors"
         >
           THẺ SINH VIÊN
         </button>
       </div>
 
-      {/* 2. Body Card: Khung ảnh + Cụm thông tin 2 cột */}
-      <div className="pt-4 flex flex-col sm:flex-row items-center sm:items-start gap-5 lg:gap-7 flex-1">
+      {/* 2. Body Card: Khung ảnh + Cụm thông tin 2 cột chuẩn 100% theo mẫu */}
+      <div className="pt-4 flex flex-col sm:flex-row items-center sm:items-start gap-6 lg:gap-8 flex-1">
 
-        {/* Ảnh thẻ sinh viên bo viền xanh teal chuẩn UTH */}
+        {/* Ảnh thẻ sinh viên bo viền xanh teal chuẩn tỉ lệ 3x4 */}
         <div className="shrink-0">
-          <div className="w-[115px] h-[145px] sm:w-[125px] sm:h-[155px] rounded-xl overflow-hidden border-2 border-[#00897b] bg-slate-50 flex items-center justify-center shadow-xs">
+          <div className="w-[125px] h-[160px] sm:w-[130px] sm:h-[165px] rounded-xl overflow-hidden border-[1.5px] border-[#00897b] bg-slate-50 flex items-center justify-center shadow-2xs">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={hoTen}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/student_avatar_ai.png';
+                  (e.target as HTMLImageElement).src = '/student_avatar_ai.svg';
                 }}
               />
             ) : (
@@ -63,62 +64,62 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({
           </div>
         </div>
 
-        {/* Lưới 2 cột thông tin: Chữ đậm cho Label, giá trị nằm liền kề */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-xs sm:text-[13px] w-full pt-1">
+        {/* Lưới 2 cột thông tin: 5 dòng trải đều từ đỉnh tới đáy ảnh thẻ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 sm:gap-x-12 w-full h-[160px] sm:h-[165px] py-0.5">
 
-          {/* Cột 1 (Bên trái) */}
-          <div className="space-y-2.5">
-            <div className="leading-tight">
+          {/* Cột 1 (Bên trái): 5 dòng thông tin */}
+          <div className="flex flex-col justify-between h-full">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">MSSV: </span>
-              <span className="text-slate-700">{mssv}</span>
+              <span className="text-slate-600 font-normal">{mssv}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Họ tên: </span>
-              <span className="text-slate-700">{hoTen}</span>
+              <span className="text-slate-600 font-normal">{hoTen}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Ngày sinh: </span>
-              <span className="text-slate-700">{ngaySinh}</span>
+              <span className="text-slate-600 font-normal">{ngaySinh}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Nơi sinh: </span>
-              <span className="text-slate-700">{noiSinh}</span>
+              <span className="text-slate-600 font-normal">{noiSinh}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Ngành: </span>
-              <span className="text-slate-700">{nganh}</span>
+              <span className="text-slate-600 font-normal">{nganh}</span>
             </div>
           </div>
 
-          {/* Cột 2 (Bên phải) */}
-          <div className="space-y-2.5">
-            <div className="leading-tight">
+          {/* Cột 2 (Bên phải): 5 dòng thông tin */}
+          <div className="flex flex-col justify-between h-full">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Khóa học: </span>
-              <span className="text-slate-700">{khoaHoc}</span>
+              <span className="text-slate-600 font-normal">{khoaHoc}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Giới tính: </span>
-              <span className="text-slate-700">{gioiTinh}</span>
+              <span className="text-slate-600 font-normal">{gioiTinh}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Bậc đào tạo: </span>
-              <span className="text-slate-700">{bacDaoTao}</span>
+              <span className="text-slate-600 font-normal">{bacDaoTao}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Loại hình đào tạo: </span>
-              <span className="text-slate-700">{loaiHinhDaoTao}</span>
+              <span className="text-slate-600 font-normal">{loaiHinhDaoTao}</span>
             </div>
 
-            <div className="leading-tight">
+            <div className="text-[13.5px] leading-snug">
               <span className="font-bold text-slate-800">Chuyên ngành: </span>
-              <span className="text-slate-700">{chuyenNganh}</span>
+              <span className="text-slate-600 font-normal">{chuyenNganh}</span>
             </div>
           </div>
 
@@ -127,4 +128,4 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = ({
       </div>
     </div>
   );
-};
+});

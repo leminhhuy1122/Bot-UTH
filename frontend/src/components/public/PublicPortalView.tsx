@@ -204,59 +204,44 @@ export const PublicPortalView: React.FC<PublicPortalViewProps> = ({
         {activeTab === 'intro' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#0e7472] flex items-center justify-center">
-                  <Building2 className="w-5 h-5" />
+              {/* Thẻ 1: Sứ mệnh đào tạo - Căn giữa icon và nội dung trang nhã */}
+              <div className="bg-white p-7 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-teal-300 transition-all flex flex-col items-center text-center group">
+                <div className="w-14 h-14 rounded-2xl bg-teal-50 text-[#0e7472] flex items-center justify-center mb-4.5 shadow-2xs group-hover:scale-110 group-hover:bg-teal-100/70 transition-all ring-4 ring-teal-50/60">
+                  <Building2 className="w-7 h-7 stroke-[1.8]" />
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm">Sứ mệnh đào tạo</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-2.5 group-hover:text-[#0e7472] transition-colors">
+                  Sứ mệnh đào tạo
+                </h3>
+                <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-[280px]">
                   Đào tạo nguồn nhân lực chất lượng cao, nghiên cứu khoa học và chuyển giao công nghệ hàng đầu khu vực trong ngành giao thông vận tải và kinh tế số.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5" />
+              {/* Thẻ 2: Chương trình chuẩn quốc tế - Căn giữa icon và nội dung trang nhã */}
+              <div className="bg-white p-7 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-indigo-300 transition-all flex flex-col items-center text-center group">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center mb-4.5 shadow-2xs group-hover:scale-110 group-hover:bg-indigo-100/70 transition-all ring-4 ring-indigo-50/60">
+                  <GraduationCap className="w-7 h-7 stroke-[1.8]" />
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm">Chương trình chuẩn quốc tế</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-2.5 group-hover:text-indigo-800 transition-colors">
+                  Chương trình chuẩn quốc tế
+                </h3>
+                <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-[280px]">
                   Các ngành Công nghệ thông tin, Logistics và Hàng hải được kiểm định theo tiêu chuẩn AUN-QA, giảng dạy kết hợp song ngữ và công nghệ hiện đại.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5" />
+              {/* Thẻ 3: Học bổng & Hỗ trợ sinh viên - Căn giữa icon và nội dung trang nhã */}
+              <div className="bg-white p-7 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all flex flex-col items-center text-center group">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4.5 shadow-2xs group-hover:scale-110 group-hover:bg-emerald-100/70 transition-all ring-4 ring-emerald-50/60">
+                  <ShieldCheck className="w-7 h-7 stroke-[1.8]" />
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm">Học bổng & Hỗ trợ sinh viên</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-2.5 group-hover:text-emerald-800 transition-colors">
+                  Học bổng & Hỗ trợ sinh viên
+                </h3>
+                <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-[280px]">
                   Hơn 30 tỷ đồng quỹ học bổng khuyến khích học tập mỗi năm cùng mạng lưới 200+ doanh nghiệp logistics, công nghệ liên kết tuyển dụng.
                 </p>
               </div>
-            </div>
-
-            {/* AI Assistant Banner */}
-            <div className="p-6 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/80 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#0e7472] text-white flex items-center justify-center shrink-0 shadow-md">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">
-                    Bạn cần giải đáp nhanh về học phí, thủ tục hoặc điểm chuẩn?
-                  </h4>
-                  <p className="text-xs text-slate-600">
-                    Trợ lý ảo UTH AI sẵn sàng trả lời 24/7 ở góc dưới bên phải màn hình.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => onOpenChatbotWithQuery && onOpenChatbotWithQuery('Học phí hệ đại học chính quy UTH là bao nhiêu?')}
-                className="px-4 py-2 bg-[#0e7472] hover:bg-[#0b5e5c] text-white text-xs font-bold rounded-xl whitespace-nowrap shadow-xs cursor-pointer"
-              >
-                Hỏi về học phí & xét tuyển
-              </button>
             </div>
           </div>
         )}
