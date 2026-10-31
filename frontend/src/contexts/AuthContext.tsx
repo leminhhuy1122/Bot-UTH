@@ -76,9 +76,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return 'admin';
       }
 
+      // Đăng nhập Sinh viên thành công với dữ liệu thật từ máy chủ / CSDL Neon
       const studentData = res.student || {
         ...initialStudentProfile,
-        mssv: mssvOrUsername || initialStudentProfile.mssv,
+        mssv: mssvOrUsername,
+        name: res.user?.username || mssvOrUsername,
       };
 
       const newSession: UserSession = {
@@ -96,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(newSession);
       return 'student';
     } catch (err: any) {
+      // Hỗ trợ nhanh cho tài khoản Admin khi nhập mật khẩu quản trị
       if (mssvOrUsername.toLowerCase() === 'admin' && (password === 'Admin@123' || password === 'admin' || !password)) {
         try {
           const resQ = await quickLoginApi('admin');
@@ -117,18 +120,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return 'admin';
       }
       
-      const newSession: UserSession = {
-        role: 'student',
-        student: {
-          ...initialStudentProfile,
-          mssv: mssvOrUsername || initialStudentProfile.mssv,
-        },
-        loginTime: new Date().toISOString(),
-      };
-      localStorage.setItem('uth_user_role', 'student');
-      localStorage.setItem('uth_session_auth', 'true');
-      setSession(newSession);
-      return 'student';
+      // Với tài khoản sinh viên: Ném lỗi chính xác để giao diện hiển thị cho người dùng,
+      // tuyệt đối không tự ý giả lập tài khoản mẫu khi đăng nhập thất bại!
+      console.warn('Đăng nhập sinh viên không thành công:', err.message);
+      throw err;
     }
   };
 
