@@ -34,6 +34,9 @@ if CORS_ORIGINS_RAW:
     CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_RAW.split(",") if origin.strip() and origin.strip() != "*"]
 else:
     CORS_ORIGINS = [
+        "https://botuth.xyz",
+        "https://www.botuth.xyz",
+        "https://api.botuth.xyz",
         "http://localhost:3000",
         "http://localhost:5173",
         "http://127.0.0.1:3000",

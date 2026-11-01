@@ -1,4 +1,6 @@
-const API_BASE = '/api/admin';
+import { apiUrl } from '../config/apiConfig';
+
+const API_BASE = apiUrl('/api/admin');
 
 // Tách seed dữ liệu ngoại tuyến thành chunk bất đồng bộ (Code Splitting)
 // Ngăn không cho file JSON 3.2MB bị đóng gói trực tiếp vào Main Bundle
@@ -28,7 +30,7 @@ export async function ensureAdminToken(): Promise<string | null> {
   isRefreshingAdminToken = true;
   refreshPromise = (async () => {
     try {
-      const res = await fetch('/api/v1/auth/sync-admin-token', { method: 'POST' });
+      const res = await fetch(apiUrl('/api/v1/auth/sync-admin-token'), { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         if (data.token) {
@@ -37,7 +39,7 @@ export async function ensureAdminToken(): Promise<string | null> {
           return data.token;
         }
       }
-      const resQuick = await fetch('/api/v1/auth/quick-login', {
+      const resQuick = await fetch(apiUrl('/api/v1/auth/quick-login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'admin' }),

@@ -18,7 +18,9 @@ if is_postgres:
     #    đặc biệt quan trọng khi Neon vừa thức dậy từ trạng thái ngủ (Cold Start).
     # 2. pool_recycle=300: Tái tạo kết nối sau 5 phút để chống idle timeout từ Cloudflare/PgBouncer.
     # 3. pool_size=10, max_overflow=20: Cấu hình connection pool tối ưu cho PgBouncer Pooled Mode.
-    connect_args = {}
+    connect_args = {
+        "connect_timeout": 15
+    }
     if "sslmode" not in db_url:
         connect_args["sslmode"] = "require"
 

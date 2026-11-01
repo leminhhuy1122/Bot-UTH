@@ -4,8 +4,9 @@
  */
 
 import { adminFetch } from './adminService';
+import { apiUrl } from '../config/apiConfig';
 
-const API_BASE = '/api/admin/backup';
+const API_BASE = apiUrl('/api/admin/backup');
 
 export interface BackupItem {
   id: string;

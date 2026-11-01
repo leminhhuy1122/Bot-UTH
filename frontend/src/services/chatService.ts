@@ -13,6 +13,8 @@ export interface ChatRequestPayload {
   };
 }
 
+import { apiUrl } from '../config/apiConfig';
+
 export interface ChatResponsePayload {
   reply: string;
   metadata?: {
@@ -32,7 +34,7 @@ export async function sendChatMessage(
   payload: ChatRequestPayload,
   isGuest: boolean
 ): Promise<ChatResponsePayload> {
-  const endpoint = isGuest ? '/api/v1/chat/guest' : '/api/v1/chat/student';
+  const endpoint = apiUrl(isGuest ? '/api/v1/chat/guest' : '/api/v1/chat/student');
 
   try {
     const res = await fetch(endpoint, {
@@ -45,7 +47,7 @@ export async function sendChatMessage(
 
     if (!res.ok) {
       // Fallback về endpoint tương thích /api/chat nếu route v1 chưa hỗ trợ
-      const fallbackRes = await fetch('/api/chat', {
+      const fallbackRes = await fetch(apiUrl('/api/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -92,7 +94,7 @@ export async function streamChatMessage(
   signal?: AbortSignal
 ): Promise<void> {
   try {
-    const res = await fetch('/api/v1/chat/stream', {
+    const res = await fetch(apiUrl('/api/v1/chat/stream'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
