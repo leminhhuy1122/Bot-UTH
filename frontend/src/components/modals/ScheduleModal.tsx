@@ -47,7 +47,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 Thời Khóa Biểu & Lịch Học UTH
               </h3>
               <p className="text-xs text-slate-500">
-                {filterDate ? `Lịch ngày ${filterDate}` : 'Lịch học chi tiết Học kỳ 1 (Tháng 10/2026)'}
+                {filterDate ? `Lịch ngày ${filterDate}` : 'Lịch học chi tiết Học kỳ 1'}
               </p>
             </div>
           </div>

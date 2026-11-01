@@ -43,8 +43,8 @@ const getDayCodeFromDateStr = (dateStr: string): string => {
 
 // Hàm chuẩn hóa và nhận diện ngày tháng an toàn tuyệt đối, tránh lỗi lệch múi giờ UTC/GMT+7
 const parseSafeDate = (val: string | Date | undefined): Date => {
-    if (!val) return new Date(2026, 9, 31);
-    if (val instanceof Date) return isNaN(val.getTime()) ? new Date(2026, 9, 31) : val;
+    if (!val) return new Date();
+    if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
     if (typeof val === 'string') {
         const isoMatch = val.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
         if (isoMatch) {
@@ -56,14 +56,42 @@ const parseSafeDate = (val: string | Date | undefined): Date => {
         }
     }
     const dt = new Date(val);
-    return isNaN(dt.getTime()) ? new Date(2026, 9, 31) : dt;
+    return isNaN(dt.getTime()) ? new Date() : dt;
 };
 
 export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = [], onBackToDashboard, initialDate }) => {
-    // Mốc thời gian mặc định: Ngày truyền vào hoặc 31/10/2026 (Nhận diện an toàn không lệch ngày)
+    // Mốc thời gian mặc định: Ngày truyền vào hoặc ngày hôm nay theo thời gian thực
     const [currentDate, setCurrentDate] = useState<Date>(() => {
         return parseSafeDate(initialDate);
     });
+
+    // Tự động nhận diện và cập nhật mốc hôm nay theo thời gian thực mỗi ngày
+    const [todayStr, setTodayStr] = useState<string>(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    });
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            const currentToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            setTodayStr((prev) => {
+                if (prev !== currentToday) {
+                    // Tự động chuyển currentDate sang ngày mới nếu đang theo dõi hôm nay
+                    setCurrentDate((curr) => {
+                        const currISO = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+                        if (currISO === prev) {
+                            return new Date();
+                        }
+                        return curr;
+                    });
+                    return currentToday;
+                }
+                return prev;
+            });
+        }, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     React.useEffect(() => {
         if (initialDate) {
@@ -91,17 +119,18 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
         return dayLabels.map((name, i) => {
             const d = new Date(monday);
             d.setDate(monday.getDate() + i);
+            const dISO = formatISO(d);
 
-            // Hôm nay: 31/10/2026 (Thứ 7)
-            const isToday = d.getDate() === 31 && d.getMonth() === 9 && d.getFullYear() === 2026;
+            // Hôm nay: tự động khớp chính xác theo ngày thực tế mỗi ngày
+            const isToday = dISO === todayStr;
             // Ngày đang được chọn: Khớp chính xác với currentDate đang xem
-            const isSelected = formatISO(d) === refISO;
+            const isSelected = dISO === refISO;
 
             return {
                 name,
                 dateObj: d,
                 dateStr: formatVN(d),
-                dateISO: formatISO(d),
+                dateISO: dISO,
                 dayNum: d.getDate(),
                 month: d.getMonth() + 1,
                 year: d.getFullYear(),
@@ -131,7 +160,7 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
     };
 
     const handleToday = () => {
-        setCurrentDate(new Date(2026, 9, 31));
+        setCurrentDate(new Date());
     };
 
     // 3. TÍNH CA HỌC (Ca 1 -> Ca 6) CHUẨN XÁC THEO TIẾT HỌC VÀ GIỜ HỌC
@@ -319,13 +348,15 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
                                     Ca học
                                 </th>
                                 {daysOfWeek.map((day, idx) => {
-                                    const isHighlighted = day.isSelected || day.isToday;
+                                    const isHighlighted = day.isSelected;
                                     return (
                                         <th
                                             key={idx}
                                             onClick={() => setCurrentDate(day.dateObj)}
                                             className={`py-3 px-2 font-semibold text-center border-r border-b border-[#005a4e] last:border-r-0 transition-colors cursor-pointer ${
-                                                isHighlighted ? 'bg-[#f59e0b] text-white shadow-inner border-r-[#d97706]' : 'bg-[#00695c] hover:bg-[#005a4e] text-white'
+                                                isHighlighted
+                                                    ? 'bg-[#f59e0b] text-white shadow-inner border-r-[#d97706]'
+                                                    : 'bg-[#00695c] hover:bg-[#005a4e] text-white'
                                             }`}
                                             title={`Nhấp để chọn ${day.name} (${day.dateStr})`}
                                         >
@@ -356,7 +387,7 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
                                     </td>
                                     {daysOfWeek.map((day) => {
                                         const cellEvents = getEventsForCell(day, caNum);
-                                        const isColHighlighted = day.isSelected || day.isToday;
+                                        const isColHighlighted = day.isSelected;
                                         return (
                                             <td
                                                 key={`cell-${day.dateStr}-${caNum}`}
@@ -442,7 +473,7 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
                                     </td>
                                     {daysOfWeek.map((day) => {
                                         const cellEvents = getEventsForCell(day, caNum);
-                                        const isColHighlighted = day.isSelected || day.isToday;
+                                        const isColHighlighted = day.isSelected;
                                         return (
                                             <td
                                                 key={`cell-${day.dateStr}-${caNum}`}
@@ -515,7 +546,7 @@ export const CalendarView: React.FC<CalendarViewProps> = React.memo(({ events = 
                                     </td>
                                     {daysOfWeek.map((day) => {
                                         const cellEvents = getEventsForCell(day, caNum);
-                                        const isColHighlighted = day.isSelected || day.isToday;
+                                        const isColHighlighted = day.isSelected;
                                         return (
                                             <td
                                                 key={`cell-${day.dateStr}-${caNum}`}

@@ -215,10 +215,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const weeklyScheduleCount = useMemo(() => {
     if (!events || events.length === 0) return 0;
 
-    // Phân loại: Dữ liệu sự kiện rải rác theo ngày cụ thể (mockData nhiều tuần) vs TKB học kỳ tuần hoàn của sinh viên
-    const isMultiWeekMock = events.length > 5 && events.some(e => e.date && e.date.startsWith('2026-10'));
+    // Phân loại: Dữ liệu sự kiện rải rác theo ngày cụ thể vs TKB học kỳ tuần hoàn của sinh viên
+    const isMultiWeekMock = events.length > 5 && events.some(e => e.date);
     if (isMultiWeekMock) {
-      const currentWeekDates = ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01'];
+      const now = new Date();
+      const dayOfWeekIndex = (now.getDay() + 6) % 7; // Thứ 2 = 0, CN = 6
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - dayOfWeekIndex);
+
+      const currentWeekDates: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        currentWeekDates.push(iso);
+      }
+
       const count = events.filter(e => e.date && currentWeekDates.includes(e.date)).length;
       return count > 0 ? count : events.length;
     }

@@ -44,13 +44,46 @@ function getDayCodeFromDateStr(dateStr: string): string {
 }
 
 export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events = [], onSelectEventDate }) => {
-  // Mốc thời gian mặc định: Tháng 10/2026
-  const [viewDate, setViewDate] = useState<Date>(new Date(2026, 9, 1));
-  const [selectedDateStr, setSelectedDateStr] = useState<string>('2026-10-31');
+  // Mốc thời gian mặc định: Khởi tạo theo thời gian thực (ngày hôm nay)
+  const [viewDate, setViewDate] = useState<Date>(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  });
+
+  // Tự động nhận diện và cập nhật mốc hôm nay theo thời gian thực mỗi ngày
+  const [todayStr, setTodayStr] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const currentToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      setTodayStr((prev) => {
+        if (prev !== currentToday) {
+          setViewDate((currView) => {
+            if (currView.getMonth() !== now.getMonth() || currView.getFullYear() !== now.getFullYear()) {
+              return new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+            return currView;
+          });
+          setSelectedDateStr(currentToday);
+          return currentToday;
+        }
+        return prev;
+      });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // State điều khiển Popup chọn tháng (Month Picker Popup)
   const [showMonthPicker, setShowMonthPicker] = useState<boolean>(false);
-  const [pickerYear, setPickerYear] = useState<number>(2026);
+  const [pickerYear, setPickerYear] = useState<number>(() => new Date().getFullYear());
 
   const pickerRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
@@ -264,12 +297,14 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
           const dayEvents = getEventsForDay(day);
           const hasEvent = dayEvents.length > 0;
           const isoStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          const isToday = day === 31 && month === 9 && year === 2026;
+          const isToday = isoStr === todayStr;
           const isSelected = selectedDateStr === isoStr;
 
           // Xác định cột thứ mấy trong tuần (0 = CN, 1 = T2, ..., 6 = T7)
           const colIndex = (firstDayOffset + day - 1) % 7;
           const isSunday = colIndex === 0;
+          const DAY_NAMES = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+          const dayName = DAY_NAMES[colIndex];
 
           return (
             <div key={`day-${day}`} className="flex justify-center items-center">
@@ -277,13 +312,13 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                 // Ngày có lịch học thực tế: Khối bo mềm màu xanh ngọc nhạt (#bfe5e0), chấm tròn màu xanh lá
                 <button
                   type="button"
-                  title={`Ngày ${day}/${month + 1}/${year}: Có ${dayEvents.length} môn học (${dayEvents.map((e: any) => e.courseName || e.name).join(', ')})`}
+                  title={`${isToday ? 'Hôm nay - ' : ''}Ngày ${day}/${month + 1}/${year}: Có ${dayEvents.length} môn học (${dayEvents.map((e: any) => e.courseName || e.name).join(', ')})`}
                   onClick={() => {
                     setSelectedDateStr(isoStr);
                     onSelectEventDate(isoStr);
                   }}
                   className={`w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-xl bg-[#bfe5e0] hover:bg-[#b0ded8] flex flex-col items-center justify-center text-teal-900 text-[12px] font-semibold transition-all cursor-pointer shadow-2xs ${
-                    isSelected ? 'ring-2 ring-teal-700' : ''
+                    isToday ? 'border-[1.5px] border-teal-800 ring-2 ring-teal-700/50' : isSelected ? 'ring-2 ring-teal-700' : ''
                   }`}
                 >
                   <span className={`leading-none ${isSunday ? 'text-orange-600 font-bold' : ''}`}>{day}</span>
@@ -293,10 +328,10 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                   </div>
                 </button>
               ) : isToday ? (
-                // Ngày 31 (Hôm nay - Thứ 7): Viền bo góc vuông mềm sắc nét màu xanh đậm
+                // Ngày hôm nay (không có môn học): Viền bo góc vuông mềm sắc nét màu xanh đậm chuẩn UTH (như Ảnh 2)
                 <button
                   type="button"
-                  title="Hôm nay (Thứ 7 - 31/10/2026)"
+                  title={`Hôm nay (${dayName} - ${String(day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year})`}
                   onClick={() => {
                     setSelectedDateStr(isoStr);
                     onSelectEventDate(isoStr);
@@ -305,7 +340,7 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                     isSelected ? 'ring-2 ring-teal-600' : ''
                   }`}
                 >
-                  {day}
+                  <span className={isSunday ? 'text-orange-600 font-bold' : ''}>{day}</span>
                 </button>
               ) : (
                 // Ngày bình thường: CN màu cam (như ảnh 1 và 2), ngày thường màu xám đậm
