@@ -1,10 +1,4 @@
 import os
-import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -20,11 +14,16 @@ engine = None
 db_engine_type = "Chua ket noi"
 
 if is_postgres:
-    connect_args = {}
+    # Tối ưu hóa chuyên sâu cho Neon.tech Serverless Postgres:
+    # 1. pool_pre_ping=True: Tự động kiểm tra sống còn của connection trước mỗi query,
+    #    đặc biệt quan trọng khi Neon vừa thức dậy từ trạng thái ngủ (Cold Start).
+    # 2. pool_recycle=300: Tái tạo kết nối sau 5 phút để chống idle timeout từ Cloudflare/PgBouncer.
+    # 3. pool_size=10, max_overflow=20: Cấu hình connection pool tối ưu cho PgBouncer Pooled Mode.
+    connect_args = {
+        "connect_timeout": 15
+    }
     if "sslmode" not in db_url:
         connect_args["sslmode"] = "require"
-    if "connect_timeout" not in db_url:
-        connect_args["connect_timeout"] = 5
 
     try:
         temp_engine = create_engine(

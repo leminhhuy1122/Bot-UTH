@@ -1,4 +1,5 @@
 import { StudentProfile } from '../types/uth';
+import { apiUrl } from '../config/apiConfig';
 
 export interface AuthResponse {
   success: boolean;
@@ -14,7 +15,7 @@ export interface AuthResponse {
 
 export async function loginApi(username: string, password?: string): Promise<AuthResponse> {
   try {
-    const res = await fetch('/api/v1/auth/login', {
+    const res = await fetch(apiUrl('/api/v1/auth/login'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +48,7 @@ export async function loginApi(username: string, password?: string): Promise<Aut
 
 export async function quickLoginApi(role: 'student' | 'admin' = 'student'): Promise<AuthResponse> {
   try {
-    const res = await fetch('/api/v1/auth/quick-login', {
+    const res = await fetch(apiUrl('/api/v1/auth/quick-login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role }),
@@ -71,7 +72,7 @@ export async function quickLoginApi(role: 'student' | 'admin' = 'student'): Prom
 
 export async function verifyParentApi(mssv: string, birthDate: string): Promise<any> {
   try {
-    const res = await fetch('/api/v1/parent/verify', {
+    const res = await fetch(apiUrl('/api/v1/parent/verify'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mssv, birthDate }),
@@ -95,7 +96,7 @@ export async function verifyParentApi(mssv: string, birthDate: string): Promise<
 
 export async function logoutApi(): Promise<void> {
   try {
-    await fetch('/api/v1/auth/logout', { method: 'POST' });
+    await fetch(apiUrl('/api/v1/auth/logout'), { method: 'POST' });
   } catch (e) {
     console.warn('Lỗi logout API:', e);
   } finally {

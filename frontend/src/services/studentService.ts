@@ -1,7 +1,8 @@
 import { StudentProfile, ScheduleEvent, SemesterData } from '../types/uth';
 import { initialStudentProfile, monthScheduleEvents, semestersData } from '../data/mockData';
+import { apiUrl } from '../config/apiConfig';
 
-const API_BASE = '/api/v1/student';
+const API_BASE = apiUrl('/api/v1/student');
 
 interface CacheEntry<T> {
   data: T;
