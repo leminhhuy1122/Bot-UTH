@@ -49,9 +49,9 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 select-none font-sans">
 
       {/* ================= CARD 1: KẾT QUẢ HỌC TẬP ================= */}
-      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px]">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
+          <h3 className="text-base font-bold text-[#00695c] tracking-tight">
             Kết quả học tập
           </h3>
           <select
@@ -69,19 +69,19 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
               <span className="text-slate-500 text-[11px] block">ĐTB HK (hệ 10):</span>
-              <span className="text-sm font-bold text-teal-800">{gpa10}</span>
+              <span className="text-sm font-bold text-[#00695c]">{gpa10}</span>
             </div>
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
               <span className="text-slate-500 text-[11px] block">ĐTB HK (hệ 4):</span>
-              <span className="text-sm font-bold text-teal-800">{gpa4}</span>
+              <span className="text-sm font-bold text-[#00695c]">{gpa4}</span>
             </div>
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
               <span className="text-slate-500 text-[11px] block">Điểm tích lũy (CPA):</span>
-              <span className="text-sm font-bold text-teal-800">{cpa} / 4.0</span>
+              <span className="text-sm font-bold text-[#00695c]">{cpa} / 4.0</span>
             </div>
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
               <span className="text-slate-500 text-[11px] block">Số tín chỉ tích lũy:</span>
-              <span className="text-sm font-bold text-teal-800">{passedCredits} / {totalCredits}</span>
+              <span className="text-sm font-bold text-[#00695c]">{passedCredits} / {totalCredits}</span>
             </div>
           </div>
 
@@ -103,7 +103,7 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
                         {c.courseName || c.name || c.subjectName}
                       </td>
                       <td className="py-2 px-1 text-center text-slate-600">{c.credits || c.soTinChi || 3}</td>
-                      <td className="py-2 px-1 text-center font-bold text-teal-800">
+                      <td className="py-2 px-1 text-center font-bold text-[#00695c]">
                         {c.score10 ?? c.totalScore ?? c.diem10 ?? '-'}
                       </td>
                       <td className="py-2 px-2 text-center font-semibold text-emerald-600">
@@ -123,11 +123,14 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
       </div>
 
       {/* ================= CARD 2: TIẾN ĐỘ HỌC TẬP ================= */}
-      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px]">
-        <div className="pb-3 border-b border-slate-100 text-center">
-          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
+          <h3 className="text-base font-bold text-[#00695c] tracking-tight">
             Tiến độ học tập
           </h3>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-50 text-[#00695c] border border-teal-100/60">
+            Đạt {progressPercent}%
+          </span>
         </div>
 
         <div className="flex-1 flex items-center justify-center relative my-2">
@@ -137,7 +140,7 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
               cx="80"
               cy="80"
               r="60"
-              stroke="#00b0ff"
+              stroke="#00897b"
               strokeWidth="15"
               fill="transparent"
               strokeDasharray={circleCircumference}
@@ -157,16 +160,16 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
 
         <div className="text-center pt-2">
           <span className="text-[11.5px] text-slate-500 font-medium">
-            Tỉ lệ hoàn thành: <span className="font-bold text-teal-700">{progressPercent}%</span>
+            Tỉ lệ hoàn thành: <span className="font-bold text-[#00695c]">{progressPercent}%</span>
           </span>
         </div>
       </div>
 
       {/* ================= CARD 3: LỚP HỌC PHẦN (ĐÃ LÀM GỌN & ĐẸP) ================= */}
-      <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 flex flex-col min-h-[350px]">
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
         {/* Header: Tiêu đề & Chọn học kỳ */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <h3 className="text-[15px] font-bold text-[#00695c] tracking-tight">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
+          <h3 className="text-base font-bold text-[#00695c] tracking-tight">
             Lớp học phần
           </h3>
           <select

@@ -1,6 +1,7 @@
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
 
 // ANSI Color styling
 const cyan = '\x1b[36m';
@@ -48,11 +49,13 @@ freePortIfBusy(3000);
 // 2. Tìm trình thông dịch Python hoạt động tốt trên hệ thống
 function getPythonCommand() {
   const candidates = [
-    'C:\\Users\\lemin\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe',
-    'C:\\Users\\lemin\\AppData\\Local\\Python\\bin\\python.exe',
-    'py',
+    path.join(ROOT_DIR, '.venv', 'Scripts', 'python.exe'),
+    path.join(ROOT_DIR, 'venv', 'Scripts', 'python.exe'),
+    path.join(ROOT_DIR, '.venv', 'bin', 'python'),
+    path.join(ROOT_DIR, 'venv', 'bin', 'python'),
     'python',
     'python3',
+    'py',
   ];
 
   for (const cmd of candidates) {
@@ -105,7 +108,38 @@ function cleanShutdown() {
 process.on('SIGINT', cleanShutdown);
 process.on('SIGTERM', cleanShutdown);
 
-// 4. Khởi chạy Backend FastAPI (Python)
+// 4. Kiểm tra cổng mạng đã mở chưa (tránh lỗi ECONNREFUSED)
+function checkPort(port, host = '127.0.0.1') {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(400);
+    socket.once('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.once('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+}
+
+async function waitForBackend(port = 8000, maxAttempts = 60) {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (isShuttingDown) return false;
+    const isOpen = await checkPort(port);
+    if (isOpen) return true;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return false;
+}
+
+// 5. Khởi chạy Backend FastAPI (Python)
 function startBackend() {
   console.log(`${cyan}[BACKEND]${reset} Đang khởi động FastAPI trên cổng 8000...`);
 
@@ -145,7 +179,7 @@ function startBackend() {
   });
 }
 
-// 5. Khởi chạy Frontend React Vite
+// 6. Khởi chạy Frontend React Vite
 function startFrontend() {
   console.log(`${green}[FRONTEND]${reset} Đang khởi động Vite Dev Server trên cổng 3000...`);
 
@@ -185,6 +219,19 @@ function startFrontend() {
   });
 }
 
-// Khởi chạy đồng bộ cả 2 dịch vụ
-startBackend();
-startFrontend();
+// 7. Khởi chạy thông minh: Đảm bảo Backend sẵn sàng trước khi bật Frontend
+async function startSystem() {
+  startBackend();
+  console.log(`${gray}⏳ Đang chờ Backend (FastAPI cổng 8000) sẵn sàng tiếp nhận kết nối...${reset}`);
+
+  const isReady = await waitForBackend(8000, 50);
+  if (isReady) {
+    console.log(`${green}✅ [BACKEND SẴN SÀNG] Cổng 8000 đã hoạt động mượt mà!${reset}\n`);
+  } else {
+    console.log(`${yellow}⚠️ [CHÚ Ý] Backend đang tải thêm dữ liệu, tiếp tục kích hoạt Frontend...${reset}\n`);
+  }
+
+  startFrontend();
+}
+
+startSystem();

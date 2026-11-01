@@ -5,9 +5,12 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   LogOut,
-  IdCard
+  IdCard,
+  ArrowRight,
+  CheckCheck,
+  Clock
 } from 'lucide-react';
-import { StudentProfile } from '../../types/uth';
+import { StudentProfile, AppNotification } from '../../types/uth';
 import { NavDrawer } from './NavDrawer';
 
 interface HeaderProps {
@@ -17,19 +20,35 @@ interface HeaderProps {
   onOpenScheduleModal?: () => void;
   weeklyScheduleCount?: number;
   onGoHome?: () => void;
+  onOpenNotifications?: () => void;
+  onOpenPayment?: () => void;
+  onOpenDebt?: () => void;
+  notifications?: AppNotification[];
+  unreadNotificationCount?: number;
+  onMarkAllNotificationsRead?: () => void;
+  onMarkNotificationRead?: (id: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header: React.FC<HeaderProps> = React.memo(({
   student,
   onLogout,
   onOpenCardModal,
   onOpenScheduleModal,
   weeklyScheduleCount = 1,
   onGoHome,
+  onOpenNotifications,
+  onOpenPayment,
+  onOpenDebt,
+  notifications = [],
+  unreadNotificationCount = 0,
+  onMarkAllNotificationsRead,
+  onMarkNotificationRead,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
 
   // Lấy họ tên sinh viên trực tiếp từ props dữ liệu hệ thống
   const studentName =
@@ -52,8 +71,12 @@ export const Header: React.FC<HeaderProps> = ({
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
+      }
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(target)) {
+        setIsNotifDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -117,14 +140,150 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* Chuông thông báo */}
-            <button
-              type="button"
-              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-              title="Thông báo"
-            >
-              <Bell className="w-5 h-5" />
-            </button>
+            {/* Chuông thông báo kèm Dropdown Popover chuẩn giao diện UTH */}
+            <div className="relative" ref={notifDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)}
+                className={`relative p-2 rounded-xl transition-all cursor-pointer ${
+                  isNotifDropdownOpen 
+                    ? 'bg-teal-50 text-[#00897b]' 
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                }`}
+                title="Thông báo"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                  isNotifDropdownOpen ? 'bg-teal-100/60 text-[#00897b]' : ''
+                }`}>
+                  <Bell className="w-5 h-5 stroke-[2]" />
+                </div>
+                {/* Huy hiệu số thông báo chưa đọc - biến mất khi bấm 'Đã xem' */}
+                {unreadNotificationCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[17px] h-[17px] bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-xs ring-2 ring-white animate-pulse">
+                    {unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Popover Dropdown Thông báo & Nhắc nhở */}
+              {isNotifDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                  {/* Header Popover: Tiêu đề + Nút 'Đã xem' */}
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 text-sm">
+                        Thông báo & Nhắc nhở
+                      </h3>
+                      {unreadNotificationCount > 0 && (
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                          {unreadNotificationCount} mới
+                        </span>
+                      )}
+                    </div>
+                    {unreadNotificationCount > 0 && onMarkAllNotificationsRead && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMarkAllNotificationsRead();
+                        }}
+                        className="text-xs font-semibold text-[#00897b] hover:text-[#005a4e] flex items-center gap-1 cursor-pointer hover:underline transition-colors"
+                        title="Đánh dấu tất cả là đã xem"
+                      >
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        <span>Đã xem</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Body Popover: Danh sách thông báo ảo & ghi chú */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                    {notifications && notifications.length > 0 ? (
+                      notifications.map((item) => {
+                        const categoryBadgeClass =
+                          item.category === 'Học phí'
+                            ? 'bg-amber-100 text-amber-800'
+                            : item.category === 'Học vụ'
+                            ? 'bg-blue-100 text-blue-800'
+                            : item.category === 'Khảo sát'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-emerald-100 text-emerald-800';
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              onMarkNotificationRead?.(item.id);
+                              setIsNotifDropdownOpen(false);
+                              onOpenNotifications?.();
+                            }}
+                            className={`p-3.5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 items-start ${
+                              !item.isRead ? 'bg-teal-50/30' : ''
+                            }`}
+                          >
+                            <div className="shrink-0 mt-1">
+                              {!item.isRead ? (
+                                <span className="w-2 h-2 rounded-full bg-red-500 block animate-pulse" />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full bg-slate-300 block" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${categoryBadgeClass}`}>
+                                  {item.category}
+                                </span>
+                                <span className="text-[10px] text-slate-400">
+                                  {item.date}
+                                </span>
+                              </div>
+                              <h4 className={`text-xs leading-snug line-clamp-1 ${
+                                !item.isRead ? 'text-slate-900 font-bold' : 'text-slate-700 font-medium'
+                              }`}>
+                                {item.title}
+                              </h4>
+                              <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">
+                                {item.content}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="py-8 px-4 flex flex-col items-center justify-center text-center">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3 shadow-2xs">
+                          <svg className="w-6 h-6 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="m9 10 2 2 4-4"/>
+                          </svg>
+                        </div>
+                        <p className="text-sm font-bold text-slate-800 mb-1">
+                          Không có thông báo mới
+                        </p>
+                        <p className="text-xs text-slate-500 max-w-[230px] leading-relaxed">
+                          Bạn đã xem hết các thông báo và nhắc nhở gần đây
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer Popover: Nút "Xem chi tiết tất cả thông báo" */}
+                  <div className="p-3 border-t border-slate-100 text-center bg-slate-50/50">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsNotifDropdownOpen(false);
+                        onOpenNotifications?.();
+                      }}
+                      className="text-xs font-bold text-[#00897b] hover:text-[#004d40] inline-flex items-center gap-1.5 cursor-pointer hover:underline"
+                    >
+                      <span>Xem chi tiết tất cả thông báo</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Tài khoản sinh viên: Chỉ hiển thị họ tên + mũi tên trỏ xuống */}
             <div className="relative" ref={dropdownRef}>
@@ -209,7 +368,10 @@ export const Header: React.FC<HeaderProps> = ({
         onLogout={onLogout}
         onOpenCardModal={onOpenCardModal}
         onOpenScheduleModal={onOpenScheduleModal}
+        onOpenNotifications={onOpenNotifications}
+        onOpenPayment={onOpenPayment}
+        onOpenDebt={onOpenDebt}
       />
     </>
   );
-};
+});

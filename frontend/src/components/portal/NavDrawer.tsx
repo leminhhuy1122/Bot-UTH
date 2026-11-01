@@ -19,6 +19,9 @@ interface NavDrawerProps {
   onLogout?: () => void;
   onOpenCardModal?: () => void;
   onOpenScheduleModal?: () => void;
+  onOpenNotifications?: () => void;
+  onOpenPayment?: () => void;
+  onOpenDebt?: () => void;
 }
 
 export const NavDrawer: React.FC<NavDrawerProps> = ({
@@ -26,6 +29,10 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
   onClose,
   onLogout,
   onOpenScheduleModal,
+  onOpenNotifications,
+  onOpenPayment,
+  onOpenDebt,
+  onOpenCardModal,
 }) => {
   // Quản lý đóng/mở menu con nếu người dùng bấm vào
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
@@ -97,7 +104,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
                 <button
                   type="button"
                   onClick={() => { onClose(); onOpenScheduleModal?.(); }}
-                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors block"
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors block cursor-pointer"
                 >
                   Thời khóa biểu tuần
                 </button>
@@ -125,7 +132,16 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
             {expandedMenu === 'thongtin' && (
               <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
                 <div className="py-1.5 hover:text-teal-700 cursor-pointer">Lý lịch sinh viên</div>
-                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Thông báo từ nhà trường</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenNotifications?.();
+                  }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors cursor-pointer block"
+                >
+                  Thông báo từ nhà trường
+                </button>
               </div>
             )}
           </div>
@@ -146,8 +162,30 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
 
             {expandedMenu === 'congno' && (
               <div className="pl-9 pr-3 py-1 space-y-1 text-slate-600 font-normal">
-                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Tra cứu học phí</div>
-                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Thanh toán trực tuyến</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenDebt) {
+                      onOpenDebt();
+                    } else {
+                      onOpenPayment?.();
+                    }
+                  }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors cursor-pointer block"
+                >
+                  Tra cứu công nợ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenPayment?.();
+                  }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 font-medium transition-colors cursor-pointer block"
+                >
+                  Thanh toán trực tuyến
+                </button>
               </div>
             )}
           </div>
@@ -201,7 +239,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
                 onClose();
                 onLogout();
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
               <span>Đăng xuất tài khoản</span>

@@ -18,7 +18,8 @@ interface ServiceGridProps {
   onSelectService: (service: ServiceItem) => void;
 }
 
-export const ServiceGrid: React.FC<ServiceGridProps> = ({ services, onSelectService }) => {
+export const ServiceGrid: React.FC<ServiceGridProps> = React.memo(({ services, onSelectService }) => {
+
   // Mapping icons to closely match the original screenshot icons
   const getIcon = (id: string) => {
     switch (id) {
@@ -48,13 +49,13 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({ services, onSelectServ
   };
 
   return (
-    /* Đổi sang lg:grid-cols-8 để hàng 1 có 8 ô, hàng 2 có 2 ô */
-    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-3.5">
+    /* 10 dịch vụ học đường phân bổ cân đối 5 cột x 2 hàng, kích thước khung đồng nhất */
+    <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5 gap-3.5 sm:gap-4">
       {services.map((service) => (
         <button
           key={service.id}
           onClick={() => onSelectService(service)}
-          className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-3 sm:p-3.5 flex flex-col items-center justify-center text-center group hover:shadow-md hover:border-teal-300 transition-all cursor-pointer min-h-[105px]"
+          className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-3 sm:p-3.5 flex flex-col items-center justify-center text-center group hover:shadow-md hover:border-teal-300 transition-all cursor-pointer h-[108px]"
         >
           <div className="mb-2 p-1 rounded-xl group-hover:scale-110 transition-transform">
             {getIcon(service.id)}
@@ -66,4 +67,4 @@ export const ServiceGrid: React.FC<ServiceGridProps> = ({ services, onSelectServ
       ))}
     </div>
   );
-};
+});

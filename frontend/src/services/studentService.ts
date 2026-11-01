@@ -4,6 +4,38 @@ import { apiUrl } from '../config/apiConfig';
 
 const API_BASE = apiUrl('/api/v1/student');
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL = 3 * 60 * 1000; // 3 phút cache phía Frontend
+
+function getCacheKey(endpoint: string): string {
+  const token = localStorage.getItem('uth_jwt_token') || 'anon';
+  return `${endpoint}_${token}`;
+}
+
+function getFromCache<T>(key: string): T | null {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function saveToCache<T>(key: string, data: T): void {
+  memoryCache.set(key, { data, timestamp: Date.now() });
+}
+
+export function clearStudentCache(): void {
+  memoryCache.clear();
+}
+
+
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('uth_jwt_token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -13,6 +45,10 @@ function getAuthHeader(): Record<string, string> {
  * Lấy hồ sơ cá nhân và chỉ số học tập (GPA, CPA, tín chỉ)
  */
 export async function getStudentProfile(): Promise<StudentProfile> {
+  const cacheKey = getCacheKey('profile');
+  const cached = getFromCache<StudentProfile>(cacheKey);
+  if (cached) return cached;
+
   try {
     const res = await fetch(`${API_BASE}/me`, {
       headers: {
@@ -27,6 +63,7 @@ export async function getStudentProfile(): Promise<StudentProfile> {
 
     const data = await res.json();
     if (data.success && data.data) {
+      saveToCache(cacheKey, data.data);
       return data.data as StudentProfile;
     }
     return initialStudentProfile;
@@ -40,6 +77,10 @@ export async function getStudentProfile(): Promise<StudentProfile> {
  * Lấy thời khóa biểu học tập trong tuần của sinh viên
  */
 export async function getStudentSchedule(): Promise<ScheduleEvent[]> {
+  const cacheKey = getCacheKey('schedule');
+  const cached = getFromCache<ScheduleEvent[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const res = await fetch(`${API_BASE}/schedule`, {
       headers: {
@@ -54,6 +95,7 @@ export async function getStudentSchedule(): Promise<ScheduleEvent[]> {
 
     const data = await res.json();
     if (data.success && Array.isArray(data.data)) {
+      saveToCache(cacheKey, data.data);
       return data.data as ScheduleEvent[];
     }
     return monthScheduleEvents;
@@ -67,6 +109,10 @@ export async function getStudentSchedule(): Promise<ScheduleEvent[]> {
  * Lấy bảng điểm chi tiết các học kỳ
  */
 export async function getStudentGrades(): Promise<{ summary: any; semesters: SemesterData[] }> {
+  const cacheKey = getCacheKey('grades');
+  const cached = getFromCache<{ summary: any; semesters: SemesterData[] }>(cacheKey);
+  if (cached) return cached;
+
   try {
     const res = await fetch(`${API_BASE}/grades`, {
       headers: {
@@ -81,10 +127,9 @@ export async function getStudentGrades(): Promise<{ summary: any; semesters: Sem
 
     const data = await res.json();
     if (data.success && data.semesters) {
-      return {
-        summary: data.summary,
-        semesters: data.semesters as SemesterData[],
-      };
+      const resObj = { summary: data.summary, semesters: data.semesters as SemesterData[] };
+      saveToCache(cacheKey, resObj);
+      return resObj;
     }
     return {
       summary: { ranking: 'Giỏi', gpa4: 3.65, cpa4: 3.56, accumulatedCredits: 52 },

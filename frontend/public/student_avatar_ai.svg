@@ -26,7 +26,7 @@
   </defs>
 
   <!-- Background -->
-  <rect width="240" height="280" fill="url(#bgGrad)" rx="16"/>
+  <rect width="240" height="280" fill="url(#bgGrad)"/>
 
   <!-- Subtle Studio Backdrop Glow -->
   <circle cx="120" cy="110" r="90" fill="#ffffff" opacity="0.6"/>
@@ -82,7 +82,5 @@
   <path d="M 108 142 Q 120 152 132 142" stroke="#b91c1c" stroke-width="2" stroke-linecap="round" fill="none"/>
   <path d="M 112 143 Q 120 148 128 143" stroke="#fca5a5" stroke-width="1.2" stroke-linecap="round" fill="none"/>
 
-  <!-- Bottom Student Tag Overlay -->
-  <rect x="30" y="254" width="180" height="20" rx="10" fill="#0f172a" opacity="0.85"/>
-  <text x="120" y="267.5" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">NGUYỄN VĂN A · UTH 2026</text>
+
 </svg>
