@@ -7,12 +7,14 @@ interface LoginViewProps {
   onLoginSuccess: (mssv: string, role?: string) => void;
   onContinueAsGuest?: () => void;
   onGoToParentPortal?: () => void;
+  onGoToPayment?: () => void;
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ 
   onLoginSuccess, 
   onContinueAsGuest,
-  onGoToParentPortal 
+  onGoToParentPortal,
+  onGoToPayment 
 }) => {
   const { loginAsStudent } = useAuth();
   const { showToast } = useToast();
@@ -128,6 +130,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 className="hidden md:flex items-center gap-1.5 text-xs text-[#168277] hover:underline font-medium cursor-pointer"
               >
                 <span>Cổng thông tin & Trợ lý ảo (Khách / Phụ huynh)</span>
+              </button>
+            )}
+
+            {/* Cổng thanh toán & Tra cứu trực tuyến (Vị trí đóng khung đỏ của người dùng) */}
+            {onGoToPayment && (
+              <button
+                type="button"
+                onClick={onGoToPayment}
+                className="flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-[#168277] hover:text-[#005a4e] hover:underline transition-colors py-1 cursor-pointer"
+                title="Cổng thanh toán học phí & Tra cứu tuyển sinh UTH"
+              >
+                <span>Thanh toán & Tra cứu</span>
               </button>
             )}
           </nav>
@@ -282,6 +296,15 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 className="text-[#168277] hover:underline font-medium cursor-pointer"
               >
                 👨‍👩‍👧 Dành cho Phụ huynh tra cứu học tập &rarr;
+              </button>
+            )}
+            {onGoToPayment && (
+              <button
+                type="button"
+                onClick={onGoToPayment}
+                className="text-[#168277] hover:underline font-medium cursor-pointer"
+              >
+                💳 Cổng thanh toán học phí & Tra cứu trực tuyến &rarr;
               </button>
             )}
             {onContinueAsGuest && (

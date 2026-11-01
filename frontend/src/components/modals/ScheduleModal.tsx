@@ -17,8 +17,22 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const DAY_CODE_MAP: Record<number, string> = { 0: 'CN', 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7' };
+  const filterDayCode = filterDate ? (() => {
+    const parts = filterDate.split('-');
+    if (parts.length === 3) {
+      const dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      return isNaN(dt.getTime()) ? '' : DAY_CODE_MAP[dt.getDay()];
+    }
+    return '';
+  })() : '';
+
   const displayEvents = filterDate
-    ? events.filter((e) => e.date === filterDate)
+    ? events.filter((e) => {
+        if (e.date === filterDate) return true;
+        const evCode = (e.dayOfWeek || '').toUpperCase();
+        return Boolean(filterDayCode && evCode === filterDayCode);
+      })
     : events;
 
   return (
@@ -33,7 +47,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
                 Thời Khóa Biểu & Lịch Học UTH
               </h3>
               <p className="text-xs text-slate-500">
-                {filterDate ? `Lịch ngày ${filterDate}` : 'Lịch học chi tiết Học kỳ 1 (Tháng 10/2026)'}
+                {filterDate ? `Lịch ngày ${filterDate}` : 'Lịch học chi tiết Học kỳ 1'}
               </p>
             </div>
           </div>
