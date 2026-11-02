@@ -67,6 +67,68 @@
           }
         ]
       }
+    ],
+    "otherFees": [
+      {
+        "stt": 1,
+        "semester": "2023-2024",
+        "code": "TVS90",
+        "name": "Sử dụng tài liệu thư viện số/khóa học",
+        "amount": 90000,
+        "required": "",
+        "payDate": "09/09/2023",
+        "paidAmount": 90000,
+        "debtAmount": 0,
+        "status": "Đã nộp"
+      },
+      {
+        "stt": 2,
+        "semester": "2023-2024",
+        "code": "Turnitin",
+        "name": "Quét trùng lặp",
+        "amount": 150000,
+        "required": "",
+        "payDate": "09/09/2023",
+        "paidAmount": 150000,
+        "debtAmount": 0,
+        "status": "Đã nộp"
+      },
+      {
+        "stt": 3,
+        "semester": "2023-2024",
+        "code": "BHYT23",
+        "name": "Bảo hiểm y tế/15 tháng",
+        "amount": 850500,
+        "required": "",
+        "payDate": "09/09/2023",
+        "paidAmount": 850500,
+        "debtAmount": 0,
+        "status": "Đã nộp"
+      },
+      {
+        "stt": 4,
+        "semester": "2023-2024",
+        "code": "BHTN",
+        "name": "Bảo hiểm tai nạn/4 năm",
+        "amount": 200000,
+        "required": "",
+        "payDate": "09/09/2023",
+        "paidAmount": 200000,
+        "debtAmount": 0,
+        "status": "Đã nộp"
+      },
+      {
+        "stt": 5,
+        "semester": "2023-2024",
+        "code": "SHCT",
+        "name": "Sinh hoạt chính trị \"Công dân-sinh viên\" đầu khóa",
+        "amount": 150000,
+        "required": "",
+        "payDate": "09/09/2023",
+        "paidAmount": 150000,
+        "debtAmount": 0,
+        "status": "Đã nộp"
+      }
     ]
   },
   {
@@ -136,6 +198,68 @@
             "letter": "B+"
           }
         ]
+      }
+    ],
+    "otherFees": [
+      {
+        "stt": 1,
+        "semester": "2023-2024",
+        "code": "TVS90",
+        "name": "Sử dụng tài liệu thư viện số/khóa học",
+        "amount": 90000,
+        "required": "",
+        "payDate": "-",
+        "paidAmount": 0,
+        "debtAmount": 90000,
+        "status": "Chưa nộp"
+      },
+      {
+        "stt": 2,
+        "semester": "2023-2024",
+        "code": "Turnitin",
+        "name": "Quét trùng lặp",
+        "amount": 150000,
+        "required": "",
+        "payDate": "-",
+        "paidAmount": 0,
+        "debtAmount": 150000,
+        "status": "Chưa nộp"
+      },
+      {
+        "stt": 3,
+        "semester": "2023-2024",
+        "code": "BHYT23",
+        "name": "Bảo hiểm y tế/15 tháng",
+        "amount": 850500,
+        "required": "",
+        "payDate": "-",
+        "paidAmount": 0,
+        "debtAmount": 850500,
+        "status": "Chưa nộp"
+      },
+      {
+        "stt": 4,
+        "semester": "2023-2024",
+        "code": "BHTN",
+        "name": "Bảo hiểm tai nạn/4 năm",
+        "amount": 200000,
+        "required": "",
+        "payDate": "-",
+        "paidAmount": 0,
+        "debtAmount": 200000,
+        "status": "Chưa nộp"
+      },
+      {
+        "stt": 5,
+        "semester": "2023-2024",
+        "code": "SHCT",
+        "name": "Sinh hoạt chính trị \"Công dân-sinh viên\" đầu khóa",
+        "amount": 150000,
+        "required": "",
+        "payDate": "-",
+        "paidAmount": 0,
+        "debtAmount": 150000,
+        "status": "Chưa nộp"
       }
     ]
   }

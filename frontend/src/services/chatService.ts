@@ -22,6 +22,7 @@ export interface ChatResponsePayload {
     confidence?: number;
     engine?: string;
     latencyMs?: number;
+    action?: any;
   };
   citations?: Array<{
     title: string;

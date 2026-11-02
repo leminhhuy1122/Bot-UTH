@@ -17,6 +17,43 @@ export const initialStudentProfile: StudentProfile = {
   phone: '0912 345 678',
   classId: 'CN23CLC01',
   status: 'Đang học',
+  assignments: [
+    {
+      id: 'asm-net-01',
+      courseCode: '012012300503',
+      courseName: 'Quản trị mạng - CNS_CS1',
+      semester: 'HKI2627',
+      title: 'Bài tập lớn: Thiết kế hệ thống mạng doanh nghiệp vừa và nhỏ',
+      description: 'Nộp file báo cáo PDF và file thiết kế mô phỏng Cisco Packet Tracer (.pkt).',
+      deadline: '2026-11-04 23:59',
+      daysLeft: 3,
+      status: 'pending',
+      submissionDate: null,
+      score: null,
+      colorTheme: 'cyan',
+    },
+    {
+      id: 'asm-cloud-02',
+      courseCode: '010412303904',
+      courseName: 'Điện toán đám mây - CLC CNTT',
+      semester: 'HKI2627',
+      title: 'Lab 04: Triển khai Docker Container và thiết lập CI/CD Pipeline',
+      description: 'Nộp link repository GitHub và ảnh chụp minh chứng container chạy trên cloud.',
+      deadline: '2026-11-08 23:59',
+      daysLeft: 7,
+      status: 'pending',
+      submissionDate: null,
+      score: null,
+      colorTheme: 'purple',
+    },
+  ],
+  otherFees: [
+    { stt: 1, semester: '2023-2024', code: 'TVS90', name: 'Sử dụng tài liệu thư viện số/khóa học', amount: 90000, required: '', payDate: '09/09/2023', paidAmount: 90000, debtAmount: 0, status: 'Đã nộp' },
+    { stt: 2, semester: '2023-2024', code: 'Turnitin', name: 'Quét trùng lặp', amount: 150000, required: '', payDate: '09/09/2023', paidAmount: 150000, debtAmount: 0, status: 'Đã nộp' },
+    { stt: 3, semester: '2023-2024', code: 'BHYT23', name: 'Bảo hiểm y tế/15 tháng', amount: 850500, required: '', payDate: '09/09/2023', paidAmount: 850500, debtAmount: 0, status: 'Đã nộp' },
+    { stt: 4, semester: '2023-2024', code: 'BHTN', name: 'Bảo hiểm tai nạn/4 năm', amount: 200000, required: '', payDate: '09/09/2023', paidAmount: 200000, debtAmount: 0, status: 'Đã nộp' },
+    { stt: 5, semester: '2023-2024', code: 'SHCT', name: 'Sinh hoạt chính trị "Công dân-sinh viên" đầu khóa', amount: 150000, required: '', payDate: '09/09/2023', paidAmount: 150000, debtAmount: 0, status: 'Đã nộp' },
+  ],
 };
 
 // Initial Bot configuration

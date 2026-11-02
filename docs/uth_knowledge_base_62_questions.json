@@ -961,14 +961,13 @@
     "category": "Chuẩn đầu ra & Tốt nghiệp",
     "question": "Trường tổ chức bao nhiêu đợt xét tốt nghiệp trong một năm?",
     "keywords": [
-      "trường chức",
-      "chức bao",
-      "bao nhiêu",
-      "nhiêu đợt",
-      "đợt xét",
-      "chuẩn đầu ra & tốt nghiệp"
+      "đợt xét tốt nghiệp",
+      "mấy đợt tốt nghiệp",
+      "xét tốt nghiệp hằng tháng",
+      "bao nhiêu đợt tốt nghiệp",
+      "lịch xét tốt nghiệp"
     ],
-    "answer": "UTH thường tổ chức từ 2 đến 3 đợt xét tốt nghiệp chính thức trong mỗi năm học:\n▪ Đợt 1: Vào khoảng tháng 3 – tháng 4 (hoặc đợt giữa năm khoảng tháng 6 – tháng 7).\n▪ Đợt 2: Vào khoảng tháng 7 – tháng 8.\n▪ Đợt 3: Vào khoảng tháng 11 – tháng 12.\nLịch tiếp nhận hồ sơ xét tốt nghiệp từng đợt được Phòng Đào tạo thông báo công khai trên website: daotao.ut.edu.vn.",
+    "answer": "Theo Quy chế đào tạo của Trường Đại học Giao thông Vận tải TP.HCM (UTH), Hội đồng xét và công nhận tốt nghiệp thực hiện xét HẰNG THÁNG đối với các sinh viên đã tích lũy đủ số tín chỉ, đạt chuẩn đầu ra và hoàn thành đầy đủ nghĩa vụ học phí với Nhà trường.\n\nVì vậy, lịch xét tốt nghiệp KHÔNG cố định chỉ có 2 hay 3 đợt trong năm. Sinh viên có thể chủ động theo dõi thông báo tiếp nhận hồ sơ xét tốt nghiệp định kỳ mỗi tháng tại Cổng thông tin Phòng Đào tạo để nộp hồ sơ kịp thời.",
     "updatedAt": "30/10/2026",
     "isActive": true
   },
@@ -984,6 +983,392 @@
     ],
     "answer": "Bước 1 (Theo dõi thông báo): Khi có lịch tổ chức Lễ tốt nghiệp (Lễ trao bằng/Vinh danh), Nhà trường đăng thông báo kèm đường link đăng ký trên website daotao.ut.edu.vn và Fanpage chính thức của trường.\nBước 2 (Điền form đăng ký trực tuyến): Sinh viên theo dõi portal để truy cập biểu mẫu, xác nhận tham dự lễ, đăng ký thông số kích cỡ lễ phục tốt nghiệp và đóng lệ phí tổ chức/thuê lễ phục (nếu có).\nBước 3 (Nhận lễ phục và tham dự lễ): Mang CCCD đến nhận lễ phục theo khung giờ quy định và tham dự buổi lễ vinh danh theo sơ đồ chỗ ngồi của Ban tổ chức.",
     "updatedAt": "30/10/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-63",
+    "category": "Đời sống & Y tế",
+    "question": "Cho e hỏi mình đi khám sức khỏe ở cs nào với phòng nào vậy ạ?",
+    "keywords": [
+      "khám sức khỏe",
+      "khám sức khỏe định kỳ",
+      "cơ sở khám sức khỏe",
+      "phòng khám sức khỏe",
+      "y tế",
+      "lịch khám sức khỏe"
+    ],
+    "answer": "Lịch khám sức khỏe định kỳ năm học 2026–2027 của UTH được Nhà trường thông báo chính thức trên Cổng thông tin sinh viên.\n\nSinh viên vui lòng thực hiện theo các bước sau:\n1. Đăng nhập Cổng sinh viên [Portal UTH](https://portal.ut.edu.vn).\n2. Tìm thông báo: 'Cập nhật thông tin đăng ký khám sức khỏe định kỳ sinh viên năm học 2026–2027'.\n3. Kiểm tra cụ thể lịch được phân công theo lớp hoặc khóa học của mình trước khi đến khám để tránh đến nhầm cơ sở hoặc phòng khám.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-64",
+    "category": "Đời sống sinh viên",
+    "question": "Đồng phục có thể tách lẻ không mua theo set của trường được không ạ?",
+    "keywords": [
+      "đồng phục",
+      "mua đồng phục",
+      "tách lẻ đồng phục",
+      "mua lẻ đồng phục",
+      "áo thể dục",
+      "áo khoác",
+      "set đồng phục"
+    ],
+    "answer": "Việc mua đồng phục riêng lẻ hay theo set phụ thuộc vào quy định và hình thức mở bán đồng phục của Nhà trường trong từng đợt.\n\nSinh viên vui lòng liên hệ trực tiếp Bộ phận phụ trách đồng phục hoặc đơn vị cung cấp đồng phục tại trường để kiểm tra xem có thể mua riêng từng món (như áo thun, quần thể dục hoặc áo khoác) hay bắt buộc mua trọn bộ nhé.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-65",
+    "category": "Học vụ & Thực tập",
+    "question": "Cho em hỏi, em tự xin đi HKDN ngoài xong có giấy xác nhận từ doanh nghiệp rồi thì em cần chuẩn bị gì thêm không ạ? Tại em không đi HKDN do trường tổ chức.",
+    "keywords": [
+      "hkdn",
+      "học kỳ doanh nghiệp",
+      "tự liên hệ doanh nghiệp",
+      "thực tập ngoài",
+      "giấy tiếp nhận",
+      "hồ sơ hkdn",
+      "hkdn tự xin"
+    ],
+    "answer": "Trường hợp sinh viên tự liên hệ doanh nghiệp để tham gia Học kỳ doanh nghiệp (HKDN), ngoài giấy xác nhận tiếp nhận của doanh nghiệp, bạn cần liên hệ ngay với Khoa/Viện quản lý ngành để được hướng dẫn thủ tục đăng ký và xét duyệt địa điểm thực tập.\n\nCác giấy tờ bạn cần chuẩn bị gồm:\n1. Giấy xác nhận / Giấy tiếp nhận sinh viên thực tập có chữ ký và mộc đỏ của doanh nghiệp.\n2. Thông tin chi tiết về doanh nghiệp: Tên, địa chỉ, lĩnh vực hoạt động, họ tên và số điện thoại người hướng dẫn tại doanh nghiệp.\n3. Bản mô tả vị trí công việc, nội dung công việc và thời gian thực tập dự kiến.\n4. Đơn xin tham gia học kỳ doanh nghiệp tại đơn vị tự liên hệ (theo mẫu của Khoa nếu có yêu cầu).\n5. Các biểu mẫu, đề cương, kế hoạch thực tập bổ sung theo đúng hướng dẫn của Khoa/Viện.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-66",
+    "category": "Tốt nghiệp & Văn bằng",
+    "question": "Cho em hỏi là muốn nhận bảng điểm cho cựu sinh viên và bằng tốt nghiệp thì làm phiếu đăng kí nhận ở đâu ạ?",
+    "keywords": [
+      "nhận bằng tốt nghiệp",
+      "bảng điểm cựu sinh viên",
+      "phiếu đăng ký nhận bằng",
+      "tra cứu văn bằng",
+      "cơ sở 1",
+      "võ oanh",
+      "phòng đào tạo",
+      "nhận bằng"
+    ],
+    "answer": "Thủ tục đăng ký nhận bảng điểm cho cựu sinh viên và bằng tốt nghiệp tại UTH như sau:\n\n1. 📄 Đối với Bảng điểm (Cựu sinh viên):\n- Đăng ký trực tuyến tại [Portal UTH](https://portal.ut.edu.vn), chọn mục 'Hỗ trợ trực tuyến / Dịch vụ sinh viên' để đăng ký cấp bảng điểm.\n- Bạn có thể chọn hình thức nhận trực tiếp tại cơ sở hoặc đăng ký chuyển phát nhanh gửi về tận nhà.\n\n2. 🎓 Đối với Bằng tốt nghiệp:\n- Bước 1: Truy cập [Portal UTH - Đăng ký nhận bằng](https://portal.ut.edu.vn/studentpaper) để đăng ký lịch hẹn nhận bằng.\n- Bước 2: Kiểm tra tính chính xác của thông tin văn bằng tại [Tra cứu văn bằng UTH](https://vanbang.ut.edu.vn/tracuu/).\n- Bước 3: Mang theo CCCD (hoặc định danh VNeID mức 2) đến nhận bằng tại Cơ sở 1: Số 2 Võ Oanh, Phường 25, Quận Bình Thạnh, TP.HCM (trong giờ hành chính từ Thứ Hai đến Thứ Sáu).\n\n*Lưu ý: Nếu cựu sinh viên không còn đăng nhập được tài khoản Portal, vui lòng đến trực tiếp Khu vực Tiếp sinh viên tại Cơ sở 1 lấy số thứ tự để được hỗ trợ. Hotline Phòng Đào tạo: (028) 3899 2862.*",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-67",
+    "category": "Tốt nghiệp & Văn bằng",
+    "question": "Trường có mấy đợt xét tốt nghiệp vậy ạ?",
+    "keywords": [
+      "đợt xét tốt nghiệp",
+      "mấy đợt tốt nghiệp",
+      "xét tốt nghiệp hằng tháng",
+      "điều kiện tốt nghiệp",
+      "thời gian tốt nghiệp"
+    ],
+    "answer": "Theo Quy chế đào tạo của Trường Đại học Giao thông Vận tải TP.HCM (UTH), Hội đồng xét và công nhận tốt nghiệp thực hiện xét HẰNG THÁNG đối với các sinh viên đã tích lũy đủ số tín chỉ, đạt chuẩn đầu ra và hoàn thành đầy đủ nghĩa vụ học phí với Nhà trường.\n\nVì vậy, lịch xét tốt nghiệp KHÔNG cố định chỉ có 2 hay 3 đợt trong năm. Sinh viên có thể chủ động theo dõi thông báo tiếp nhận hồ sơ xét tốt nghiệp định kỳ mỗi tháng tại Cổng thông tin Phòng Đào tạo để nộp hồ sơ kịp thời.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-68",
+    "category": "Học bổng & Khen thưởng",
+    "question": "Nếu mình tốt nghiệp trước khi kịp xét học bổng của kì sau thì liệu mình có cơ hội được nhận học bổng kì đó ko ạ.",
+    "keywords": [
+      "học bổng tốt nghiệp",
+      "xét học bổng",
+      "tốt nghiệp trước khi xét học bổng",
+      "học bổng khuyến khích",
+      "học bổng kkht",
+      "phòng công tác sinh viên"
+    ],
+    "answer": "Trường hợp này phụ thuộc vào quy định xét học bổng Khuyến khích học tập (KKHT) và thời điểm chốt danh sách sinh viên của từng đợt xét:\n\n- Về nguyên tắc: Học bổng KKHT được xét cho học kỳ tiếp theo nhằm khuyến khích sinh viên đang theo học. Nếu sinh viên đã có Quyết định công nhận tốt nghiệp chính thức trước thời điểm chốt danh sách xét học bổng, bạn có thể không còn thuộc đối tượng sinh viên chính quy đang học để được nhận học bổng của kỳ đó.\n- Lời khuyên: Bạn nên liên hệ trực tiếp Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1 - ĐT: 028 3512 0783) để được tra cứu cụ thể theo đợt xét của khóa mình và đảm bảo quyền lợi nhé.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-69",
+    "category": "Học vụ & Thực tập",
+    "question": "Cho em hỏi thực tập giữa khóa mất bao lâu vậy ạ?",
+    "keywords": [
+      "thực tập giữa khóa",
+      "thời gian thực tập",
+      "thực tập mất bao lâu",
+      "thực tập bao nhiêu tuần",
+      "kế hoạch thực tập khoa"
+    ],
+    "answer": "Thời gian thực tập giữa khóa phụ thuộc vào Khung chương trình đào tạo của từng chuyên ngành cụ thể và kế hoạch đào tạo thực tế do Khoa/Viện ban hành (thông thường kéo dài từ 4 đến 8 tuần tùy khối ngành kỹ thuật, kinh tế hay hàng hải).\n\nSinh viên vui lòng tra cứu Khung chương trình đào tạo của ngành mình trên Portal hoặc theo dõi thông báo hướng dẫn thực tập chính thức từ Văn phòng Khoa/Viện quản lý để biết chính xác thời gian và số tín chỉ nhé.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-70",
+    "category": "Đăng ký học phần",
+    "question": "Học kì chính năm 2 được đăng kí tối đa bao nhiêu tín vậy ạ?",
+    "keywords": [
+      "đăng ký tối đa bao nhiêu tín",
+      "số tín chỉ tối đa",
+      "năm 2 đăng ký mấy tín",
+      "tín chỉ học kỳ chính",
+      "quy định đào tạo tín chỉ"
+    ],
+    "answer": "Theo Quy chế Đào tạo Tín chỉ của Trường ĐH Giao thông Vận tải TP.HCM (UTH):\n\n1. Khối lượng đăng ký tối đa: Sinh viên có kết quả học tập từ mức Trung bình trở lên (CPA ≥ 2.00) được đăng ký tối đa 20 TÍN CHỈ trong mỗi học kỳ chính.\n2. Trường hợp đặc biệt: Nếu sinh viên bị xếp loại học lực Yếu hoặc đang trong diện cảnh báo học tập, số tín chỉ tối đa được phép đăng ký sẽ bị giới hạn thấp hơn (thường từ 12 - 14 tín chỉ).\n\n*Quy chế của trường không phân biệt số tín chỉ tối đa riêng theo từng năm học (năm 1, năm 2, năm 3...), mà căn cứ vào học lực tích lũy (CPA) của sinh viên.*",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-71",
+    "category": "Thủ tục hành chính",
+    "question": "Cho mình hỏi xin giấy giới thiệu thực tập của trường ở đâu vậy ạ?",
+    "keywords": [
+      "giấy giới thiệu thực tập",
+      "xin giấy giới thiệu",
+      "support ut edu vn",
+      "viện đào tạo chất lượng cao",
+      "phòng a001a",
+      "thủ tục thực tập"
+    ],
+    "answer": "Để xin cấp Giấy giới thiệu thực tập của Trường UTH, sinh viên thực hiện quy trình trực tuyến như sau:\n\n1. Bước 1: Truy cập hệ thống hỗ trợ trực tuyến tại [support.ut.edu.vn](https://support.ut.edu.vn).\n2. Bước 2: Tạo yêu cầu cấp Giấy giới thiệu thực tập. Trong phần nội dung, ghi đầy đủ và chính xác các thông tin:\n   - Tên đầy đủ của công ty / doanh nghiệp tiếp nhận thực tập.\n   - Địa chỉ trụ sở công ty.\n   - Thời gian thực tập dự kiến (từ ngày... đến ngày...).\n   - Địa chỉ tạm trú hiện tại của sinh viên.\n3. Bước 3: Theo dõi trạng thái duyệt trên hệ thống:\n   - Sinh viên Viện Đào tạo Chất lượng cao: Nhận giấy bản cứng tại Phòng A.001A (Cơ sở 1).\n   - Sinh viên các Khoa/Viện khác: Đến nhận tại Văn phòng Khoa quản lý ngành hoặc Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1) theo phản hồi trên hệ thống.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-72",
+    "category": "Điểm rèn luyện",
+    "question": "Về điểm rèn luyện thì mục share bài viết thì điểm tối đa là bao nhiêu ?, share tối đa bao nhiêu bài ạ ?",
+    "keywords": [
+      "điểm rèn luyện share bài",
+      "share bài viết được mấy điểm",
+      "share tối đa bao nhiêu bài",
+      "đánh giá rèn luyện",
+      "phòng công tác sinh viên",
+      "tiêu chí rèn luyện"
+    ],
+    "answer": "Về tiêu chí cộng Điểm rèn luyện (ĐRL) cho hoạt động chia sẻ (share) bài viết truyền thông của Nhà trường hoặc Đoàn - Hội:\n\n- Mức điểm tối đa và số lượng bài viết được công nhận phụ thuộc vào Bảng tiêu chí đánh giá điểm rèn luyện chi tiết do Nhà trường ban hành cho từng học kỳ hoặc từng đợt hoạt động phong trào cụ thể.\n- Sinh viên vui lòng tra cứu file hướng dẫn minh chứng ĐRL được đính kèm trên [Portal UTH](https://portal.ut.edu.vn) tại mục Đánh giá rèn luyện hoặc liên hệ Văn phòng Đoàn trường / Phòng Công tác Sinh viên để được xác nhận định mức điểm chính thức cho học kỳ này nhé.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-73",
+    "category": "Cổng thông tin & Website",
+    "question": "Danh bạ các website và cổng thông tin trực tuyến chính thức của UTH?",
+    "keywords": [
+      "website uth",
+      "trang web truong",
+      "link trang chu",
+      "cac trang web uth",
+      "cong thong tin uth",
+      "he thong website",
+      "trang web",
+      "link cac trang web",
+      "link web",
+      "web cua truong",
+      "cac trang web cua truong",
+      "website cua truong",
+      "trang web chinh thuc"
+    ],
+    "answer": "Hệ thống website và cổng dịch vụ trực tuyến chính thức của Trường ĐH Giao thông Vận tải TP.HCM (UTH):\n\n1. 🌐 **Trang chủ UTH**: [ut.edu.vn](https://ut.edu.vn/)\n2. 🎓 **Cổng thông tin Phòng Đào tạo**: [daotao.ut.edu.vn](https://daotao.ut.edu.vn/)\n3. 💳 **Cổng thanh toán học phí trực tuyến**: [payment.ut.edu.vn](https://payment.ut.edu.vn/)\n4. 🎁 **Cổng thông tin học bổng sinh viên**: [hocbong.uth.edu.vn](https://hocbong.uth.edu.vn/)\n5. 📚 **Trung tâm Thông tin - Thư viện (LIC)**: [lic.ut.edu.vn](https://lic.ut.edu.vn/)\n6. 📢 **Cổng thông tin Tuyển sinh UTH**: [tuyensinh.ut.edu.vn](https://tuyensinh.ut.edu.vn/)\n7. 🌍 **Viện Đào tạo và Hợp tác Quốc tế (IEC)**: [iec.ut.edu.vn](https://iec.ut.edu.vn/)\n8. 🛠️ **Cổng Hỗ trợ trực tuyến một cửa**: [support.ut.edu.vn](https://support.ut.edu.vn/)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-74",
+    "category": "Học phí & Tài chính",
+    "question": "Trang thanh toán học phí trực tuyến của UTH là gì và cách truy cập?",
+    "keywords": [
+      "trang thanh toan",
+      "link thanh toan",
+      "payment ut edu vn",
+      "thanh toan hoc phi truc tuyen",
+      "dong tien online",
+      "link payment",
+      "web thanh toan",
+      "trang payment",
+      "dong hoc phi o dau"
+    ],
+    "answer": "Trang thanh toán học phí trực tuyến chính thức của Nhà trường là:\n👉 **Cổng thanh toán UTH**: [https://payment.ut.edu.vn/](https://payment.ut.edu.vn/)\n\nTại đây sinh viên có thể:\n- Tra cứu công nợ học phí và các khoản thu khác trong kỳ.\n- Thanh toán học phí an toàn qua VNPAY, thẻ ATM nội địa, QR Code ngân hàng hoặc thẻ quốc tế.\n- Tra cứu và in biên lai / hóa đơn điện tử ngay sau khi giao dịch thành công.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-75",
+    "category": "Học bổng & Khen thưởng",
+    "question": "Trang thông tin học bổng sinh viên UTH ở đâu?",
+    "keywords": [
+      "trang hoc bong",
+      "link hoc bong",
+      "hocbong uth edu vn",
+      "tra cuu hoc bong",
+      "hoc bong doanh nghiep",
+      "hoc bong kkht",
+      "web hoc bong",
+      "thong tin hoc bong"
+    ],
+    "answer": "Trang thông tin học bổng chính thức của UTH:\n👉 **Cổng học bổng sinh viên UTH**: [https://hocbong.uth.edu.vn/](https://hocbong.uth.edu.vn/)\n\nWebsite liên tục cập nhật:\n- Các chương trình Học bổng Khuyến khích học tập (KKHT) định kỳ.\n- Học bổng tài trợ từ các tập đoàn, doanh nghiệp trong và ngoài nước.\n- Học bổng vượt khó hiếu học và học bổng du học / trao đổi sinh viên quốc tế.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-76",
+    "category": "Thư viện & Tài liệu",
+    "question": "Trang Thư viện Trung tâm và Thư viện số UTH ở đâu?",
+    "keywords": [
+      "trang thu vien",
+      "link thu vien",
+      "lic ut edu vn",
+      "thu vien so",
+      "tra cuu sach",
+      "giao trinh dien tu",
+      "lic uth",
+      "trang web thu vien",
+      "web thu vien",
+      "link lic"
+    ],
+    "answer": "Trang thông tin của Thư viện UTH:\n👉 **Trung tâm Thông tin - Thư viện UTH (LIC)**: [https://lic.ut.edu.vn/](https://lic.ut.edu.vn/)\n\nSinh viên truy cập để:\n- Tra cứu mục lục sách, giáo trình bản in tại Cơ sở 1, Cơ sở 2 và Cơ sở 3.\n- Khai thác nguồn tài liệu điện tử, luận văn, luận án và tạp chí khoa học chuyên ngành.\n- Đăng ký mượn/trả sách và gia hạn tài liệu online.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-77",
+    "category": "Tuyển sinh & Ngành học",
+    "question": "Cổng thông tin và Fanpage tư vấn tuyển sinh chính thức của UTH?",
+    "keywords": [
+      "trang tuyen sinh",
+      "link tuyen sinh",
+      "tuyensinh ut edu vn",
+      "fanpage tuyen sinh",
+      "tu van tuyen sinh",
+      "tuyensinhuth",
+      "facebook tuyen sinh",
+      "thong tin tuyen sinh"
+    ],
+    "answer": "Thông tin các kênh Tuyển sinh chính thức của UTH:\n1. 🌐 **Website Tuyển sinh**: [https://tuyensinh.ut.edu.vn/](https://tuyensinh.ut.edu.vn/)\n2. 📱 **Fanpage Tuyển sinh UTH**: [facebook.com/tuyensinhuth](https://www.facebook.com/tuyensinhuth)\n\nKênh cung cấp đầy đủ đề án tuyển sinh, chỉ tiêu, điểm chuẩn các năm, hướng dẫn xét tuyển học bạ, thi ĐGNL và tư vấn ngành nghề trực tiếp.",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-78",
+    "category": "Đời sống sinh viên & Đoàn thể",
+    "question": "Danh bạ Fanpage các Phòng ban và Đoàn - Hội sinh viên UTH?",
+    "keywords": [
+      "fanpage phong ban",
+      "fanpage doan hoi",
+      "fanpage phong dao tao",
+      "fanpage ctsv",
+      "doan thanh nien uth",
+      "hoi sinh vien uth",
+      "facebook phong dao tao",
+      "facebook ctsv",
+      "fanpage truong",
+      "fanpage chinh thuc",
+      "facebook doan truong",
+      "fanpage phong cong tac sinh vien",
+      "fanpage phong dao tao",
+      "fanpage ctsv",
+      "fanpage pdt"
+    ],
+    "answer": "Danh bạ Fanpage Facebook chính thức của các Phòng ban & Tổ chức Đoàn - Hội tại UTH:\n\n1. 🏛️ **Phòng Đào tạo**: [facebook.com/PDT.GTS](https://www.facebook.com/PDT.GTS/)\n2. 🧑‍🎓 **Phòng Công tác Sinh viên (Thực tập - Việc làm)**: [facebook.com/ThongtinsinhvienUTH](https://web.facebook.com/ThongtinsinhvienUTH)\n3. 🌟 **Đoàn Thanh niên - Hội Sinh viên UTH**: [facebook.com/doanhoiuth](https://www.facebook.com/doanhoiuth)\n4. 💎 **Đoàn - Hội Viện Đào tạo Chất lượng cao (SHAPE)**: [facebook.com/doanhoishape](https://www.facebook.com/doanhoishape)\n5. ❤️ **Tuổi trẻ UTH – Những câu chuyện đẹp**: [facebook.com/TamguongsinhvienUT](https://www.facebook.com/TamguongsinhvienUT)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-79",
+    "category": "Khoa & Viện đào tạo",
+    "question": "Danh bạ Fanpage các Viện và Khoa đào tạo chuyên môn tại UTH?",
+    "keywords": [
+      "fanpage cac vien",
+      "fanpage khoa cntt",
+      "fanpage vien clc",
+      "fanpage vien hang hai",
+      "fanpage vien co khi",
+      "fanpage iteee",
+      "vien cong nghe thong tin",
+      "vien cntt va dien tu",
+      "khoa cong nghe thong tin",
+      "vien kinh te",
+      "vien nang luong",
+      "vien deo ca",
+      "vien iec"
+    ],
+    "answer": "Danh bạ Fanpage chính thức của các Viện và Khoa chuyên ngành tại UTH:\n\n1. 💎 **Viện Đào tạo Chất lượng cao**: [facebook.com/vienclc.gts](https://www.facebook.com/vienclc.gts)\n2. 💻 **Viện Công nghệ thông tin và Điện, Điện tử (ITEEE)**: [facebook.com/ITEEEUTH](https://www.facebook.com/ITEEEUTH/)\n3. 🖥️ **Khoa Công nghệ thông tin**: [facebook.com/it3euth](https://www.facebook.com/it3euth)\n4. 🚢 **Viện Hàng Hải**: [facebook.com/VienHangHai](https://www.facebook.com/VienHangHai/)\n5. ⚙️ **Viện Cơ khí**: [facebook.com/viencokhi.uthcmc](https://www.facebook.com/viencokhi.uthcmc)\n6. 📈 **Viện Kinh tế và Phát triển GTVT**: [facebook.com/SV.KTVAPTGTVT](https://www.facebook.com/SV.KTVAPTGTVT)\n7. 🌍 **Viện Đào tạo và Hợp tác Quốc tế (IEC)**: [facebook.com/IEC.GTVT](https://www.facebook.com/IEC.GTVT)\n8. ⚡ **Viện Năng lượng và Giao thông**: [facebook.com/viennangluongvagiaothong](https://www.facebook.com/viennangluongvagiaothong)\n9. 🏔️ **Viện Nghiên cứu – Đào tạo Đèo Cả**: [facebook.com/profile.php?id=61552165332621](https://www.facebook.com/profile.php?id=61552165332621)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-80",
+    "category": "Câu lạc bộ & Thể thao",
+    "question": "Danh sách Fanpage các Câu lạc bộ (CLB) Thể thao và Võ thuật tại UTH?",
+    "keywords": [
+      "clb the thao",
+      "clb bong da",
+      "clb cau long",
+      "clb vovinam",
+      "clb taekwondo",
+      "clb bong ro",
+      "clb bong chuyen",
+      "cau lac bo the thao",
+      "fanpage clb the thao"
+    ],
+    "answer": "Danh sách các CLB Thể thao & Võ thuật sinh viên năng động tại UTH:\n\n1. ⚽ **CLB Bóng Đá UTH**: [facebook.com/CLBBongDaUTH](https://www.facebook.com/CLBBongDaUTH)\n2. 🏸 **CLB Cầu Lông UTH**: [facebook.com/gtsbadminton.ut](https://www.facebook.com/gtsbadminton.ut)\n3. 🏀 **CLB Bóng Rổ UTH (UTB)**: [facebook.com/utb.basketball](https://www.facebook.com/utb.basketball)\n4. 🏐 **CLB Bóng Chuyền UTH**: [facebook.com/uth.volleyballclub](https://www.facebook.com/uth.volleyballclub)\n5. 🥋 **CLB Vovinam UTH**: [facebook.com/VovinamUTH](https://www.facebook.com/VovinamUTH)\n6. 🥊 **CLB Taekwondo GTS**: [facebook.com/CLBTaekwondoGTS](https://www.facebook.com/CLBTaekwondoGTS)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-81",
+    "category": "Câu lạc bộ & Đội nhóm",
+    "question": "Danh sách các CLB Kỹ năng, Học thuật, Nghệ thuật và Tình nguyện UTH?",
+    "keywords": [
+      "clb truyen thong",
+      "clb khoi nghiep sse",
+      "clb am nhac",
+      "clb song dep",
+      "clb ky nang",
+      "doi cong tac xa hoi",
+      "ut logs",
+      "cau lac bo ky nang",
+      "cau lac bo tinh nguyen",
+      "ctxh"
+    ],
+    "answer": "Danh sách các CLB Kỹ năng, Học thuật, Nghệ thuật và Đội nhóm Tình nguyện UTH:\n\n1. 📸 **CLB Truyền thông UTH**: [facebook.com/CLBTruyenThongUTH](https://www.facebook.com/CLBTruyenThongUTH)\n2. 💡 **CLB Khởi nghiệp SSE (Start-up Students & Entrepreneurs)**: [facebook.com/SSE.GTS](https://www.facebook.com/SSE.GTS)\n3. 📦 **CLB Logistics sinh viên (UT-LOGS)**: [facebook.com/utlogsclub](https://www.facebook.com/utlogsclub)\n4. 🎵 **CLB Âm nhạc Giai điệu trái tim**: [facebook.com/clbangdttvv](https://www.facebook.com/clbangdttvv)\n5. 🤝 **Đội Công tác Xã hội UTH (CTXH)**: [facebook.com/CTXHUTHCM](https://www.facebook.com/CTXHUTHCM)\n6. 💖 **CLB Sống Đẹp**: [facebook.com/songdepclubgtvtvv](https://www.facebook.com/songdepclubgtvtvv)\n7. 🎯 **CLB Kỹ Năng (Gia đình Kỹ năng UTH)**: [facebook.com/giadinhkynang](https://www.facebook.com/giadinhkynang)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-82",
+    "category": "Đời sống & Ký túc xá",
+    "question": "Kênh TikTok chính thức, Fanpage Ký túc xá và Liên chi hội Cơ sở Quận 12 UTH?",
+    "keywords": [
+      "tiktok",
+      "tiktok uth",
+      "suc tre uth",
+      "kenh tiktok",
+      "fanpage ktx",
+      "ky tuc xa gts",
+      "lien chi hoi quan 12",
+      "co so q12",
+      "tiktok cua truong",
+      "tiktok sinh vien",
+      "facebook ktx"
+    ],
+    "answer": "Các kênh cộng đồng sinh viên và đời sống nội trú tại UTH:\n\n1. 🎬 **Kênh TikTok chính thức 'Sức Trẻ UTH'**: [tiktok.com/@suc_tre_uth](https://www.tiktok.com/@suc_tre_uth)\n2. 🏢 **Fanpage Ký túc xá UTH**: [facebook.com/KTXGTS](https://www.facebook.com/KTXGTS) (Cập nhật đăng ký phòng, lịch sinh hoạt KTX Cơ sở 2 & Cơ sở 3).\n3. 🏫 **Liên chi hội Sinh viên Cơ sở Quận 12**: [facebook.com/LCHSVCSQ12GTS](https://www.facebook.com/LCHSVCSQ12GTS)",
+    "updatedAt": "02/11/2026",
+    "isActive": true
+  },
+  {
+    "id": "uth-faq-83",
+    "category": "Chứng chỉ & Học liệu",
+    "question": "Kênh tài liệu và thông tin hỗ trợ ôn thi chứng chỉ MOS, Chuẩn Tiếng Anh UTH?",
+    "keywords": [
+      "tai lieu mos",
+      "on thi mos",
+      "tieng anh dau ra",
+      "fanpage tai lieu mos tieng anh",
+      "chung chi mos uth",
+      "tai lieu tieng anh",
+      "on thi tieng anh",
+      "fanpage mos",
+      "chung chi mos"
+    ],
+    "answer": "Trang hỗ trợ học liệu và tài liệu ôn luyện chứng chỉ đầu ra cho sinh viên UTH:\n👉 **Tài liệu – chứng chỉ MOS & Tiếng Anh UTH**: [facebook.com/uthtailieumostienganh](https://www.facebook.com/uthtailieumostienganh)\n\nTrang cung cấp:\n- Bộ tài liệu ôn thi tin học văn phòng MOS (Word, Excel, PowerPoint) bám sát đề thi chuẩn quốc tế.\n- Lộ trình và tài liệu luyện thi Chuẩn đầu ra Tiếng Anh (TOEIC, IELTS, B1 VSTEP).\n- Hướng dẫn nộp chứng chỉ để xét chuẩn đầu ra và miễn giảm học phần tương ứng.",
+    "updatedAt": "02/11/2026",
     "isActive": true
   }
 ]

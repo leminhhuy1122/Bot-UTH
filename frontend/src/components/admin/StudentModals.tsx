@@ -64,6 +64,168 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
   const [classId, setClassId] = useState('CN23CLC01');
   const [trainingType, setTrainingType] = useState('Chất lượng cao');
   const [status, setStatus] = useState('Đang học');
+  const [birthPlace, setBirthPlace] = useState('TP. Hồ Chí Minh');
+  const [educationLevel, setEducationLevel] = useState('Đại học - chính quy');
+  const [specialization, setSpecialization] = useState('Công nghệ thông tin');
+  const [assignments, setAssignments] = useState<any[]>([]);
+
+  // States quản lý Form Thêm / Sửa Bài tập Elearning
+  const [isAsmFormOpen, setIsAsmFormOpen] = useState(false);
+  const [editingAsmIndex, setEditingAsmIndex] = useState<number | null>(null);
+  const [asmCourseName, setAsmCourseName] = useState('');
+  const [asmCourseCode, setAsmCourseCode] = useState('');
+  const [asmTitle, setAsmTitle] = useState('');
+  const [asmDeadline, setAsmDeadline] = useState('2026-11-05 23:59');
+  const [asmDaysLeft, setAsmDaysLeft] = useState<number>(3);
+  const [asmStatus, setAsmStatus] = useState<'pending' | 'submitted' | 'graded'>('pending');
+  const [asmScore, setAsmScore] = useState<string>('');
+  const [asmFeedback, setAsmFeedback] = useState('');
+  const [asmDescription, setAsmDescription] = useState('');
+
+  const handleOpenAddAsm = () => {
+    setEditingAsmIndex(null);
+    setAsmCourseName(major ? `${major} - Chuyên ngành` : 'Quản trị mạng - CNS_CS1');
+    setAsmCourseCode('012012300503');
+    setAsmTitle('');
+    setAsmDeadline('2026-11-05 23:59');
+    setAsmDaysLeft(3);
+    setAsmStatus('pending');
+    setAsmScore('');
+    setAsmFeedback('');
+    setAsmDescription('');
+    setIsAsmFormOpen(true);
+  };
+
+  const handleOpenEditAsm = (index: number) => {
+    const asm = assignments[index];
+    if (!asm) return;
+    setEditingAsmIndex(index);
+    setAsmCourseName(asm.courseName || '');
+    setAsmCourseCode(asm.courseCode || '');
+    setAsmTitle(asm.title || '');
+    setAsmDeadline(asm.deadline || '2026-11-05 23:59');
+    setAsmDaysLeft(asm.daysLeft !== undefined ? asm.daysLeft : 3);
+    setAsmStatus(asm.status || 'pending');
+    setAsmScore(asm.score !== null && asm.score !== undefined ? String(asm.score) : '');
+    setAsmFeedback(asm.feedback || '');
+    setAsmDescription(asm.description || '');
+    setIsAsmFormOpen(true);
+  };
+
+  const handleSaveAsm = () => {
+    if (!asmTitle.trim()) {
+      showToast('Vui lòng nhập Tiêu đề bài tập.', 'error');
+      return;
+    }
+    if (!asmCourseName.trim()) {
+      showToast('Vui lòng nhập Tên môn học.', 'error');
+      return;
+    }
+
+    const newAsmItem = {
+      id: editingAsmIndex !== null && assignments[editingAsmIndex]?.id 
+        ? assignments[editingAsmIndex].id 
+        : `asm-${mssv || 'custom'}-${Date.now()}`,
+      courseCode: asmCourseCode.trim() || '012012300503',
+      courseName: asmCourseName.trim(),
+      semester: 'HKI2627',
+      title: asmTitle.trim(),
+      description: asmDescription.trim(),
+      deadline: asmDeadline.trim(),
+      daysLeft: Number(asmDaysLeft) || 0,
+      status: asmStatus,
+      submissionDate: asmStatus === 'pending' ? null : (assignments[editingAsmIndex || 0]?.submissionDate || '2026-10-30 20:00'),
+      score: asmStatus === 'graded' && asmScore ? parseFloat(asmScore) : (asmStatus === 'graded' ? 9.0 : null),
+      feedback: asmFeedback.trim(),
+      colorTheme: asmStatus === 'submitted' ? 'blue' : (asmDaysLeft <= 3 ? 'cyan' : 'purple')
+    };
+
+    if (editingAsmIndex !== null) {
+      const updated = [...assignments];
+      updated[editingAsmIndex] = newAsmItem;
+      setAssignments(updated);
+      showToast('Đã cập nhật bài tập thành công!', 'success');
+    } else {
+      setAssignments([...assignments, newAsmItem]);
+      showToast('Đã thêm bài tập mới thành công!', 'success');
+    }
+
+    setIsAsmFormOpen(false);
+    setEditingAsmIndex(null);
+  };
+
+  const handleDeleteAsm = (index: number) => {
+    const updated = assignments.filter((_, i) => i !== index);
+    setAssignments(updated);
+    showToast('Đã xóa bài tập khỏi danh sách.', 'info');
+  };
+
+  const handleGenerateDefaultAsms = () => {
+    const generated = [
+      {
+        id: `asm-${mssv || 'new'}-01`,
+        courseCode: '012012300503',
+        courseName: `${major || 'Chuyên ngành'} - Học phần 1`,
+        semester: 'HKI2627',
+        title: `Bài tập lớn: Đồ án nghiên cứu và thiết kế hệ thống ${specialization || major || 'chuyên ngành'}`,
+        description: 'Nộp báo cáo PDF theo quy chuẩn kèm source code / bản vẽ kỹ thuật.',
+        deadline: '2026-11-05 23:59',
+        daysLeft: 3,
+        status: 'pending',
+        submissionDate: null,
+        score: null,
+        feedback: '',
+        colorTheme: 'cyan'
+      },
+      {
+        id: `asm-${mssv || 'new'}-02`,
+        courseCode: '010412303904',
+        courseName: `${faculty || 'Khoa'} - Học phần nâng cao`,
+        semester: 'HKI2627',
+        title: 'Bài tập tuần: Phân tích quy trình và thực hành lab chuyên đề',
+        description: 'Nộp kết quả thực nghiệm và ảnh chụp minh chứng thực hành.',
+        deadline: '2026-11-12 23:59',
+        daysLeft: 10,
+        status: 'pending',
+        submissionDate: null,
+        score: null,
+        feedback: '',
+        colorTheme: 'purple'
+      },
+      {
+        id: `asm-${mssv || 'new'}-03`,
+        courseCode: '010412620229',
+        courseName: 'Học kỳ doanh nghiệp - Trung tâm TTTV UTH 1',
+        semester: 'HKI2627',
+        title: 'Báo cáo thực tập tuần 6: Nhật ký thực tế và đánh giá từ đơn vị tiếp nhận',
+        description: 'Bản scan phiếu xác nhận có mộc đỏ của cơ quan / doanh nghiệp.',
+        deadline: '2026-10-31 23:59',
+        daysLeft: 0,
+        status: 'submitted',
+        submissionDate: '2026-10-30 20:30',
+        score: null,
+        feedback: 'Hệ thống đã ghi nhận bài nộp đúng hạn.',
+        colorTheme: 'blue'
+      },
+      {
+        id: `asm-${mssv || 'new'}-04`,
+        courseCode: 'TEMP01',
+        courseName: `${major || 'Chuyên ngành'} - Đánh giá quá trình`,
+        semester: 'HKI2627',
+        title: 'Kiểm tra giữa kỳ: Báo cáo chuyên đề ứng dụng thực tiễn',
+        description: 'Nộp slide thuyết trình nhóm và video demo.',
+        deadline: '2026-10-22 23:59',
+        daysLeft: 0,
+        status: 'graded',
+        submissionDate: '2026-10-21 16:00',
+        score: 9.2,
+        feedback: 'Bài làm xuất sắc, nội dung phong phú và bảo vệ tự tin trước hội đồng.',
+        colorTheme: 'emerald'
+      }
+    ];
+    setAssignments(generated);
+    showToast('Đã nạp 4 bài tập mẫu chuẩn hóa theo chuyên ngành!', 'success');
+  };
 
   // Điểm số & Tích lũy
   const [gpa10, setGpa10] = useState<number>(8.0);
@@ -98,6 +260,10 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
       setClassId(currentStudent.classId || 'CN23CLC01');
       setTrainingType(currentStudent.trainingType || 'Chất lượng cao');
       setStatus(currentStudent.status || 'Đang học');
+      setBirthPlace(currentStudent.birthPlace || 'TP. Hồ Chí Minh');
+      setEducationLevel(currentStudent.educationLevel || 'Đại học - chính quy');
+      setSpecialization(currentStudent.specialization || currentStudent.major || 'Công nghệ thông tin');
+      setAssignments(currentStudent.assignments || []);
       setGpa10(currentStudent.gpa10 || 8.0);
       setGpa4(currentStudent.gpa4 || 3.2);
       setCpa4(currentStudent.cpa4 || 3.2);
@@ -123,6 +289,10 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
       setClassId('CN23CLC01');
       setTrainingType('Chất lượng cao');
       setStatus('Đang học');
+      setBirthPlace('TP. Hồ Chí Minh');
+      setEducationLevel('Đại học - chính quy');
+      setSpecialization('Công nghệ thông tin');
+      setAssignments([]);
       setGpa10(8.0);
       setGpa4(3.2);
       setCpa4(3.2);
@@ -181,6 +351,10 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
         classId,
         trainingType,
         status,
+        birthPlace,
+        educationLevel,
+        specialization,
+        assignments,
         accumulatedCredits: Number(accumulatedCredits),
         requiredCredits: Number(requiredCredits),
         trainingPoint: Number(trainingPoint),
@@ -299,6 +473,17 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
               </div>
 
               <div>
+                <label className="block font-semibold text-slate-700 mb-1">Nơi sinh</label>
+                <input
+                  type="text"
+                  value={birthPlace}
+                  onChange={(e) => setBirthPlace(e.target.value)}
+                  placeholder="TP. Hồ Chí Minh"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300"
+                />
+              </div>
+
+              <div>
                 <label className="block font-semibold text-slate-700 mb-1">Số điện thoại</label>
                 <input
                   type="text"
@@ -359,7 +544,7 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Chuyên ngành</label>
+                <label className="block font-semibold text-slate-700 mb-1">Ngành đào tạo</label>
                 <input
                   type="text"
                   value={major}
@@ -367,6 +552,31 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
                   placeholder="Công nghệ thông tin / Kỹ thuật ô tô..."
                   className="w-full px-3 py-2 rounded-lg border border-slate-300"
                 />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Chuyên ngành cụ thể</label>
+                <input
+                  type="text"
+                  value={specialization}
+                  onChange={(e) => setSpecialization(e.target.value)}
+                  placeholder="Công nghệ phần mềm / Mạng máy tính..."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">Bậc đào tạo</label>
+                <select
+                  value={educationLevel}
+                  onChange={(e) => setEducationLevel(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white"
+                >
+                  <option value="Đại học - chính quy">Đại học - chính quy</option>
+                  <option value="Thạc sĩ">Thạc sĩ</option>
+                  <option value="Tiến sĩ">Tiến sĩ</option>
+                  <option value="Cao đẳng liên thông">Cao đẳng liên thông</option>
+                </select>
               </div>
 
               <div>
@@ -422,6 +632,266 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Nhóm 4: Khóa học & Bài tập trực tuyến (Elearning UTH) */}
+          <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-2.5 gap-2">
+              <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                <span className="w-2 h-2 rounded-full bg-teal-600" />
+                <span>4. Bài tập trực tuyến & Quản lý Deadline (Elearning UTH)</span>
+                <span className="text-xs font-semibold px-2 py-0.5 bg-teal-100 text-teal-800 rounded-full">
+                  {assignments.length} bài tập
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleGenerateDefaultAsms}
+                  className="px-2.5 py-1 text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-md transition-colors cursor-pointer flex items-center gap-1"
+                  title="Tự động tạo 4 bài tập mẫu theo chuyên ngành của sinh viên"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Tạo bài tập mẫu</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenAddAsm}
+                  className="px-2.5 py-1 text-xs bg-[#008272] hover:bg-[#00695c] text-white font-semibold rounded-md shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Thêm bài tập mới</span>
+                </button>
+              </div>
+            </div>
+
+            {/* FORM THÊM / SỬA BÀI TẬP INLINE */}
+            {isAsmFormOpen && (
+              <div className="p-3.5 bg-teal-50/70 border border-teal-200 rounded-xl space-y-3 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between font-bold text-teal-900 text-xs border-b border-teal-200 pb-1.5">
+                  <span className="flex items-center gap-1.5">
+                    <Edit2 className="w-3.5 h-3.5 text-[#008272]" />
+                    {editingAsmIndex !== null ? 'Chỉnh sửa thông tin bài tập' : 'Thêm mới bài tập Elearning cho sinh viên'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setIsAsmFormOpen(false); setEditingAsmIndex(null); }}
+                    className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                      Tên môn học <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={asmCourseName}
+                      onChange={(e) => setAsmCourseName(e.target.value)}
+                      placeholder="Quản trị mạng - CNS_CS1"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#008272]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Mã môn học</label>
+                    <input
+                      type="text"
+                      value={asmCourseCode}
+                      onChange={(e) => setAsmCourseCode(e.target.value)}
+                      placeholder="012012300503"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                      Tiêu đề bài tập <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={asmTitle}
+                      onChange={(e) => setAsmTitle(e.target.value)}
+                      placeholder="Bài tập lớn: Thiết kế và cấu hình hệ thống mạng..."
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#008272]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Hạn nộp (Deadline)</label>
+                    <input
+                      type="text"
+                      value={asmDeadline}
+                      onChange={(e) => setAsmDeadline(e.target.value)}
+                      placeholder="2026-11-05 23:59"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Số ngày còn lại</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={asmDaysLeft}
+                      onChange={(e) => setAsmDaysLeft(parseInt(e.target.value) || 0)}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Trạng thái</label>
+                    <select
+                      value={asmStatus}
+                      onChange={(e) => setAsmStatus(e.target.value as any)}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-semibold"
+                    >
+                      <option value="pending">⏳ Chờ nộp bài (Pending)</option>
+                      <option value="submitted">📤 Đã nộp bài (Submitted)</option>
+                      <option value="graded">✅ Đã chấm điểm (Graded)</option>
+                    </select>
+                  </div>
+
+                  {asmStatus === 'graded' && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Điểm số (Thang 10)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={asmScore}
+                        onChange={(e) => setAsmScore(e.target.value)}
+                        placeholder="9.5"
+                        className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-bold text-emerald-700"
+                      />
+                    </div>
+                  )}
+
+                  <div className={asmStatus === 'graded' ? "sm:col-span-2" : "sm:col-span-3"}>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Nhận xét của giảng viên (nếu có)</label>
+                    <input
+                      type="text"
+                      value={asmFeedback}
+                      onChange={(e) => setAsmFeedback(e.target.value)}
+                      placeholder="Bài làm tốt, trình bày khoa học..."
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1 border-t border-teal-200">
+                  <button
+                    type="button"
+                    onClick={() => { setIsAsmFormOpen(false); setEditingAsmIndex(null); }}
+                    className="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md text-xs cursor-pointer"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAsm}
+                    className="px-3 py-1 bg-[#008272] hover:bg-[#00695c] text-white rounded-md text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>{editingAsmIndex !== null ? 'Lưu thay đổi' : 'Thêm vào danh sách'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* DANH SÁCH BÀI TẬP */}
+            {assignments.length === 0 ? (
+              <div className="text-center py-6 bg-white rounded-xl border border-dashed border-slate-300">
+                <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                <p className="text-xs text-slate-500 font-medium">Chưa có bài tập nào được giao cho sinh viên này.</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Bấm nút "Tạo bài tập mẫu" ở trên hoặc "Thêm bài tập mới" để giao bài.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {assignments.map((asm: any, idx: number) => (
+                  <div
+                    key={asm.id || idx}
+                    className={`p-3 rounded-xl border transition-all ${
+                      editingAsmIndex === idx
+                        ? 'bg-teal-50/80 border-[#008272] ring-1 ring-[#008272]'
+                        : 'bg-white border-slate-200 hover:border-slate-300 shadow-2xs'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-bold text-slate-800 text-xs">{asm.courseName}</span>
+                          {asm.courseCode && (
+                            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-mono">
+                              {asm.courseCode}
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            asm.status === 'graded'
+                              ? 'bg-purple-100 text-purple-700'
+                              : asm.status === 'submitted'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : (asm.daysLeft <= 3)
+                              ? 'bg-rose-100 text-rose-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {asm.status === 'graded'
+                              ? `Đã chấm: ${asm.score ?? '---'}/10`
+                              : asm.status === 'submitted'
+                              ? 'Đã nộp bài'
+                              : `Hạn còn ${asm.daysLeft || 0} ngày`}
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-slate-700 font-medium line-clamp-1">
+                          {asm.title}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            Hạn nộp: <strong className="text-slate-700">{asm.deadline}</strong>
+                          </span>
+                          {asm.submissionDate && (
+                            <span>Đã nộp lúc: {asm.submissionDate}</span>
+                          )}
+                        </div>
+
+                        {asm.feedback && (
+                          <div className="text-[11px] text-teal-800 bg-teal-50/60 px-2 py-1 rounded border border-teal-100 italic">
+                            💬 Nhận xét: {asm.feedback}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Nút Sửa & Xóa bài tập */}
+                      <div className="shrink-0 flex items-center gap-1 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditAsm(idx)}
+                          className="p-1.5 text-slate-500 hover:text-[#008272] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
+                          title="Chỉnh sửa bài tập"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAsm(idx)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="Xóa bài tập này"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Nhóm 3: Điểm số & Tích lũy */}

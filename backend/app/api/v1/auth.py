@@ -28,11 +28,11 @@ def serialize_student_profile(p: StudentProfile, email: Optional[str] = None) ->
         "gender": p.gender or "Nam",
         "birthDate": p.birth_date or "15/08/2005",
         "birthPlace": getattr(p, 'birth_place', None) or "TP. Hồ Chí Minh",
-        "educationLevel": "Đại học - chính quy",
+        "educationLevel": getattr(p, 'education_level', None) or "Đại học - chính quy",
         "trainingType": p.training_type or "Chất lượng cao",
         "faculty": p.faculty or "Công nghệ thông tin",
         "major": p.major or "Công nghệ thông tin",
-        "specialization": p.major or "Công nghệ thông tin",
+        "specialization": getattr(p, 'specialization', None) or p.major or "Công nghệ thông tin",
         "avatarUrl": p.avatar_url or "/student_avatar_ai.svg",
         "email": p.email or email or f"{p.mssv}@ut.edu.vn",
         "phone": p.phone or "0912 345 678",
@@ -56,6 +56,7 @@ def serialize_student_profile(p: StudentProfile, email: Optional[str] = None) ->
         "registeredCourses": p.registered_courses or [],
         "upcomingCourses": p.upcoming_courses or [],
         "semestersGrades": p.semesters_grades or [],
+        "assignments": getattr(p, 'assignments', None) or [],
     }
 
 def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> Optional[User]:

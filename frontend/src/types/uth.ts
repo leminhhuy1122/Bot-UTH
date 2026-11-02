@@ -32,6 +32,25 @@ export interface StudentProfile {
   registeredCourses?: string[];
   upcomingCourses?: string[];
   semestersGrades?: any[];
+  assignments?: StudentAssignment[];
+  otherFees?: any[];
+}
+
+export interface StudentAssignment {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  semester?: string;
+  title: string;
+  description?: string;
+  deadline: string;
+  daysLeft: number;
+  status: 'pending' | 'submitted' | 'overdue';
+  submissionDate?: string | null;
+  score?: number | null;
+  colorTheme?: 'cyan' | 'blue' | 'amber' | 'purple' | 'sky' | 'teal';
+  submissionNote?: string | null;
+  attachmentUrl?: string | null;
 }
 
 export interface ScheduleEvent {
@@ -81,6 +100,14 @@ export interface ServiceItem {
   description: string;
 }
 
+export interface ChatAction {
+  type: 'OPEN_MODAL' | 'OPEN_VIEW' | 'NAVIGATE';
+  target: 'schedule' | 'full-schedule' | 'elearning' | 'payment' | 'debt' | 'card' | 'service';
+  label: string;
+  icon?: string;
+  description?: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'bot';
@@ -91,6 +118,7 @@ export interface ChatMessage {
     confidence?: number;
     engine?: string;
     latencyMs?: number;
+    action?: ChatAction;
   };
 }
 

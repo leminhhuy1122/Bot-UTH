@@ -224,6 +224,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sessionStorage.removeItem('uth_session_auth');
       sessionStorage.removeItem('uth_jwt_token');
       sessionStorage.removeItem('uth_parent_student');
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('uth_airplane_')) sessionStorage.removeItem(key);
+      });
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('uth_airplane_')) localStorage.removeItem(key);
+      });
     } catch (e) {
       console.warn('Không thể xóa Storage:', e);
     }

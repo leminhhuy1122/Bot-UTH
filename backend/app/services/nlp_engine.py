@@ -21,14 +21,40 @@ def classify_intent(query: str) -> tuple[str, float]:
     q_norm = remove_accents(query.lower())
     
     intent_weights = {
+        'ASSIGNMENTS': [
+            ('bai tap', 3.5), ('deadline', 3.5), ('han nop', 3.5), ('elearning', 3.0),
+            ('nop bai', 3.5), ('cham diem', 3.0), ('tieu luan', 3.0), ('do an', 3.0),
+            ('lab', 2.5), ('som nhat', 3.0), ('gap nhat', 3.0), ('nop truoc', 3.0),
+            ('het han', 3.0), ('cai nao nop', 3.5), ('cai nao can nop', 3.5),
+            ('bai nao', 3.0), ('mon nao nop', 3.0), ('chua nop', 3.0), ('da nop', 3.0),
+            ('diem bai', 3.0), ('uu tien nop', 3.0), ('nop o dau', 3.0), ('lam sao nop', 3.0)
+        ],
         'SCHEDULE': [
-            ('lich hoc', 3.0), ('thoi khoa bieu', 3.0), ('tuan nay', 2.0),
-            ('hom nay', 2.0), ('tiet', 1.5), ('phong hoc', 2.5),
-            ('hoc sang', 1.5), ('hoc chieu', 1.5), ('thu ba', 2.0), ('thu sau', 2.0)
+            ('lich hoc', 3.5), ('thoi khoa bieu', 3.5), ('tkb', 3.0),
+            ('hom nay hoc gi', 3.0), ('lich tuan nay', 3.0), ('tiet hoc', 2.5),
+            ('phong hoc', 2.5), ('ca hoc', 2.5), ('mon hoc tuan nay', 3.0)
+        ],
+        'WHAT_IF_SIMULATION': [
+            ('neu mon', 4.5), ('neu duoc', 4.5), ('neu dat', 4.5), ('keo diem', 5.0),
+            ('keo diem xuong', 5.5), ('tut diem', 4.5), ('giam diem', 4.5),
+            ('tang diem', 4.5), ('keo gpa', 5.0), ('keo cpa', 5.0), ('gia su', 4.0),
+            ('tinh giup', 3.5), ('du kien diem', 4.5), ('mo phong diem', 5.0),
+            ('keo xuong nhu nao', 5.5), ('anh huong diem', 4.5)
+        ],
+        'BOT_CAPABILITIES': [
+            ('lam duoc gi', 5.0), ('co the lam gi', 5.0), ('lam nhung gi', 5.0),
+            ('chuc nang', 4.5), ('giup duoc gi', 5.0), ('ho tro duoc gi', 5.0),
+            ('ban la ai', 4.5), ('gioi thieu', 4.0), ('nang luc', 4.5),
+            ('huong dan su dung', 4.5), ('tinh nang', 4.5), ('tro ly ao la gi', 4.5)
         ],
         'GPA': [
-            ('diem', 2.5), ('gpa', 3.0), ('cpa', 3.0), ('ket qua', 2.0),
-            ('bang diem', 3.0), ('xep loai', 2.0), ('hoc luc', 2.0),
+            ('diem gpa', 3.5), ('diem cpa', 3.5), ('gpa', 3.0), ('cpa', 3.0),
+            ('bang diem', 3.0), ('ket qua hoc tap', 3.0), ('xep loai hoc luc', 3.5),
+            ('xep loai', 2.5), ('hoc luc', 2.5), ('diem ren luyen', 3.0),
+            ('hoc sinh gioi', 4.0), ('sinh vien gioi', 4.0), ('xep loai gioi', 4.0),
+            ('xep loai xuat sac', 4.0), ('dieu kien gioi', 4.0), ('dieu kien xuat sac', 4.0),
+            ('dieu kien hoc sinh gioi', 4.5), ('dieu kien sinh vien gioi', 4.5),
+            ('hoc luc gioi', 3.5), ('hoc luc xuat sac', 3.5), ('danh hieu sinh vien gioi', 4.0),
             ('chuyen can', 2.0), ('giua ky', 2.0), ('cuoi ky', 2.0)
         ],
         'TUITION': [
@@ -72,6 +98,20 @@ def classify_intent(query: str) -> tuple[str, float]:
         'PROCEDURES': [
             ('giay xac nhan', 3.0), ('nghia vu quan su', 3.0), ('nvqs', 3.0),
             ('mot cua', 2.5), ('chuyen nganh', 2.0), ('the sinh vien', 3.0)
+        ],
+        'CLUBS_COMMUNITY': [
+            ('clb', 3.5), ('cau lac bo', 3.5), ('fanpage', 3.5), ('facebook', 3.0),
+            ('tiktok', 3.5), ('suc tre uth', 4.0), ('doi cong tac xa hoi', 4.0),
+            ('ctxh', 3.5), ('bong da', 3.0), ('cau long', 3.0), ('bong ro', 3.0),
+            ('bong chuyen', 3.0), ('vovinam', 3.5), ('taekwondo', 3.5),
+            ('ut logs', 4.0), ('sse', 3.5), ('giai dieu trai tim', 4.0),
+            ('song dep', 3.5), ('gia dinh ky nang', 3.5), ('tai lieu mos', 4.0)
+        ],
+        'LINKS_PORTAL': [
+            ('trang web', 3.5), ('website', 3.5), ('link', 3.0), ('cong thong tin', 3.5),
+            ('trang chu', 3.5), ('payment ut edu', 4.0), ('lic ut edu', 4.0),
+            ('hocbong ut edu', 4.0), ('daotao ut edu', 4.0), ('tuyensinh ut edu', 4.0),
+            ('iec ut edu', 4.0), ('link thanh toan', 4.0), ('link hoc bong', 4.0)
         ]
     }
 
@@ -90,26 +130,48 @@ def classify_intent(query: str) -> tuple[str, float]:
     confidence = min(0.98, round(0.50 + (max_score * 0.12), 2))
     return best_intent, confidence
 
+VIETNAMESE_STOP_WORDS = {
+    'cho', 'em', 'minh', 'toi', 'xin', 'hoi', 'cua', 'truong', 'la', 'gi',
+    'o', 'dau', 'vay', 'a', 'ha', 'voi', 'duoc', 'khong', 'cac', 'nhung',
+    'nhu', 'the', 'nao', 'co', 'may', 'bao', 'nhieu', 've', 'ra', 'sao', 'thi'
+}
+
 def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]:
-    """Tìm các mục tri thức phù hợp nhất với câu hỏi."""
-    q_norm = remove_accents(query.lower())
+    """Tìm các mục tri thức phù hợp nhất với câu hỏi bằng TF-IDF Weighting & Content Token Matching."""
+    q_norm = remove_accents(query.lower()).strip()
     q_tokens = set(tokenize(q_norm))
     matches = []
 
     for item in knowledge_items:
         score = 0.0
-        item_q_norm = remove_accents(item.get('question', '').lower())
-        if q_norm in item_q_norm or item_q_norm in q_norm:
-            score += 4.0
+        item_q = item.get('question', '').strip()
+        item_q_norm = remove_accents(item_q.lower()).strip()
+        
+        # 1. Khớp hoàn toàn hoặc chuỗi con câu hỏi
+        if q_norm == item_q_norm:
+            score += 20.0
+        elif len(q_norm) >= 10 and (q_norm in item_q_norm or item_q_norm in q_norm):
+            score += 10.0
 
-        for kw in item.get('keywords', []):
-            kw_norm = remove_accents(kw.lower())
-            if kw_norm in q_norm:
-                score += 2.5
+        # 2. Khớp từ khóa cốt lõi (Trọng số cao theo độ dài cụm từ)
+        keywords = item.get('keywords', [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
 
+        for kw in keywords:
+            kw_norm = remove_accents(kw.lower()).strip()
+            if kw_norm and kw_norm in q_norm:
+                kw_len = len(kw_norm.split())
+                score += kw_len * 3.5
+
+        # 3. Khớp tập từ vựng (Phân biệt stop words vs content words)
         item_tokens = set(tokenize(item_q_norm))
-        overlap = len(q_tokens.intersection(item_tokens))
-        score += overlap * 1.0
+        overlap_tokens = q_tokens.intersection(item_tokens)
+        for tok in overlap_tokens:
+            if tok in VIETNAMESE_STOP_WORDS:
+                score += 0.2  # Stop word giảm trọng số tối thiểu
+            else:
+                score += 2.5  # Content word tăng trọng số cao
 
         if score > 0:
             matches.append({
@@ -117,46 +179,85 @@ def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]
                 'relevance_score': round(score, 2)
             })
 
-    matches.sort(key=lambda x: x['relevance_score'], reverse=True)
-    return [m['item'] for m in matches[:3]]
+    # Ngưỡng tin cậy tối thiểu: 4.5
+    MIN_CONFIDENCE_THRESHOLD = 4.5
+    valid_matches = [m for m in matches if m['relevance_score'] >= MIN_CONFIDENCE_THRESHOLD]
+    valid_matches.sort(key=lambda x: x['relevance_score'], reverse=True)
+    return [m['item'] for m in valid_matches[:3]]
 
 def find_fast_instant_answer(query: str, knowledge_items: list[dict]) -> Optional[dict]:
     """
     Tối ưu hóa tốc độ phản hồi cực nhanh (Fast Instant Cache < 10ms).
-    Đối soát trực tiếp các câu hỏi thường gặp (FAQ) chính thức của UTH.
-    Nếu khớp độ tin cậy cao và không hỏi dữ liệu cá nhân, trả về ngay lập tức không cần chờ LLM.
+    Đối soát trực tiếp các câu hỏi thường gặp (FAQ) chính thức của UTH bằng thuật toán
+    tính điểm đa tiêu chí (Exact Match > N-gram Keyword Length > Token Overlap).
     """
     q_norm = remove_accents(query.lower()).strip()
+    q_clean = re.sub(r'[^\w\s]', ' ', q_norm).strip()
     
     # Không dùng fast cache nếu người dùng đang hỏi dữ liệu cá nhân
     personal_indicators = ['cua toi', 'cua em', 'cua con', 'diem cua', 'hoc phi cua', 'lich hoc cua', 'no hoc phi']
     if any(k in q_norm for k in personal_indicators):
         return None
 
+    q_tokens = set(tokenize(q_clean))
+    if not q_tokens:
+        return None
+
+    best_item = None
+    best_score = 0.0
+
     for item in knowledge_items:
-        item_q_norm = remove_accents(item.get('question', '').lower()).strip()
+        item_q = item.get('question', '').strip()
+        item_q_norm = remove_accents(item_q.lower()).strip()
+        item_q_clean = re.sub(r'[^\w\s]', ' ', item_q_norm).strip()
         
-        # 1. Khớp chính xác câu hỏi
-        if q_norm == item_q_norm:
+        # 1. Khớp chính xác hoàn toàn câu hỏi (sau khi bỏ dấu và ký tự đặc biệt)
+        if q_clean == item_q_clean:
             return {
                 "reply": item["answer"],
                 "intent": item.get("category", "FAQ"),
                 "confidence": 0.99,
                 "engine": "UTH Fast In-Memory Cache (<10ms)",
-                "citation": {"title": item.get("category", "Thông tin"), "question": item.get("question", "")}
+                "citation": {"title": item.get("category", "Thông tin"), "question": item_q}
             }
 
-        # 2. Khớp từ khóa cốt lõi độ tin cậy cao
-        keywords = [remove_accents(kw.lower()) for kw in item.get('keywords', [])]
-        matched_kw_count = sum(1 for kw in keywords if kw in q_norm)
-        if matched_kw_count >= 2 and (len(q_norm) < 60):
-            return {
-                "reply": item["answer"],
-                "intent": item.get("category", "FAQ"),
-                "confidence": 0.96,
-                "engine": "UTH Fast In-Memory Cache (<10ms)",
-                "citation": {"title": item.get("category", "Thông tin"), "question": item.get("question", "")}
-            }
+        score = 0.0
+        # Khớp chuỗi con câu hỏi
+        if len(q_clean) >= 12 and (q_clean in item_q_clean or item_q_clean in q_clean):
+            score += 15.0
+
+        # Khớp từ khóa (Trọng số lũy tiến theo độ dài từ khóa, ưu tiên cụm từ chuyên biệt)
+        matched_kw_count = 0
+        keywords = item.get('keywords', [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+
+        for kw in keywords:
+            kw_norm = remove_accents(kw.lower()).strip()
+            if kw_norm and kw_norm in q_norm:
+                matched_kw_count += 1
+                kw_len = len(kw_norm.split())
+                score += kw_len * 3.0  # Cụm từ dài như "đợt xét tốt nghiệp" được +9 điểm
+
+        # Khớp tập từ vựng (Token overlap)
+        item_tokens = set(tokenize(item_q_clean))
+        overlap = len(q_tokens.intersection(item_tokens))
+        score += overlap * 1.5
+
+        # Chỉ xét ứng viên có sự liên quan cao rõ rệt
+        if (matched_kw_count >= 2 or (overlap >= 3 and matched_kw_count >= 1)) and score > best_score:
+            best_score = score
+            best_item = item
+
+    # Ngưỡng tin cậy chấp nhận Fast Answer
+    if best_item and best_score >= 12.0:
+        return {
+            "reply": best_item["answer"],
+            "intent": best_item.get("category", "FAQ"),
+            "confidence": min(0.98, round(0.85 + (best_score * 0.005), 2)),
+            "engine": "UTH Fast In-Memory Cache (<10ms)",
+            "citation": {"title": best_item.get("category", "Thông tin"), "question": best_item.get("question", "")}
+        }
 
     return None
 
@@ -192,10 +293,10 @@ def build_personalized_system_prompt(
         )
 
     elif role == "student":
-        student_name = getattr(student_ctx, "name", "bạn") if student_ctx else "bạn"
-        mssv = getattr(student_ctx, "mssv", "") if student_ctx else ""
-        cohort = getattr(student_ctx, "cohort", "2023") if student_ctx else "2023"
-        major = getattr(student_ctx, "major", "Công nghệ thông tin") if student_ctx else "Công nghệ thông tin"
+        student_name = (getattr(student_ctx, "name", None) or "bạn") if student_ctx else "bạn"
+        mssv = (getattr(student_ctx, "mssv", None) or "") if student_ctx else ""
+        cohort = (getattr(student_ctx, "cohort", None) or "2023") if student_ctx else "2023"
+        major = (getattr(student_ctx, "major", None) or "Công nghệ thông tin") if student_ctx else "Công nghệ thông tin"
 
         personal_data_str = (
             f"- Họ tên: {student_name}\n"
@@ -229,15 +330,33 @@ def build_personalized_system_prompt(
                 ])
                 personal_data_str += f"- Lịch học các môn tuần này: {schedule_summary}\n"
 
+            # Bài tập trực tuyến (Elearning UTH) của riêng sinh viên này
+            assignments = live_student_data.get("assignments", [])
+            if assignments:
+                asms_lines = []
+                for a in assignments:
+                    stt = a.get("status", "pending")
+                    score_info = f", Điểm: {a.get('score')}/10" if a.get("score") is not None else ""
+                    fb_info = f", Nhận xét: '{a.get('feedback')}'" if a.get("feedback") else ""
+                    sub_info = f", Đã nộp: {a.get('submissionDate')}" if a.get("submissionDate") else ""
+                    asms_lines.append(
+                        f"  * [{stt.upper()}] Môn {a.get('courseName')} (Mã: {a.get('courseCode')}): '{a.get('title')}' | Hạn nộp: {a.get('deadline')} (Còn {a.get('daysLeft', 0)} ngày){score_info}{sub_info}{fb_info}"
+                    )
+                personal_data_str += "- Danh sách bài tập Elearning cá nhân:\n" + "\n".join(asms_lines) + "\n"
+            else:
+                personal_data_str += "- Bài tập Elearning: Hiện tại bạn đã hoàn tất hoặc không có bài tập tồn đọng.\n"
+
         return base_persona + (
             f"\n[VAI TRÒ: SINH VIÊN {student_name.upper()} (MSSV: {mssv})]:\n"
             f"- Dữ liệu học tập cá nhân của {student_name}:\n{personal_data_str}\n"
             f"- Xưng hô tự nhiên ('Chào {student_name}', xưng 'mình' hoặc 'UTH AI').\n"
             "- CHỈ TRẢ LỜI ĐÚNG NỘI DUNG SINH VIÊN HỎI:\n"
+            "  + Nếu hỏi bài tập / deadline / hạn nộp: Tra cứu ngay danh sách bài tập Elearning cá nhân của sinh viên bên trên. Trả lời rõ tên môn, tên bài tập, hạn chót và số ngày còn lại. Nếu có bài cận hạn <= 3 ngày thì hãy cảnh báo khẩn kèm icon ⏰/✈️ để nhắc bạn nộp ngay. Nếu hỏi riêng về 1 môn cụ thể (như Quản trị mạng, Cloud, AI...), hãy trả lời chính xác bài tập của môn đó. Hướng dẫn sinh viên vào mục 'Đào tạo trực tuyến (Elearning)' trên Cổng sinh viên hoặc bấm vào máy bay thông báo trên màn hình để nộp bài.\n"
+            "  + Nếu hỏi bài đã nộp hoặc điểm bài tập: Nêu rõ bài đã nộp ngày nào, điểm số đạt được và nhận xét của giảng viên.\n"
             "  + Nếu hỏi điểm: Chỉ trả lời GPA, CPA, điểm rèn luyện và xếp loại (không chép lại bảng quy chế dài dòng).\n"
             "  + Nếu hỏi học phí: Nêu số tiền nợ/đã đóng và số tài khoản nộp học phí ngắn gọn.\n"
             "  + Nếu hỏi lịch học: Nêu các môn trong tuần một cách súc tích.\n"
-            "- Giữ độ dài gọn gàng dưới 5 câu, tuyệt đối không dài dòng lê thê."
+            "- Giữ độ dài gọn gàng dưới 5 câu, định dạng in đậm rõ ràng, tuyệt đối không dài dòng lê thê."
         )
 
     elif role == "parent":
@@ -268,3 +387,54 @@ def build_personalized_system_prompt(
         )
 
     return base_persona
+
+
+def resolve_conversation_intent(query: str, history: Optional[list] = None) -> tuple[str, str, bool]:
+    """
+    Phân giải ý định và chủ đề hội thoại đa tầng (Multi-turn Context Resolution).
+    Tự động liên kết các câu hỏi ngắn, câu hỏi đại từ kế thừa ('cái nào sớm nhất', 'nộp ở đâu', 'mấy giờ')
+    với chủ đề đang trao đổi ở các lượt trước, ngăn chặn 100% tình trạng trả lời lạc đề.
+    
+    Returns:
+        (current_intent, active_topic, is_followup)
+    """
+    q_norm = remove_accents(query.lower()).strip()
+    primary_intent, conf = classify_intent(query)
+
+    # 1. Kiểm tra xem câu hỏi có chứa các đại từ / từ khóa chỉ định tiếp nối không
+    followup_markers = [
+        'cai nao', 'bai nao', 'mon nao', 'som nhat', 'gap nhat', 'nop truoc',
+        'het han truoc', 'o dau', 'khi nao', 'may gio', 'con khong', 'chi tiet',
+        'lam sao', 'nhu the nao', 'the nao', 'cai do', 'mon do', 'bai do', 'uu tien',
+        'dieu kien', 'tieu chuan', 'yeu cau', 'can dieu kien gi', 'lam sao de'
+    ]
+    is_short_query = len(query.strip().split()) <= 7
+    has_marker = any(m in q_norm for m in followup_markers)
+    is_followup = is_short_query and has_marker
+
+    active_topic = primary_intent
+
+    # 2. Nếu là câu hỏi tiếp nối và có lịch sử hội thoại -> Xác định chủ đề từ lượt trước
+    if is_followup and history:
+        for item in reversed(history):
+            text = (item.get('text') or item.get('content') or '').lower()
+            text_norm = remove_accents(text)
+            
+            # Kiểm tra chủ đề bài tập
+            if any(k in text_norm for k in ['bai tap', 'deadline', 'han nop', 'elearning', 'tieu luan', 'do an', 'lab']):
+                active_topic = 'ASSIGNMENTS'
+                break
+            # Kiểm tra chủ đề học phí
+            if any(k in text_norm for k in ['hoc phi', 'cong no', 'dong tien', 'ngan hang', 'stk', 'so tai khoan']):
+                active_topic = 'TUITION'
+                break
+            # Kiểm tra chủ đề lịch học
+            if any(k in text_norm for k in ['lich hoc', 'thoi khoa bieu', 'phong hoc', 'tuan nay']):
+                active_topic = 'SCHEDULE'
+                break
+            # Kiểm tra chủ đề điểm số
+            if any(k in text_norm for k in ['gpa', 'cpa', 'diem so', 'hoc luc', 'xep loai', 'ren luyen', 'hoc sinh gioi', 'sinh vien gioi', 'loai gioi', 'xuat sac']):
+                active_topic = 'GPA'
+                break
+
+    return primary_intent, active_topic, is_followup

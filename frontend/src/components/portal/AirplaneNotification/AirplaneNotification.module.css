@@ -1,0 +1,95 @@
+/* =========================================================================
+   3D AIRPLANE DEADLINE NOTIFICATION ANIMATIONS
+   Máy bay hướng sang trái, bay từ mép PHẢI sang mép TRÁI:
+   Máy bay xuất hiện đầu tiên -> kéo dây cáp -> kéo theo banner lướt theo sau!
+   ========================================================================= */
+
+@keyframes flyFromRightToLeft {
+  0% {
+    transform: translate3d(100vw, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(-100% - 150px), 0, 0);
+  }
+}
+
+/* Hiệu ứng nhấp nhô bồng bềnh tổng thể khi bay */
+@keyframes gentleFloatingGroup {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+/* Hiệu ứng dải lụa banner đung đưa mềm mại theo gió */
+@keyframes bannerWavingInWind {
+  0%, 100% {
+    transform: rotate(-1.2deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(1.8deg) translateY(-3px);
+  }
+}
+
+.notificationWrapper {
+  position: fixed;
+  top: 76px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+  height: 145px;
+}
+
+.flyingContainer {
+  display: inline-flex;
+  align-items: center;
+  pointer-events: auto;
+  /* Máy bay bay từ phải sang trái: máy bay đi trước kéo theo dây và banner */
+  animation: flyFromRightToLeft 20s linear forwards;
+  will-change: transform;
+}
+
+.flyingContainer:hover {
+  animation-play-state: paused;
+}
+
+.bobbingGroup {
+  display: inline-flex;
+  align-items: center;
+  animation: gentleFloatingGroup 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bannerWave {
+  animation: bannerWavingInWind 2.8s ease-in-out infinite;
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* Responsive cho Tablet & Mobile */
+@media (max-width: 768px) {
+  .notificationWrapper {
+    top: 66px;
+    height: 125px;
+  }
+
+  .flyingContainer {
+    animation-duration: 22s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flyingContainer {
+    animation: none;
+    right: 24px;
+    position: absolute;
+    transform: none;
+  }
+  .bobbingGroup, .bannerWave {
+    animation: none;
+  }
+}
