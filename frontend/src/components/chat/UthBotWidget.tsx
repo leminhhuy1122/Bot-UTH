@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   Send, 
+  BookOpen, 
+  ExternalLink, 
   Minus, 
   Maximize2, 
   Minimize2, 
@@ -14,7 +16,8 @@ import {
   MapPin,
   Square,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react';
 import { ChatMessage } from '../../types/uth';
 import { useAuth } from '../../contexts/AuthContext';
@@ -65,10 +68,18 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       };
     }
 
+    const pendingAsms = (student?.assignments || []).filter((a: any) => a.status === 'pending');
+    const urgentAsms = pendingAsms.filter((a: any) => (a.daysLeft ?? 99) <= 3);
+    const deadlineNote = urgentAsms.length > 0
+      ? `\n\n🚨 **CẢNH BÁO DEADLINE**: Bạn đang có bài tập sắp hết hạn trong 3 ngày tới (*${urgentAsms[0].courseName}: ${urgentAsms[0].title}*). Bạn có thể bấm vào máy bay 3D hoặc hỏi tôi để nộp bài ngay nhé! ✈️`
+      : pendingAsms.length > 0
+      ? `\n\n📚 Bạn đang có **${pendingAsms.length} bài tập** trực tuyến trên Elearning. Hãy hỏi tôi bất cứ lúc nào để kiểm tra tiến độ nộp bài!`
+      : '';
+
     return {
       id: 'msg-welcome-student',
       sender: 'bot',
-      text: `Xin chào bạn **${student?.name || 'Nguyễn Văn A'}**! 👋\n\nTôi là **UTH Assistant**, trợ lý ảo đồng hành cùng bạn.\n\nBạn có thể đặt câu hỏi về lịch học, học phí, thủ tục và các dịch vụ sinh viên.`,
+      text: `Xin chào bạn **${student?.name || 'Nguyễn Văn A'}**! 👋\n\nTôi là **UTH Assistant**, trợ lý ảo đồng hành cùng bạn.${deadlineNote}\n\nBạn có thể hỏi tôi về bài tập, hạn nộp, lịch học, điểm số và học phí của riêng bạn.`,
       timestamp: timeStr,
     };
   };
@@ -136,6 +147,32 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
     setMessages((prev) => [...prev, userMsg, botPlaceholderMsg]);
     if (!textToSend) setInputMessage('');
     setIsLoading(true);
+
+    // Hỗ trợ tự động mở nếu người dùng ra lệnh trực tiếp ('mở lịch', 'mở tkb', 'mở bài tập', 'mở học phí')
+    const lowerQuery = query.toLowerCase().trim();
+    if (lowerQuery.startsWith('mở ') || lowerQuery.includes('mở giúp') || lowerQuery.includes('mở cho tôi') || lowerQuery.includes('xem thời khóa biểu')) {
+      if (lowerQuery.includes('lịch') || lowerQuery.includes('thời khóa biểu') || lowerQuery.includes('tkb')) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('uth:open-schedule'));
+          setIsMinimized(true);
+        }, 600);
+      } else if (lowerQuery.includes('bài tập') || lowerQuery.includes('elearning')) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('uth:open-elearning'));
+          setIsMinimized(true);
+        }, 600);
+      } else if (lowerQuery.includes('học phí') || lowerQuery.includes('thanh toán')) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('uth:open-payment'));
+          setIsMinimized(true);
+        }, 600);
+      } else if (lowerQuery.includes('thẻ')) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('uth:open-student-card'));
+          setIsMinimized(true);
+        }, 600);
+      }
+    }
 
     const history = messages
       .filter((m) => !m.id.startsWith('msg-welcome') && m.text.trim())
@@ -238,6 +275,14 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
   // 3 stacked quick prompt cards matching the screenshot
   const studentQuickCards = [
     { 
+      label: 'Bài tập sắp hết hạn?', 
+      query: 'Những bài tập trực tuyến nào của tôi sắp hết hạn nộp và còn bao nhiêu ngày?', 
+      icon: Clock, 
+      bgClass: 'bg-[#fff7ed] hover:bg-[#ffedd5] border-amber-200/90', 
+      iconBoxClass: 'bg-white border-amber-300/90 text-[#d97706]',
+      chevronClass: 'text-slate-400 group-hover:text-amber-600'
+    },
+    { 
       label: 'Lịch học tuần này', 
       query: 'Lịch học trong tuần này của tôi như thế nào?', 
       icon: Calendar, 
@@ -254,9 +299,9 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       chevronClass: 'text-slate-400 group-hover:text-rose-600'
     },
     { 
-      label: 'Đóng học phí như thế nào?', 
-      query: 'Hướng dẫn các bước đóng học phí và kiểm tra công nợ hiện tại', 
-      icon: FileText, 
+      label: 'Kiểm tra nợ học phí', 
+      query: 'Kiểm tra tình trạng công nợ học phí và số tiền cần nộp của tôi', 
+      icon: CreditCard, 
       bgClass: 'bg-[#f0fdf4] hover:bg-[#dcfce7] border-emerald-100/90', 
       iconBoxClass: 'bg-white border-emerald-200/90 text-[#059669]',
       chevronClass: 'text-slate-400 group-hover:text-emerald-600'
@@ -318,6 +363,77 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
   ];
 
   const activeCards = isParent ? parentQuickCards : isGuest ? guestQuickCards : studentQuickCards;
+
+  // Xử lý thực thi hành động điều hướng giao diện từ Bot (Actionable AI Copilot)
+  const handleExecuteAction = (action: any) => {
+    if (!action || !action.target) return;
+
+    if (action.target === 'schedule') {
+      window.dispatchEvent(new CustomEvent('uth:open-schedule'));
+    } else if (action.target === 'full-schedule') {
+      window.dispatchEvent(new CustomEvent('uth:open-full-schedule'));
+    } else if (action.target === 'elearning') {
+      window.dispatchEvent(new CustomEvent('uth:open-elearning'));
+    } else if (action.target === 'payment') {
+      window.dispatchEvent(new CustomEvent('uth:open-payment'));
+    } else if (action.target === 'debt') {
+      window.dispatchEvent(new CustomEvent('uth:open-debt'));
+    } else if (action.target === 'card') {
+      window.dispatchEvent(new CustomEvent('uth:open-student-card'));
+    } else if (action.target === 'service') {
+      window.dispatchEvent(new CustomEvent('uth:open-service'));
+    }
+
+    // Tự động thu nhỏ cửa sổ chat để sinh viên quan sát modal/view vừa được mở
+    setIsMinimized(true);
+  };
+
+  // Suy luận Action thông minh client-side đảm bảo luôn hiển thị nút tương tác
+  const getMessageAction = (msg: ChatMessage) => {
+    if (msg.metadata?.action) return msg.metadata.action;
+    if (msg.sender !== 'bot' || !msg.text) return null;
+
+    const lower = msg.text.toLowerCase();
+
+    // BẢO VỆ CHỐNG NHẦM LẪN: Tuyệt đối không sinh nút hành động nếu là câu chào hoặc giới thiệu năng lực
+    if (
+      lower.includes('mình luôn sẵn sàng giải đáp') ||
+      lower.includes('mình có thể hỗ trợ bạn') ||
+      lower.includes('nghiệp vụ học vụ sau') ||
+      lower.includes('năng lực')
+    ) {
+      return null;
+    }
+
+    if (lower.includes('thời khóa biểu chi tiết') || (lower.includes('lịch học') && lower.includes('tuần này')) || (lower.includes('phòng:') && lower.includes('giờ:'))) {
+      return {
+        type: 'OPEN_MODAL',
+        target: 'schedule',
+        label: '📅 Mở Thời khóa biểu chi tiết',
+        icon: 'Calendar',
+        description: 'Xem chi tiết phòng học, tiết học và giảng viên tuần này'
+      };
+    }
+    if ((lower.includes('bài tập') && (lower.includes('elearning') || lower.includes('nộp bài') || lower.includes('hạn nộp') || lower.includes('máy bay')))) {
+      return {
+        type: 'OPEN_VIEW',
+        target: 'elearning',
+        label: '✈️ Vào Đào tạo trực tuyến (Elearning)',
+        icon: 'BookOpen',
+        description: 'Mở danh sách bài tập để nộp bài hoặc xem nhận xét'
+      };
+    }
+    if (lower.includes('học phí') && (lower.includes('công nợ') || lower.includes('vietcombank') || lower.includes('thanh toán'))) {
+      return {
+        type: 'OPEN_VIEW',
+        target: 'payment',
+        label: '💳 Mở Cổng thanh toán học phí UTH',
+        icon: 'CreditCard',
+        description: 'Xem chi tiết hóa đơn học phí và chuyển khoản trực tuyến'
+      };
+    }
+    return null;
+  };
 
   // Formatting helper for rich text and lists
   const renderFormattedText = (raw: string) => {
@@ -542,6 +658,52 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                         )}
                       </div>
                     </div>
+
+                    {/* Interactive Action Card / Quick Action Button */}
+                    {msg.sender === 'bot' && !isLoading && getMessageAction(msg) && (
+                      <div className="mt-2.5 ml-11.5 max-w-[90%] animate-fadeIn">
+                        {(() => {
+                          const act = getMessageAction(msg);
+                          const isSchedule = act.target === 'schedule' || act.target === 'full-schedule';
+                          const isElearning = act.target === 'elearning';
+                          return (
+                            <div className="bg-gradient-to-r from-teal-50/90 via-emerald-50/80 to-teal-50/50 border border-teal-200/90 hover:border-teal-400 rounded-2xl p-3 shadow-2xs hover:shadow-sm transition-all group">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8.5 h-8.5 rounded-xl bg-white border border-teal-200 text-[#007062] flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                    {isSchedule ? (
+                                      <Calendar className="w-4 h-4 stroke-[2.2]" />
+                                    ) : isElearning ? (
+                                      <BookOpen className="w-4 h-4 stroke-[2.2]" />
+                                    ) : (
+                                      <CreditCard className="w-4 h-4 stroke-[2.2]" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="font-bold text-slate-900 text-[12.5px] leading-tight">
+                                      {act.label}
+                                    </div>
+                                    {act.description && (
+                                      <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                                        {act.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleExecuteAction(act)}
+                                  className="px-3 py-1.5 bg-[#007062] hover:bg-[#005a4e] text-white rounded-xl text-[12px] font-semibold flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95 transition-all shrink-0 hover:shadow-xs"
+                                >
+                                  <span>Mở ngay</span>
+                                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
 
                     {/* Timestamp & Metadata */}
                     <div className={`flex items-center gap-2 mt-1 px-1 ${

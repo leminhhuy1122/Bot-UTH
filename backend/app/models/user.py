@@ -29,11 +29,14 @@ class StudentProfile(Base):
     birth_date = Column(String(20), default="15/08/2005")
     phone = Column(String(20), default="0912 345 678", index=True)
     email = Column(String(100), nullable=True, index=True)
+    birth_place = Column(String(100), default="TP. Hồ Chí Minh")
+    education_level = Column(String(50), default="Đại học - chính quy")
     
     # Thông tin khóa & chuyên ngành
     cohort = Column(String(10), default="2023", index=True) # Năm nhập học / Khóa học (K21, K22, K23...)
     faculty = Column(String(100), default="Công nghệ thông tin", index=True)
     major = Column(String(100), default="Công nghệ thông tin", index=True)
+    specialization = Column(String(100), default="Công nghệ thông tin")
     class_id = Column(String(20), default="CN23CLC01", index=True)
     training_type = Column(String(50), default="Chất lượng cao")
     avatar_url = Column(String(255), default="/student_avatar_ai.png")
@@ -61,6 +64,7 @@ class StudentProfile(Base):
     registered_courses = Column(JSON, nullable=True)   # Danh sách môn đã đăng ký
     upcoming_courses = Column(JSON, nullable=True)     # Danh sách môn sắp tới kỳ sau
     semesters_grades = Column(JSON, nullable=True)     # Bảng điểm chi tiết từng môn qua các học kỳ
+    assignments = Column(JSON, nullable=True)          # Danh sách bài tập trực tuyến & hạn nộp
     extra_data = Column(JSON, nullable=True)           # Mở rộng bất kỳ trường thông tin nào sau này
 
     user = relationship("User", back_populates="profile")

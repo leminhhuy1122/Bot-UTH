@@ -100,11 +100,14 @@ export interface AdminStudentItem {
   name: string;
   gender: string;
   birthDate: string;
+  birthPlace?: string;
+  educationLevel?: string;
   phone: string;
   email: string;
   cohort: string;
   faculty: string;
   major: string;
+  specialization?: string;
   classId: string;
   trainingType: string;
   avatarUrl: string;
@@ -124,6 +127,7 @@ export interface AdminStudentItem {
   registeredCourses?: string[];
   upcomingCourses?: string[];
   semestersGrades?: any[];
+  assignments?: any[];
   extraData?: any;
 }
 

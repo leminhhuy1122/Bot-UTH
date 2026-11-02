@@ -76,6 +76,7 @@ import {
   saveAdminBotConfig,
   testAdminQuery,
   deleteAdminStudent,
+  updateAdminStudent,
   fetchKnowledgeDuplicates,
   AdminTestQueryResponse,
   TrainKnowledgeResponse,
@@ -135,7 +136,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
   const [sortBy, setSortBy] = useState('default');
   const [isLoadingStudentDetail, setIsLoadingStudentDetail] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<AdminStudentItem | null>(null);
-  const [studentModalTab, setStudentModalTab] = useState<'grades' | 'schedule' | 'courses' | 'tuition'>('grades');
+  const [studentModalTab, setStudentModalTab] = useState<'grades' | 'schedule' | 'courses' | 'tuition' | 'assignments'>('grades');
+  const [isDetailAsmFormOpen, setIsDetailAsmFormOpen] = useState(false);
+  const [editingDetailAsmIndex, setEditingDetailAsmIndex] = useState<number | null>(null);
+  const [detailAsmCourseName, setDetailAsmCourseName] = useState('');
+  const [detailAsmCourseCode, setDetailAsmCourseCode] = useState('');
+  const [detailAsmTitle, setDetailAsmTitle] = useState('');
+  const [detailAsmDeadline, setDetailAsmDeadline] = useState('2026-11-05 23:59');
+  const [detailAsmDaysLeft, setDetailAsmDaysLeft] = useState<number>(3);
+  const [detailAsmStatus, setDetailAsmStatus] = useState<'pending' | 'submitted' | 'graded'>('pending');
+  const [detailAsmScore, setDetailAsmScore] = useState<string>('');
+  const [detailAsmFeedback, setDetailAsmFeedback] = useState('');
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<AdminStudentItem | null>(null);
   const [isBatchStudentOpen, setIsBatchStudentOpen] = useState(false);
@@ -192,6 +203,98 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
   };
 
   // Mở hồ sơ chi tiết sinh viên và nạp đầy đủ bảng điểm, lịch học
+  // Handlers Quản lý Bài tập Elearning trong Modal Chi tiết Sinh viên
+  const handleOpenAddDetailAsm = () => {
+    setEditingDetailAsmIndex(null);
+    setDetailAsmCourseName(selectedStudent?.major ? `${selectedStudent.major} - Chuyên ngành` : 'Quản trị mạng - CNS_CS1');
+    setDetailAsmCourseCode('012012300503');
+    setDetailAsmTitle('');
+    setDetailAsmDeadline('2026-11-05 23:59');
+    setDetailAsmDaysLeft(3);
+    setDetailAsmStatus('pending');
+    setDetailAsmScore('');
+    setDetailAsmFeedback('');
+    setIsDetailAsmFormOpen(true);
+  };
+
+  const handleOpenEditDetailAsm = (index: number) => {
+    if (!selectedStudent || !selectedStudent.assignments) return;
+    const asm = selectedStudent.assignments[index];
+    if (!asm) return;
+    setEditingDetailAsmIndex(index);
+    setDetailAsmCourseName(asm.courseName || '');
+    setDetailAsmCourseCode(asm.courseCode || '');
+    setDetailAsmTitle(asm.title || '');
+    setDetailAsmDeadline(asm.deadline || '2026-11-05 23:59');
+    setDetailAsmDaysLeft(asm.daysLeft !== undefined ? asm.daysLeft : 3);
+    setDetailAsmStatus(asm.status || 'pending');
+    setDetailAsmScore(asm.score !== null && asm.score !== undefined ? String(asm.score) : '');
+    setDetailAsmFeedback(asm.feedback || '');
+    setIsDetailAsmFormOpen(true);
+  };
+
+  const handleSaveDetailAsm = async () => {
+    if (!selectedStudent) return;
+    if (!detailAsmTitle.trim()) {
+      showToast('Vui lòng nhập Tiêu đề bài tập.', 'error');
+      return;
+    }
+    if (!detailAsmCourseName.trim()) {
+      showToast('Vui lòng nhập Tên môn học.', 'error');
+      return;
+    }
+
+    const currentAsms = [...(selectedStudent.assignments || [])];
+    const newAsm = {
+      id: editingDetailAsmIndex !== null && currentAsms[editingDetailAsmIndex]?.id
+        ? currentAsms[editingDetailAsmIndex].id
+        : `asm-${selectedStudent.mssv}-${Date.now()}`,
+      courseCode: detailAsmCourseCode.trim() || '012012300503',
+      courseName: detailAsmCourseName.trim(),
+      semester: 'HKI2627',
+      title: detailAsmTitle.trim(),
+      description: 'Nộp bài báo cáo qua hệ thống Elearning UTH.',
+      deadline: detailAsmDeadline.trim(),
+      daysLeft: Number(detailAsmDaysLeft) || 0,
+      status: detailAsmStatus,
+      submissionDate: detailAsmStatus === 'pending' ? null : '2026-10-30 20:00',
+      score: detailAsmStatus === 'graded' && detailAsmScore ? parseFloat(detailAsmScore) : (detailAsmStatus === 'graded' ? 9.0 : null),
+      feedback: detailAsmFeedback.trim(),
+      colorTheme: detailAsmStatus === 'submitted' ? 'blue' : (detailAsmDaysLeft <= 3 ? 'cyan' : 'purple')
+    };
+
+    if (editingDetailAsmIndex !== null) {
+      currentAsms[editingDetailAsmIndex] = newAsm;
+    } else {
+      currentAsms.push(newAsm);
+    }
+
+    try {
+      await updateAdminStudent(selectedStudent.mssv, { assignments: currentAsms });
+      setSelectedStudent({ ...selectedStudent, assignments: currentAsms });
+      setStudents(prev => prev.map(s => s.mssv === selectedStudent.mssv ? { ...s, assignments: currentAsms } : s));
+      showToast(editingDetailAsmIndex !== null ? 'Cập nhật bài tập thành công!' : 'Thêm bài tập mới thành công!', 'success');
+      setIsDetailAsmFormOpen(false);
+      setEditingDetailAsmIndex(null);
+    } catch (err: any) {
+      showToast(err.message || 'Lỗi khi lưu bài tập cho sinh viên.', 'error');
+    }
+  };
+
+  const handleDeleteDetailAsm = async (index: number) => {
+    if (!selectedStudent || !selectedStudent.assignments) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa bài tập này khỏi hồ sơ sinh viên?')) return;
+    const currentAsms = selectedStudent.assignments.filter((_, i) => i !== index);
+    try {
+      await updateAdminStudent(selectedStudent.mssv, { assignments: currentAsms });
+      setSelectedStudent({ ...selectedStudent, assignments: currentAsms });
+      setStudents(prev => prev.map(s => s.mssv === selectedStudent.mssv ? { ...s, assignments: currentAsms } : s));
+      showToast('Đã xóa bài tập thành công!', 'info');
+    } catch (err: any) {
+      showToast(err.message || 'Lỗi khi xóa bài tập.', 'error');
+    }
+  };
+
   const handleOpenStudentDetail = async (st: AdminStudentItem) => {
     setSelectedStudent(st);
     setStudentModalTab('grades');
@@ -2806,6 +2909,14 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
               >
                 Chi tiết Học phí
               </button>
+              <button
+                onClick={() => setStudentModalTab('assignments')}
+                className={`pb-2 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  studentModalTab === 'assignments' ? 'border-[#008272] text-[#008272]' : 'border-transparent text-slate-500'
+                }`}
+              >
+                <span>Bài tập Elearning ({(selectedStudent.assignments || []).length})</span>
+              </button>
             </div>
 
             {/* Modal Body Content */}
@@ -2983,6 +3094,325 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
                       <span>Giới tính: {selectedStudent.gender}</span>
                     </div>
                   </div>
+
+                  {/* BẢNG CÁC KHOẢN THU KHÁC (HỌC PHÍ KHÁC CHUẨN UTH) */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+                    <div className="bg-[#00695c] px-3.5 py-2.5 text-xs font-bold text-white flex items-center justify-between">
+                      <span>CÁC KHOẢN THU KHÁC (HỌC PHÍ KHÁC CHUẨN UTH)</span>
+                      <span className="text-[11px] font-normal text-emerald-100">Tổng định mức: 1.440.500 đ</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left border-collapse">
+                        <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
+                          <tr>
+                            <th className="py-2 px-2.5 text-center w-10">STT</th>
+                            <th className="py-2 px-3 text-center">Mã khoản</th>
+                            <th className="py-2 px-3">Tên khoản thu khác</th>
+                            <th className="py-2 px-3 text-right">Mức nộp</th>
+                            <th className="py-2 px-3 text-center">Ngày nộp</th>
+                            <th className="py-2 px-3 text-right">Đã nộp</th>
+                            <th className="py-2 px-3 text-right">Công nợ</th>
+                            <th className="py-2 px-3 text-center">Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          {((selectedStudent.otherFees && selectedStudent.otherFees.length > 0)
+                            ? selectedStudent.otherFees
+                            : [
+                                { stt: 1, code: 'TVS90', name: 'Sử dụng tài liệu thư viện số/khóa học', amount: 90000, payDate: selectedStudent.debtAmount <= 0 ? '09/09/2023' : '-', paidAmount: selectedStudent.debtAmount <= 0 ? 90000 : 0, debtAmount: selectedStudent.debtAmount <= 0 ? 0 : 90000, status: selectedStudent.debtAmount <= 0 ? 'Đã nộp' : 'Chưa nộp' },
+                                { stt: 2, code: 'Turnitin', name: 'Quét trùng lặp', amount: 150000, payDate: selectedStudent.debtAmount <= 0 ? '09/09/2023' : '-', paidAmount: selectedStudent.debtAmount <= 0 ? 150000 : 0, debtAmount: selectedStudent.debtAmount <= 0 ? 0 : 150000, status: selectedStudent.debtAmount <= 0 ? 'Đã nộp' : 'Chưa nộp' },
+                                { stt: 3, code: 'BHYT23', name: 'Bảo hiểm y tế/15 tháng', amount: 850500, payDate: selectedStudent.debtAmount <= 0 ? '09/09/2023' : '-', paidAmount: selectedStudent.debtAmount <= 0 ? 850500 : 0, debtAmount: selectedStudent.debtAmount <= 0 ? 0 : 850500, status: selectedStudent.debtAmount <= 0 ? 'Đã nộp' : 'Chưa nộp' },
+                                { stt: 4, code: 'BHTN', name: 'Bảo hiểm tai nạn/4 năm', amount: 200000, payDate: selectedStudent.debtAmount <= 0 ? '09/09/2023' : '-', paidAmount: selectedStudent.debtAmount <= 0 ? 200000 : 0, debtAmount: selectedStudent.debtAmount <= 0 ? 0 : 200000, status: selectedStudent.debtAmount <= 0 ? 'Đã nộp' : 'Chưa nộp' },
+                                { stt: 5, code: 'SHCT', name: 'Sinh hoạt chính trị "Công dân-sinh viên" đầu khóa', amount: 150000, payDate: selectedStudent.debtAmount <= 0 ? '09/09/2023' : '-', paidAmount: selectedStudent.debtAmount <= 0 ? 150000 : 0, debtAmount: selectedStudent.debtAmount <= 0 ? 0 : 150000, status: selectedStudent.debtAmount <= 0 ? 'Đã nộp' : 'Chưa nộp' }
+                              ]
+                          ).map((f: any) => (
+                            <tr key={f.stt} className="hover:bg-slate-50/70">
+                              <td className="py-2 px-2.5 text-center text-slate-500">{f.stt}</td>
+                              <td className="py-2 px-3 text-center font-mono font-medium text-slate-800">{f.code}</td>
+                              <td className="py-2 px-3 font-medium text-slate-800">{f.name}</td>
+                              <td className="py-2 px-3 text-right">{Number(f.amount).toLocaleString('vi-VN')} đ</td>
+                              <td className="py-2 px-3 text-center text-slate-500">{f.payDate || '-'}</td>
+                              <td className="py-2 px-3 text-right text-emerald-700 font-semibold">{Number(f.paidAmount || 0).toLocaleString('vi-VN')} đ</td>
+                              <td className="py-2 px-3 text-right text-rose-600 font-semibold">{Number(f.debtAmount || 0) === 0 ? '0' : `${Number(f.debtAmount).toLocaleString('vi-VN')} đ`}</td>
+                              <td className="py-2 px-3 text-center">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  f.status === 'Đã nộp' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                }`}>
+                                  {f.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB CHI TIẾT BÀI TẬP ELEARNING & DEADLINE */}
+              {studentModalTab === 'assignments' && (
+                <div className="space-y-4">
+                  {/* Thanh thống kê nhanh & Nút Thêm bài tập */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="px-3 py-1.5 bg-white rounded-lg border border-slate-200 shadow-2xs font-medium">
+                        Tổng bài: <strong className="text-slate-800 font-bold">{(selectedStudent.assignments || []).length}</strong>
+                      </div>
+                      <div className="px-3 py-1.5 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 font-medium">
+                        Cần nộp: <strong className="font-bold">{(selectedStudent.assignments || []).filter(a => a.status === 'pending').length}</strong>
+                      </div>
+                      <div className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 font-medium">
+                        Đã nộp: <strong className="font-bold">{(selectedStudent.assignments || []).filter(a => a.status === 'submitted' || a.status === 'graded').length}</strong>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddDetailAsm}
+                      className="px-3 py-1.5 bg-[#008272] hover:bg-[#00695c] text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Thêm bài tập cho sinh viên</span>
+                    </button>
+                  </div>
+
+                  {/* FORM THÊM / SỬA BÀI TẬP INLINE TRONG MODAL CHI TIẾT */}
+                  {isDetailAsmFormOpen && (
+                    <div className="p-4 bg-teal-50/70 border border-teal-200 rounded-xl space-y-3 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between font-bold text-teal-900 text-xs border-b border-teal-200 pb-2">
+                        <span className="flex items-center gap-1.5">
+                          <Edit3 className="w-4 h-4 text-[#008272]" />
+                          {editingDetailAsmIndex !== null ? 'Chỉnh sửa thông tin bài tập' : 'Giao bài tập mới cho sinh viên này'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => { setIsDetailAsmFormOpen(false); setEditingDetailAsmIndex(null); }}
+                          className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Tên môn học <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={detailAsmCourseName}
+                            onChange={(e) => setDetailAsmCourseName(e.target.value)}
+                            placeholder="Quản trị mạng - CNS_CS1"
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#008272]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Mã môn học</label>
+                          <input
+                            type="text"
+                            value={detailAsmCourseCode}
+                            onChange={(e) => setDetailAsmCourseCode(e.target.value)}
+                            placeholder="012012300503"
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                            Tiêu đề bài tập <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={detailAsmTitle}
+                            onChange={(e) => setDetailAsmTitle(e.target.value)}
+                            placeholder="Bài tập lớn: Thiết kế hệ thống..."
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-[#008272]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Hạn nộp (Deadline)</label>
+                          <input
+                            type="text"
+                            value={detailAsmDeadline}
+                            onChange={(e) => setDetailAsmDeadline(e.target.value)}
+                            placeholder="2026-11-05 23:59"
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Số ngày còn lại</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={detailAsmDaysLeft}
+                            onChange={(e) => setDetailAsmDaysLeft(parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Trạng thái</label>
+                          <select
+                            value={detailAsmStatus}
+                            onChange={(e) => setDetailAsmStatus(e.target.value as any)}
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-semibold"
+                          >
+                            <option value="pending">⏳ Chờ nộp bài (Pending)</option>
+                            <option value="submitted">📤 Đã nộp bài (Submitted)</option>
+                            <option value="graded">✅ Đã chấm điểm (Graded)</option>
+                          </select>
+                        </div>
+
+                        {detailAsmStatus === 'graded' && (
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-1">Điểm số (Thang 10)</label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max="10"
+                              value={detailAsmScore}
+                              onChange={(e) => setDetailAsmScore(e.target.value)}
+                              placeholder="9.5"
+                              className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-bold text-emerald-700"
+                            />
+                          </div>
+                        )}
+
+                        <div className={detailAsmStatus === 'graded' ? "sm:col-span-2" : "sm:col-span-3"}>
+                          <label className="block text-[11px] font-semibold text-slate-700 mb-1">Nhận xét của giảng viên</label>
+                          <input
+                            type="text"
+                            value={detailAsmFeedback}
+                            onChange={(e) => setDetailAsmFeedback(e.target.value)}
+                            placeholder="Bài làm tốt, trình bày khoa học..."
+                            className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2 border-t border-teal-200">
+                        <button
+                          type="button"
+                          onClick={() => { setIsDetailAsmFormOpen(false); setEditingDetailAsmIndex(null); }}
+                          className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs cursor-pointer"
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveDetailAsm}
+                          className="px-4 py-1.5 bg-[#008272] hover:bg-[#00695c] text-white rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{editingDetailAsmIndex !== null ? 'Lưu cập nhật' : 'Giao bài tập'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Danh sách thẻ bài tập */}
+                  {(!selectedStudent.assignments || selectedStudent.assignments.length === 0) ? (
+                    <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                      <BookOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-slate-600 font-medium">Sinh viên này chưa có bài tập nào trên hệ thống Elearning.</p>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddDetailAsm}
+                        className="mt-3 px-3 py-1.5 bg-[#008272] text-white rounded-lg text-xs font-semibold hover:bg-[#00695c] inline-flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Giao bài tập ngay</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedStudent.assignments.map((asm: any, idx: number) => (
+                        <div
+                          key={asm.id || idx}
+                          className="p-4 bg-white rounded-xl border border-slate-200 hover:border-slate-300 shadow-2xs flex items-start justify-between gap-3 transition-all"
+                        >
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold text-slate-800 text-xs sm:text-sm">{asm.courseName}</span>
+                              {asm.courseCode && (
+                                <span className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                                  {asm.courseCode}
+                                </span>
+                              )}
+                              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                                asm.status === 'graded'
+                                  ? 'bg-purple-100 text-purple-700'
+                                  : asm.status === 'submitted'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : (asm.daysLeft <= 3)
+                                  ? 'bg-rose-100 text-rose-700'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {asm.status === 'graded'
+                                  ? `Đã chấm điểm: ${asm.score ?? '---'}/10`
+                                  : asm.status === 'submitted'
+                                  ? 'Đã nộp bài'
+                                  : `Hạn còn ${asm.daysLeft || 0} ngày`}
+                              </span>
+                            </div>
+
+                            <p className="font-semibold text-slate-800 text-xs">
+                              {asm.title}
+                            </p>
+
+                            {asm.description && (
+                              <p className="text-[11px] text-slate-500">
+                                {asm.description}
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap items-center gap-4 text-[11px] text-slate-500 pt-0.5">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                Hạn chót: <strong className="text-slate-700">{asm.deadline}</strong>
+                              </span>
+                              {asm.submissionDate && (
+                                <span className="text-emerald-700 font-medium">
+                                  Nộp lúc: {asm.submissionDate}
+                                </span>
+                              )}
+                            </div>
+
+                            {asm.feedback && (
+                              <div className="mt-2 text-xs text-teal-800 bg-teal-50/70 p-2 rounded-lg border border-teal-200">
+                                💬 <strong>Nhận xét của GV:</strong> {asm.feedback}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="shrink-0 flex items-center gap-1.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditDetailAsm(idx)}
+                              className="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-[#008272] text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                              title="Chỉnh sửa bài tập này"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Sửa</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteDetailAsm(idx)}
+                              className="p-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-500 rounded-lg transition-colors cursor-pointer"
+                              title="Xóa bài tập này"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

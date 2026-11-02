@@ -9,6 +9,8 @@ import { CalendarView } from './CalendarView';
 import { NoteDetailView } from './NoteDetailView';
 const PaymentView = lazy(() => import('./PaymentView').then(m => ({ default: m.PaymentView })));
 const DebtLookupView = lazy(() => import('./DebtLookupView').then(m => ({ default: m.DebtLookupView })));
+const ElearningView = lazy(() => import('./ElearningView').then(m => ({ default: m.ElearningView })));
+import { AirplaneNotification } from './AirplaneNotification';
 
 // Lazy load các modal chỉ khi người dùng click mở, tối ưu thời gian tải trang ban đầu
 const StudentCardModal = lazy(() => import('../modals/StudentCardModal').then(m => ({ default: m.StudentCardModal })));
@@ -43,12 +45,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [currentStudent, setCurrentStudent] = useState<StudentProfile>(initialStudent);
 
   // Quản lý view hiển thị: 'dashboard' (Trang chủ), 'calendar' (Thời khóa biểu), 'notifications', 'payment', hoặc 'debt' (Tra cứu công nợ)
-  const [activeView, setActiveView] = useState<'dashboard' | 'calendar' | 'notifications' | 'payment' | 'debt'>(() => {
+  const [activeView, setActiveView] = useState<'dashboard' | 'calendar' | 'notifications' | 'payment' | 'debt' | 'elearning'>(() => {
     const path = window.location.pathname.toLowerCase();
     if (path === '/notedetail') return 'notifications';
     if (path === '/calendar') return 'calendar';
     if (path === '/payment') return 'payment';
     if (path === '/debt' || path === '/cong-no') return 'debt';
+    if (path === '/elearning' || path === '/dao-tao-truc-tuyen') return 'elearning';
     return 'dashboard';
   });
 
@@ -118,6 +121,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     };
   }, []);
 
+
+
+
+
   // Lắng nghe thay đổi lịch sử duyệt web (Back/Forward)
   useEffect(() => {
     const handlePopState = () => {
@@ -128,6 +135,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         setActiveView('calendar');
       } else if (path === '/payment') {
         setActiveView('payment');
+      } else if (path === '/elearning' || path === '/dao-tao-truc-tuyen') {
+        setActiveView('elearning');
       } else {
         setActiveView('dashboard');
       }
@@ -197,6 +206,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     window.history.pushState(null, '', '/debt');
   }, []);
 
+  // Mở trang Khóa học & Bài tập trực tuyến (Elearning UTH)
+  const handleOpenElearning = useCallback(() => {
+    setActiveView('elearning');
+    window.history.pushState(null, '', '/elearning');
+  }, []);
+
   // Mở trang thời khóa biểu toàn màn hình khi chọn ngày trên lịch tháng
   const handleOpenScheduleForDate = useCallback((date: string) => {
     setSelectedFilterDate(date);
@@ -210,6 +225,63 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setActiveView('calendar');
     window.history.pushState(null, '', '/calendar');
   }, []);
+
+  // Lắng nghe các lệnh điều hướng thông minh từ Trợ lý ảo AI (Actionable AI Copilot)
+  useEffect(() => {
+    const handleOpenScheduleModal = () => {
+      setSelectedFilterDate(undefined);
+      setIsScheduleModalOpen(true);
+    };
+
+    const handleOpenFullScheduleView = () => {
+      handleOpenFullSchedule();
+    };
+
+    const handleOpenElearningView = () => {
+      handleOpenElearning();
+    };
+
+    const handleOpenPaymentView = () => {
+      handleOpenPayment();
+    };
+
+    const handleOpenDebtView = () => {
+      handleOpenDebt();
+    };
+
+    const handleOpenCardModal = () => {
+      setIsCardModalOpen(true);
+    };
+
+    const handleOpenServiceModal = (e: any) => {
+      const serviceId = e?.detail?.serviceId;
+      if (serviceId) {
+        const found = serviceItems.find(s => s.id === serviceId);
+        if (found) setSelectedService(found);
+      } else if (!selectedService && serviceItems.length > 0) {
+        setSelectedService(serviceItems[0]);
+      }
+      setIsServiceModalOpen(true);
+    };
+
+    window.addEventListener('uth:open-schedule', handleOpenScheduleModal);
+    window.addEventListener('uth:open-full-schedule', handleOpenFullScheduleView);
+    window.addEventListener('uth:open-elearning', handleOpenElearningView);
+    window.addEventListener('uth:open-payment', handleOpenPaymentView);
+    window.addEventListener('uth:open-debt', handleOpenDebtView);
+    window.addEventListener('uth:open-student-card', handleOpenCardModal);
+    window.addEventListener('uth:open-service', handleOpenServiceModal);
+
+    return () => {
+      window.removeEventListener('uth:open-schedule', handleOpenScheduleModal);
+      window.removeEventListener('uth:open-full-schedule', handleOpenFullScheduleView);
+      window.removeEventListener('uth:open-elearning', handleOpenElearningView);
+      window.removeEventListener('uth:open-payment', handleOpenPaymentView);
+      window.removeEventListener('uth:open-debt', handleOpenDebtView);
+      window.removeEventListener('uth:open-student-card', handleOpenCardModal);
+      window.removeEventListener('uth:open-service', handleOpenServiceModal);
+    };
+  }, [handleOpenFullSchedule, handleOpenElearning, handleOpenPayment, handleOpenDebt, selectedService]);
 
   // Tính toán chính xác số lượng lịch học trong tuần theo dữ liệu gốc của từng sinh viên
   const weeklyScheduleCount = useMemo(() => {
@@ -246,6 +318,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, []);
 
   const handleOpenService = (service: ServiceItem) => {
+    if (service.id === 'srv-1' || service.title.toLowerCase().includes('đào tạo trực tuyến') || service.title.toLowerCase().includes('elearning')) {
+      handleOpenElearning();
+      return;
+    }
     if (service.id === 'srv-4' || service.title.toLowerCase().includes('thanh toán')) {
       handleOpenPayment();
       return;
@@ -257,6 +333,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setSelectedService(service);
     setIsServiceModalOpen(true);
   };
+
+  // Tìm bài tập cận hạn nhất từ CSDL thực tế của sinh viên (có fallback an toàn)
+  const mostUrgentAssignment = useMemo(() => {
+    const asms = (currentStudent?.assignments && currentStudent.assignments.length > 0)
+      ? currentStudent.assignments
+      : (initialStudentProfile.assignments || []);
+
+    const pendingList = asms.filter((a: any) => a.status === 'pending');
+    if (pendingList.length > 0) {
+      return [...pendingList].sort((a: any, b: any) => (a.daysLeft || 0) - (b.daysLeft || 0))[0];
+    }
+    // Fallback bài tập mặc định UTH để luôn đảm bảo có dữ liệu nhắc nhở
+    return {
+      courseName: 'Quản trị mạng - CNS_CS1',
+      title: 'Bài tập lớn: Thiết kế hệ thống mạng doanh nghiệp vừa và nhỏ',
+      daysLeft: 3,
+    };
+  }, [currentStudent]);
 
   const handleOpenBotWithQuery = (query: string) => {
     setBotInitialQuery(query);
@@ -315,8 +409,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onBackToDashboard={handleBackToDashboard}
           />
         </main>
+      ) : activeView === 'elearning' ? (
+        <main className="flex-1 w-full">
+          <Suspense fallback={<DashboardSkeleton />}>
+            <ElearningView
+              student={currentStudent}
+              onBackToDashboard={handleBackToDashboard}
+              onOpenBotWithQuery={handleOpenBotWithQuery}
+            />
+          </Suspense>
+        </main>
       ) : (
         <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6">
+          {/* 3D Airplane Deadline Notification chuẩn ảnh tham chiếu UTH */}
+          {mostUrgentAssignment && (
+            <AirplaneNotification
+              mssv={currentStudent.mssv}
+              title={`${mostUrgentAssignment.courseName}: ${mostUrgentAssignment.title}`}
+              remainingDays={mostUrgentAssignment.daysLeft}
+              label="DEADLINE NHẮC NHỞ"
+              actionText="Bấm vào đây để làm bài & nộp ngay"
+              onClick={handleOpenElearning}
+            />
+          )}
           {isLoadingDashboard ? (
             <DashboardSkeleton />
           ) : (

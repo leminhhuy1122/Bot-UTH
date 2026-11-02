@@ -284,6 +284,14 @@ async def list_students(
             "trainingType": s.training_type,
             "avatarUrl": s.avatar_url,
             "status": s.status or "Đang học",
+            "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
+            "assignments": getattr(s, "assignments", None) or [],
+            "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
+            "assignments": getattr(s, "assignments", None) or [],
             "accumulatedCredits": s.accumulated_credits,
             "requiredCredits": s.required_credits,
             "trainingPoint": s.training_point,
@@ -375,6 +383,14 @@ async def get_student_detail(
             "major": student.major,
             "classId": student.class_id,
             "trainingType": student.training_type,
+            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
+            "assignments": getattr(student, "assignments", None) or [],
+            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
+            "assignments": getattr(student, "assignments", None) or [],
             "avatarUrl": student.avatar_url,
             "status": student.status,
             "accumulatedCredits": student.accumulated_credits,
@@ -403,11 +419,14 @@ class StudentCreateRequest(BaseModel):
     name: str
     gender: Optional[str] = "Nam"
     birthDate: Optional[str] = "15/08/2005"
+    birthPlace: Optional[str] = "TP. Hồ Chí Minh"
+    educationLevel: Optional[str] = "Đại học - chính quy"
     phone: Optional[str] = "0912 345 678"
     email: Optional[str] = None
     cohort: Optional[str] = "2023"
     faculty: Optional[str] = "Công nghệ thông tin"
     major: Optional[str] = "Công nghệ thông tin"
+    specialization: Optional[str] = "Công nghệ thông tin"
     classId: Optional[str] = "CN23CLC01"
     trainingType: Optional[str] = "Chất lượng cao"
     avatarUrl: Optional[str] = "/student_avatar_ai.png"
@@ -425,17 +444,21 @@ class StudentCreateRequest(BaseModel):
     paidAmount: Optional[float] = 14850000.0
     debtAmount: Optional[float] = 0.0
     tuitionStatus: Optional[str] = None
+    assignments: Optional[List[Dict[str, Any]]] = None
     password: Optional[str] = "123456"
 
 class StudentUpdateRequest(BaseModel):
     name: Optional[str] = None
     gender: Optional[str] = None
     birthDate: Optional[str] = None
+    birthPlace: Optional[str] = None
+    educationLevel: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     cohort: Optional[str] = None
     faculty: Optional[str] = None
     major: Optional[str] = None
+    specialization: Optional[str] = None
     classId: Optional[str] = None
     trainingType: Optional[str] = None
     avatarUrl: Optional[str] = None
@@ -451,6 +474,7 @@ class StudentUpdateRequest(BaseModel):
     paidAmount: Optional[float] = None
     debtAmount: Optional[float] = None
     tuitionStatus: Optional[str] = None
+    assignments: Optional[List[Dict[str, Any]]] = None
     password: Optional[str] = None
 
 class StudentBatchRequest(BaseModel):
@@ -514,6 +538,10 @@ async def create_student(
         training_type=req.trainingType or "Chất lượng cao",
         avatar_url=req.avatarUrl or "/student_avatar_ai.png",
         status=req.status or "Đang học",
+        birth_place=req.birthPlace or "TP. Hồ Chí Minh",
+        education_level=req.educationLevel or "Đại học - chính quy",
+        specialization=req.specialization or req.major or "Công nghệ thông tin",
+        assignments=req.assignments or [],
         accumulated_credits=req.accumulatedCredits if req.accumulatedCredits is not None else 52.0,
         required_credits=req.requiredCredits if req.requiredCredits is not None else 145.0,
         training_point=req.trainingPoint if req.trainingPoint is not None else 85,
@@ -598,6 +626,14 @@ async def update_student(
         profile.gender = req.gender
     if req.birthDate is not None:
         profile.birth_date = req.birthDate
+    if req.birthPlace is not None:
+        profile.birth_place = req.birthPlace
+    if req.educationLevel is not None:
+        profile.education_level = req.educationLevel
+    if req.specialization is not None:
+        profile.specialization = req.specialization
+    if req.assignments is not None:
+        profile.assignments = req.assignments
     if req.phone is not None:
         profile.phone = req.phone
     if req.email is not None:

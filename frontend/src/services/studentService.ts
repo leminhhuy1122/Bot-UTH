@@ -1,4 +1,4 @@
-import { StudentProfile, ScheduleEvent, SemesterData } from '../types/uth';
+import { StudentProfile, ScheduleEvent, SemesterData, StudentAssignment } from '../types/uth';
 import { initialStudentProfile, monthScheduleEvents, semestersData } from '../data/mockData';
 import { apiUrl } from '../config/apiConfig';
 
@@ -185,3 +185,71 @@ export async function getStudentTuition(): Promise<any> {
 }
 
 
+
+/**
+ * Lấy danh sách khóa học và bài tập Elearning trực tuyến của sinh viên
+ */
+export async function getStudentAssignments(): Promise<StudentAssignment[]> {
+  const cacheKey = getCacheKey('assignments');
+  const cached = getFromCache<StudentAssignment[]>(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const res = await fetch(`${API_BASE}/assignments`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.success && Array.isArray(data.data)) {
+      saveToCache(cacheKey, data.data);
+      return data.data as StudentAssignment[];
+    }
+    return [];
+  } catch (err) {
+    console.warn('Không thể kết nối API assignments:', err);
+    return [];
+  }
+}
+
+/**
+ * Nộp bài tập trực tuyến trên Elearning
+ */
+export async function submitStudentAssignment(
+  assignmentId: string,
+  submissionNote?: string,
+  attachmentUrl?: string
+): Promise<{ success: boolean; message: string; data?: StudentAssignment[] }> {
+  try {
+    const res = await fetch(`${API_BASE}/assignments/${assignmentId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({
+        submissionNote: submissionNote || '',
+        attachmentUrl: attachmentUrl || '',
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || 'Không thể nộp bài tập.');
+    }
+
+    // Xóa cache để làm mới danh sách bài tập
+    memoryCache.delete(getCacheKey('assignments'));
+    memoryCache.delete(getCacheKey('profile'));
+
+    return data;
+  } catch (err: any) {
+    throw new Error(err.message || 'Lỗi kết nối khi nộp bài tập.');
+  }
+}

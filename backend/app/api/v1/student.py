@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+from pydantic import BaseModel
 from backend.app.db.session import get_db
 from backend.app.models.user import User, StudentProfile
 from backend.app.core.security import decode_access_token
@@ -74,12 +76,12 @@ async def get_my_profile(student: StudentProfile = Depends(get_current_student))
             "cohort": student.cohort,
             "gender": student.gender or "Nam",
             "birthDate": student.birth_date or "15/08/2005",
-            "birthPlace": "TP. Hồ Chí Minh",
-            "educationLevel": "Đại học - chính quy",
+            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
             "trainingType": student.training_type or "Chất lượng cao",
             "faculty": student.faculty or "Công nghệ thông tin",
             "major": student.major or "Công nghệ thông tin",
-            "specialization": student.major or "Công nghệ thông tin",
+            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
             "avatarUrl": student.avatar_url or "/student_avatar_ai.svg",
             "email": student.email or f"{student.mssv}@ut.edu.vn",
             "phone": student.phone or "0912 345 678",
@@ -98,7 +100,9 @@ async def get_my_profile(student: StudentProfile = Depends(get_current_student))
             "totalTuition": student.total_tuition,
             "tuitionStatus": student.tuition_status or "Đã hoàn thành",
             "registeredCourses": student.registered_courses or [],
-            "upcomingCourses": student.upcoming_courses or []
+            "upcomingCourses": student.upcoming_courses or [],
+            "assignments": getattr(student, "assignments", None) or [],
+            "otherFees": (student.extra_data or {}).get("otherFees", [])
         }
     }
 
@@ -148,5 +152,59 @@ async def get_my_tuition(student: StudentProfile = Depends(get_current_student))
             "paymentDate": "15/09/2026" if student.paid_amount > 0 else "Chưa thanh toán",
             "paymentMethod": "Cổng VNPay - Vietcombank",
             "receiptNumber": f"UTH-BL-2026-{student.mssv[-6:]}"
-        }
+        },
+        "otherFees": (student.extra_data or {}).get("otherFees", [])
+    }
+
+class SubmitAssignmentRequest(BaseModel):
+    submissionNote: Optional[str] = None
+    attachmentUrl: Optional[str] = None
+
+@router.get("/assignments")
+async def get_my_assignments(student: StudentProfile = Depends(get_current_student)):
+    """Lấy danh sách các khóa học và bài tập trực tuyến (Elearning UTH) của sinh viên."""
+    return {
+        "success": True,
+        "mssv": student.mssv,
+        "studentName": student.full_name,
+        "data": student.assignments or []
+    }
+
+@router.post("/assignments/{assignment_id}/submit")
+async def submit_assignment(
+    assignment_id: str,
+    req: SubmitAssignmentRequest,
+    student: StudentProfile = Depends(get_current_student),
+    db: Session = Depends(get_db)
+):
+    """Nộp bài tập trực tuyến trên Elearning UTH."""
+    current_assignments = list(student.assignments or [])
+    found = False
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    for asm in current_assignments:
+        if asm.get("id") == assignment_id:
+            asm["status"] = "submitted"
+            asm["submissionDate"] = now_str
+            asm["daysLeft"] = 0
+            if req.submissionNote:
+                asm["submissionNote"] = req.submissionNote
+            if req.attachmentUrl:
+                asm["attachmentUrl"] = req.attachmentUrl
+            found = True
+            break
+
+    if not found:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy bài tập với mã '{assignment_id}' trong danh sách của bạn."
+        )
+
+    student.assignments = current_assignments
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Nộp bài tập thành công! Hệ thống Elearning UTH đã ghi nhận bài làm của bạn.",
+        "data": current_assignments
     }

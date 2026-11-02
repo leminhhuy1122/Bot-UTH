@@ -12,6 +12,85 @@ import { StudentProfile } from '../../types/uth';
 import { semestersData, initialStudentProfile } from '../../data/mockData';
 import studentsData from '../../data/students_seed.json';
 
+// Danh sách 5 khoản thu khác chuẩn thực tế của UTH (Ảnh mẫu portal.ut.edu.vn/tuition)
+export const OTHER_FEES_TEMPLATE = [
+  {
+    stt: 1,
+    code: 'TVS90',
+    name: 'Sử dụng tài liệu thư viện số/khóa học',
+    amount: 90000,
+    required: '',
+  },
+  {
+    stt: 2,
+    code: 'Turnitin',
+    name: 'Quét trùng lặp',
+    amount: 150000,
+    required: '',
+  },
+  {
+    stt: 3,
+    code: 'BHYT23',
+    name: 'Bảo hiểm y tế/15 tháng',
+    amount: 850500,
+    required: '',
+  },
+  {
+    stt: 4,
+    code: 'BHTN',
+    name: 'Bảo hiểm tai nạn/4 năm',
+    amount: 200000,
+    required: '',
+  },
+  {
+    stt: 5,
+    code: 'SHCT',
+    name: 'Sinh hoạt chính trị "Công dân-sinh viên" đầu khóa',
+    amount: 150000,
+    required: '',
+  },
+];
+
+export const generateOtherFeesForStudent = (student: any, _semesterName?: string) => {
+  if (student?.otherFees && Array.isArray(student.otherFees) && student.otherFees.length > 0) {
+    return student.otherFees;
+  }
+  if (student?.extra_data?.otherFees && Array.isArray(student.extra_data.otherFees) && student.extra_data.otherFees.length > 0) {
+    return student.extra_data.otherFees;
+  }
+
+  const cohortYear = parseInt(String(student?.cohort || '2023').slice(0, 4)) || 2023;
+  const semStr = `${cohortYear}-${cohortYear + 1}`;
+  const payDateStr = `09/09/${cohortYear}`;
+  const isPaid = (student?.debtAmount === 0 || student?.debtAmount === '0' || student?.tuitionStatus === 'Đã hoàn thành');
+
+  return OTHER_FEES_TEMPLATE.map((item, idx) => {
+    if (isPaid) {
+      return {
+        ...item,
+        semester: semStr,
+        payDate: payDateStr,
+        paidAmount: item.amount,
+        debtAmount: 0,
+        status: 'Đã nộp' as const,
+      };
+    }
+
+    // Nếu sinh viên còn nợ: tùy mức nợ
+    const debtVal = Number(student?.debtAmount || 5000000);
+    const isUnpaid = debtVal >= 5000000 || idx >= 2;
+    return {
+      ...item,
+      semester: semStr,
+      payDate: isUnpaid ? '-' : payDateStr,
+      paidAmount: isUnpaid ? 0 : item.amount,
+      debtAmount: isUnpaid ? item.amount : 0,
+      status: (isUnpaid ? 'Chưa nộp' : 'Đã nộp') as 'Chưa nộp' | 'Đã nộp',
+    };
+  });
+};
+
+
 interface DebtLookupViewProps {
   currentStudent?: StudentProfile;
   onBackToDashboard?: () => void;
@@ -49,6 +128,8 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
     setDobInput(activeStudent.birthDate || '15/08/2005');
     performCheckInfo(activeStudent.mssv, selectedSemester);
   }, [currentStudent, selectedSemester]);
+
+
 
   // Sinh danh sách môn học và biểu phí chuẩn theo CSDL gốc của dự án (semestersData)
   const generateCoursesFromProjectData = (student: any, semesterName: string) => {
@@ -108,6 +189,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
       const totalDebt = courses.reduce((acc, c) => acc + c.debtAmount, 0);
       const totalPaid = totalTuition - totalDebt;
 
+      const otherFees = generateOtherFeesForStudent(activeStudent, semesterName);
       setSearchResult({
         ...activeStudent,
         name: activeStudent.name || 'Nguyễn Văn A',
@@ -119,7 +201,8 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
         semester: semesterName,
         receiptCode: 'UTH-BL-2026-094812',
         paymentDate: '15/09/2026',
-        courseBreakdown: courses
+        courseBreakdown: courses,
+        otherFees: otherFees
       });
       return;
     }
@@ -138,6 +221,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
       const totalDebt = found.debtAmount !== undefined ? found.debtAmount : (found.tuitionStatus === 'Còn nợ học phí' ? 5000000 : 0);
       const totalPaid = totalTuition - totalDebt;
 
+      const otherFeesFound = generateOtherFeesForStudent(found, semesterName);
       setSearchResult({
         ...found,
         totalTuition: totalTuition,
@@ -148,7 +232,8 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
         semester: semesterName,
         receiptCode: `UTH-BL-2026-${found.mssv.slice(-6)}`,
         paymentDate: totalDebt > 0 ? 'Chưa thanh toán' : '15/09/2026',
-        courseBreakdown: courses
+        courseBreakdown: courses,
+        otherFees: otherFeesFound
       });
     } else {
       setSearchResult(null);
@@ -175,6 +260,13 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
           payDate: new Date().toLocaleDateString('vi-VN'),
           status: 'Đã nộp'
         }));
+        const updatedOtherFees = (prev.otherFees || []).map((f: any) => ({
+          ...f,
+          paidAmount: f.amount,
+          debtAmount: 0,
+          payDate: new Date().toLocaleDateString('vi-VN'),
+          status: 'Đã nộp'
+        }));
         return {
           ...prev,
           tuitionStatus: 'Đã hoàn thành',
@@ -182,7 +274,8 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
           debtAmount: 0,
           receiptCode: `UTH-BL-DEBT-${Date.now().toString().slice(-6)}`,
           paymentDate: new Date().toLocaleDateString('vi-VN'),
-          courseBreakdown: updatedCourses
+          courseBreakdown: updatedCourses,
+          otherFees: updatedOtherFees
         };
       });
     }, 1200);
@@ -621,10 +714,79 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
                 </table>
               </div>
             ) : (
-              /* TAB HỌC PHÍ KHÁC */
-              <div className="p-8 text-center text-xs text-slate-500 bg-white">
-                Không có khoản thu học phí khác phát sinh trong học kỳ này.
-              </div>
+              /* TAB HỌC PHÍ KHÁC CHUẨN UTH (portal.ut.edu.vn/tuition) */
+              (() => {
+                const otherList = (searchResult?.otherFees && searchResult.otherFees.length > 0)
+                  ? searchResult.otherFees
+                  : generateOtherFeesForStudent(searchResult, selectedSemester);
+                const sumAmount = otherList.reduce((acc: number, f: any) => acc + (Number(f.amount) || 0), 0);
+                const sumPaid = otherList.reduce((acc: number, f: any) => acc + (Number(f.paidAmount) || 0), 0);
+                const sumDebt = otherList.reduce((acc: number, f: any) => acc + (Number(f.debtAmount) || 0), 0);
+
+                return (
+                  <div className="overflow-x-auto bg-white">
+                    <table className="w-full text-xs text-left border-collapse min-w-[950px]">
+                      {/* HEADER: NỀN XANH TEAL ĐẬM CHUẨN UTH (#00695c) */}
+                      <thead className="bg-[#00695c] text-white font-bold select-none text-[11.5px]">
+                        <tr>
+                          <th className="py-3 px-3 text-center border-r border-[#005a4e] w-12">STT</th>
+                          <th className="py-3 px-4 text-center border-r border-[#005a4e] w-28">Học kỳ</th>
+                          <th className="py-3 px-4 text-center border-r border-[#005a4e] w-36">Mã khoản thu khác</th>
+                          <th className="py-3 px-6 text-center border-r border-[#005a4e]">Tên khoản thu khác</th>
+                          <th className="py-3 px-4 text-center border-r border-[#005a4e] w-32">Mức nộp</th>
+                          <th className="py-3 px-3 text-center border-r border-[#005a4e] w-20">Bắt buộc</th>
+                          <th className="py-3 px-4 text-center border-r border-[#005a4e] w-28">Ngày nộp</th>
+                          <th className="py-3 px-4 text-center border-r border-[#005a4e] w-32">Số tiền nộp</th>
+                          <th className="py-3 px-4 text-center w-28">Công nợ</th>
+                        </tr>
+                      </thead>
+
+                      {/* THÂN BẢNG: 5 KHOẢN THU THỰC TẾ CHUẨN UTH */}
+                      <tbody className="divide-y divide-slate-200 bg-white text-slate-700">
+                        {otherList.map((row: any) => (
+                          <tr key={row.stt} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-3 px-3 text-center text-slate-500 border-r border-slate-200">{row.stt}</td>
+                            <td className="py-3 px-4 text-center text-slate-600 border-r border-slate-200 whitespace-nowrap">{row.semester}</td>
+                            <td className="py-3 px-4 text-center font-mono font-medium text-slate-700 border-r border-slate-200">{row.code}</td>
+                            <td className="py-3 px-6 font-medium text-slate-800 border-r border-slate-200">{row.name}</td>
+                            <td className="py-3 px-4 text-right text-slate-800 border-r border-slate-200 whitespace-nowrap">
+                              {Number(row.amount).toLocaleString('vi-VN')} đ
+                            </td>
+                            <td className="py-3 px-3 text-center text-slate-500 border-r border-slate-200">{row.required || ''}</td>
+                            <td className="py-3 px-4 text-center text-slate-500 border-r border-slate-200 whitespace-nowrap">{row.payDate || '-'}</td>
+                            <td className="py-3 px-4 text-right text-slate-800 border-r border-slate-200 whitespace-nowrap">
+                              {Number(row.paidAmount || 0).toLocaleString('vi-VN')} đ
+                            </td>
+                            <td className="py-3 px-4 text-right font-medium whitespace-nowrap text-slate-800">
+                              {Number(row.debtAmount || 0) === 0 ? '0' : `${Number(row.debtAmount).toLocaleString('vi-VN')} đ`}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+
+                      {/* HÀNG TỔNG KẾT: CHỮ MÀU ĐỎ ĐẬM CHUẨN UTH */}
+                      <tfoot className="bg-slate-50/90 font-bold border-t-2 border-slate-300 text-xs text-red-600">
+                        <tr>
+                          <td colSpan={4} className="py-3 px-4 text-center font-extrabold text-sm border-r border-slate-200 text-red-600">
+                            Tổng
+                          </td>
+                          <td className="py-3 px-4 text-right border-r border-slate-200 whitespace-nowrap text-red-600 font-bold">
+                            {Number(sumAmount).toLocaleString('vi-VN')} đ
+                          </td>
+                          <td className="py-3 px-3 text-center border-r border-slate-200 text-slate-600"></td>
+                          <td className="py-3 px-4 text-center border-r border-slate-200 text-slate-600"></td>
+                          <td className="py-3 px-4 text-right border-r border-slate-200 whitespace-nowrap text-red-600 font-bold">
+                            {Number(sumPaid).toLocaleString('vi-VN')} đ
+                          </td>
+                          <td className="py-3 px-4 text-right whitespace-nowrap text-red-600 font-bold">
+                            {Number(sumDebt) === 0 ? '0 đ' : `${Number(sumDebt).toLocaleString('vi-VN')} đ`}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                );
+              })()
             )}
           </div>
         </div>
