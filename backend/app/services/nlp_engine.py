@@ -98,6 +98,20 @@ def classify_intent(query: str) -> tuple[str, float]:
         'PROCEDURES': [
             ('giay xac nhan', 3.0), ('nghia vu quan su', 3.0), ('nvqs', 3.0),
             ('mot cua', 2.5), ('chuyen nganh', 2.0), ('the sinh vien', 3.0)
+        ],
+        'CLUBS_COMMUNITY': [
+            ('clb', 3.5), ('cau lac bo', 3.5), ('fanpage', 3.5), ('facebook', 3.0),
+            ('tiktok', 3.5), ('suc tre uth', 4.0), ('doi cong tac xa hoi', 4.0),
+            ('ctxh', 3.5), ('bong da', 3.0), ('cau long', 3.0), ('bong ro', 3.0),
+            ('bong chuyen', 3.0), ('vovinam', 3.5), ('taekwondo', 3.5),
+            ('ut logs', 4.0), ('sse', 3.5), ('giai dieu trai tim', 4.0),
+            ('song dep', 3.5), ('gia dinh ky nang', 3.5), ('tai lieu mos', 4.0)
+        ],
+        'LINKS_PORTAL': [
+            ('trang web', 3.5), ('website', 3.5), ('link', 3.0), ('cong thong tin', 3.5),
+            ('trang chu', 3.5), ('payment ut edu', 4.0), ('lic ut edu', 4.0),
+            ('hocbong ut edu', 4.0), ('daotao ut edu', 4.0), ('tuyensinh ut edu', 4.0),
+            ('iec ut edu', 4.0), ('link thanh toan', 4.0), ('link hoc bong', 4.0)
         ]
     }
 
@@ -116,26 +130,48 @@ def classify_intent(query: str) -> tuple[str, float]:
     confidence = min(0.98, round(0.50 + (max_score * 0.12), 2))
     return best_intent, confidence
 
+VIETNAMESE_STOP_WORDS = {
+    'cho', 'em', 'minh', 'toi', 'xin', 'hoi', 'cua', 'truong', 'la', 'gi',
+    'o', 'dau', 'vay', 'a', 'ha', 'voi', 'duoc', 'khong', 'cac', 'nhung',
+    'nhu', 'the', 'nao', 'co', 'may', 'bao', 'nhieu', 've', 'ra', 'sao', 'thi'
+}
+
 def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]:
-    """Tìm các mục tri thức phù hợp nhất với câu hỏi."""
-    q_norm = remove_accents(query.lower())
+    """Tìm các mục tri thức phù hợp nhất với câu hỏi bằng TF-IDF Weighting & Content Token Matching."""
+    q_norm = remove_accents(query.lower()).strip()
     q_tokens = set(tokenize(q_norm))
     matches = []
 
     for item in knowledge_items:
         score = 0.0
-        item_q_norm = remove_accents(item.get('question', '').lower())
-        if q_norm in item_q_norm or item_q_norm in q_norm:
-            score += 4.0
+        item_q = item.get('question', '').strip()
+        item_q_norm = remove_accents(item_q.lower()).strip()
+        
+        # 1. Khớp hoàn toàn hoặc chuỗi con câu hỏi
+        if q_norm == item_q_norm:
+            score += 20.0
+        elif len(q_norm) >= 10 and (q_norm in item_q_norm or item_q_norm in q_norm):
+            score += 10.0
 
-        for kw in item.get('keywords', []):
-            kw_norm = remove_accents(kw.lower())
-            if kw_norm in q_norm:
-                score += 2.5
+        # 2. Khớp từ khóa cốt lõi (Trọng số cao theo độ dài cụm từ)
+        keywords = item.get('keywords', [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
 
+        for kw in keywords:
+            kw_norm = remove_accents(kw.lower()).strip()
+            if kw_norm and kw_norm in q_norm:
+                kw_len = len(kw_norm.split())
+                score += kw_len * 3.5
+
+        # 3. Khớp tập từ vựng (Phân biệt stop words vs content words)
         item_tokens = set(tokenize(item_q_norm))
-        overlap = len(q_tokens.intersection(item_tokens))
-        score += overlap * 1.0
+        overlap_tokens = q_tokens.intersection(item_tokens)
+        for tok in overlap_tokens:
+            if tok in VIETNAMESE_STOP_WORDS:
+                score += 0.2  # Stop word giảm trọng số tối thiểu
+            else:
+                score += 2.5  # Content word tăng trọng số cao
 
         if score > 0:
             matches.append({
@@ -143,7 +179,7 @@ def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]
                 'relevance_score': round(score, 2)
             })
 
-    # Ngưỡng tin cậy tối thiểu 4.5: Loại bỏ các kết quả chỉ trùng 1 từ lẻ tẻ gây lạc đề
+    # Ngưỡng tin cậy tối thiểu: 4.5
     MIN_CONFIDENCE_THRESHOLD = 4.5
     valid_matches = [m for m in matches if m['relevance_score'] >= MIN_CONFIDENCE_THRESHOLD]
     valid_matches.sort(key=lambda x: x['relevance_score'], reverse=True)
@@ -152,40 +188,76 @@ def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]
 def find_fast_instant_answer(query: str, knowledge_items: list[dict]) -> Optional[dict]:
     """
     Tối ưu hóa tốc độ phản hồi cực nhanh (Fast Instant Cache < 10ms).
-    Đối soát trực tiếp các câu hỏi thường gặp (FAQ) chính thức của UTH.
-    Nếu khớp độ tin cậy cao và không hỏi dữ liệu cá nhân, trả về ngay lập tức không cần chờ LLM.
+    Đối soát trực tiếp các câu hỏi thường gặp (FAQ) chính thức của UTH bằng thuật toán
+    tính điểm đa tiêu chí (Exact Match > N-gram Keyword Length > Token Overlap).
     """
     q_norm = remove_accents(query.lower()).strip()
+    q_clean = re.sub(r'[^\w\s]', ' ', q_norm).strip()
     
     # Không dùng fast cache nếu người dùng đang hỏi dữ liệu cá nhân
     personal_indicators = ['cua toi', 'cua em', 'cua con', 'diem cua', 'hoc phi cua', 'lich hoc cua', 'no hoc phi']
     if any(k in q_norm for k in personal_indicators):
         return None
 
+    q_tokens = set(tokenize(q_clean))
+    if not q_tokens:
+        return None
+
+    best_item = None
+    best_score = 0.0
+
     for item in knowledge_items:
-        item_q_norm = remove_accents(item.get('question', '').lower()).strip()
+        item_q = item.get('question', '').strip()
+        item_q_norm = remove_accents(item_q.lower()).strip()
+        item_q_clean = re.sub(r'[^\w\s]', ' ', item_q_norm).strip()
         
-        # 1. Khớp chính xác câu hỏi
-        if q_norm == item_q_norm:
+        # 1. Khớp chính xác hoàn toàn câu hỏi (sau khi bỏ dấu và ký tự đặc biệt)
+        if q_clean == item_q_clean:
             return {
                 "reply": item["answer"],
                 "intent": item.get("category", "FAQ"),
                 "confidence": 0.99,
                 "engine": "UTH Fast In-Memory Cache (<10ms)",
-                "citation": {"title": item.get("category", "Thông tin"), "question": item.get("question", "")}
+                "citation": {"title": item.get("category", "Thông tin"), "question": item_q}
             }
 
-        # 2. Khớp từ khóa cốt lõi độ tin cậy cao
-        keywords = [remove_accents(kw.lower()) for kw in item.get('keywords', [])]
-        matched_kw_count = sum(1 for kw in keywords if kw in q_norm)
-        if matched_kw_count >= 2 and (len(q_norm) < 60):
-            return {
-                "reply": item["answer"],
-                "intent": item.get("category", "FAQ"),
-                "confidence": 0.96,
-                "engine": "UTH Fast In-Memory Cache (<10ms)",
-                "citation": {"title": item.get("category", "Thông tin"), "question": item.get("question", "")}
-            }
+        score = 0.0
+        # Khớp chuỗi con câu hỏi
+        if len(q_clean) >= 12 and (q_clean in item_q_clean or item_q_clean in q_clean):
+            score += 15.0
+
+        # Khớp từ khóa (Trọng số lũy tiến theo độ dài từ khóa, ưu tiên cụm từ chuyên biệt)
+        matched_kw_count = 0
+        keywords = item.get('keywords', [])
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+
+        for kw in keywords:
+            kw_norm = remove_accents(kw.lower()).strip()
+            if kw_norm and kw_norm in q_norm:
+                matched_kw_count += 1
+                kw_len = len(kw_norm.split())
+                score += kw_len * 3.0  # Cụm từ dài như "đợt xét tốt nghiệp" được +9 điểm
+
+        # Khớp tập từ vựng (Token overlap)
+        item_tokens = set(tokenize(item_q_clean))
+        overlap = len(q_tokens.intersection(item_tokens))
+        score += overlap * 1.5
+
+        # Chỉ xét ứng viên có sự liên quan cao rõ rệt
+        if (matched_kw_count >= 2 or (overlap >= 3 and matched_kw_count >= 1)) and score > best_score:
+            best_score = score
+            best_item = item
+
+    # Ngưỡng tin cậy chấp nhận Fast Answer
+    if best_item and best_score >= 12.0:
+        return {
+            "reply": best_item["answer"],
+            "intent": best_item.get("category", "FAQ"),
+            "confidence": min(0.98, round(0.85 + (best_score * 0.005), 2)),
+            "engine": "UTH Fast In-Memory Cache (<10ms)",
+            "citation": {"title": best_item.get("category", "Thông tin"), "question": best_item.get("question", "")}
+        }
 
     return None
 
@@ -221,10 +293,10 @@ def build_personalized_system_prompt(
         )
 
     elif role == "student":
-        student_name = getattr(student_ctx, "name", "bạn") if student_ctx else "bạn"
-        mssv = getattr(student_ctx, "mssv", "") if student_ctx else ""
-        cohort = getattr(student_ctx, "cohort", "2023") if student_ctx else "2023"
-        major = getattr(student_ctx, "major", "Công nghệ thông tin") if student_ctx else "Công nghệ thông tin"
+        student_name = (getattr(student_ctx, "name", None) or "bạn") if student_ctx else "bạn"
+        mssv = (getattr(student_ctx, "mssv", None) or "") if student_ctx else ""
+        cohort = (getattr(student_ctx, "cohort", None) or "2023") if student_ctx else "2023"
+        major = (getattr(student_ctx, "major", None) or "Công nghệ thông tin") if student_ctx else "Công nghệ thông tin"
 
         personal_data_str = (
             f"- Họ tên: {student_name}\n"

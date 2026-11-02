@@ -1,6 +1,14 @@
 import os
+import sys
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+
+if sys.stdout:
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from backend.app.db.session import SessionLocal
 from backend.app.models.knowledge import KnowledgeDocument
 
@@ -38,7 +46,7 @@ def seed_full_knowledge():
                 existing.keywords = keywords
                 existing.answer = answer
                 existing.is_active = True
-                existing.updated_at = datetime.utcnow()
+                existing.updated_at = datetime.now(timezone.utc)
                 updated += 1
             else:
                 new_doc = KnowledgeDocument(
@@ -48,8 +56,8 @@ def seed_full_knowledge():
                     keywords=keywords,
                     answer=answer,
                     is_active=True,
-                    created_at=datetime.utcnow(),
-                    updated_at=datetime.utcnow()
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc)
                 )
                 db.add(new_doc)
                 inserted += 1
