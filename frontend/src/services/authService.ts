@@ -24,7 +24,7 @@ export async function loginApi(username: string, password?: string): Promise<Aut
     });
 
     if (res.status === 502 || res.status === 503 || res.status === 504) {
-      throw new Error('Máy chủ Backend (FastAPI cổng 8000) chưa được bật. Vui lòng mở chay_backend.bat hoặc chay_he_thong.bat.');
+      throw new Error('Máy chủ Backend UTH chưa sẵn sàng kết nối. Vui lòng kiểm tra chay_backend.bat hoặc chay_he_thong.bat.');
     }
 
     if (!res.ok) {
@@ -39,7 +39,7 @@ export async function loginApi(username: string, password?: string): Promise<Aut
     return data;
   } catch (error: any) {
     if (error.message && (error.message.includes('Failed to fetch') || error.name === 'TypeError')) {
-      throw new Error('Không thể kết nối đến Backend (cổng 8000). Vui lòng chạy chay_backend.bat!');
+      throw new Error('Không thể kết nối đến Máy chủ Backend UTH. Vui lòng kiểm tra chay_backend.bat!');
     }
     console.warn('Lỗi khi gọi API login:', error.message);
     throw error;

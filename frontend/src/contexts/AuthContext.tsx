@@ -34,9 +34,24 @@ const GUEST_SESSION: UserSession = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Mặc định luôn khởi tạo là GUEST_SESSION (chưa đăng nhập) để khi run code hoặc mở ứng dụng mới
-  // thì hệ thống bắt buộc người dùng phải đăng nhập lại, không tự động đăng nhập thẳng vào hệ thống
-  const [session, setSession] = useState<UserSession>(GUEST_SESSION);
+  // Khôi phục phiên làm việc (Session Persistence): Tự động duy trì trạng thái khi người dùng nhấn F5
+  const [session, setSession] = useState<UserSession>(() => {
+    try {
+      const isAuth = localStorage.getItem('uth_session_auth') === 'true';
+      const savedRole = localStorage.getItem('uth_user_role') as UserRole;
+      const savedData = localStorage.getItem('uth_session_data');
+
+      if (isAuth && savedRole && savedRole !== 'guest' && savedData) {
+        const parsed = JSON.parse(savedData) as UserSession;
+        if (parsed && parsed.role === savedRole) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Lỗi khôi phục phiên đăng nhập từ LocalStorage:', e);
+    }
+    return GUEST_SESSION;
+  });
 
   // Tự động kiểm tra và đồng bộ Token hợp lệ cho Admin nếu đang trong phiên Admin
   useEffect(() => {
@@ -55,6 +70,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [session.role]);
 
+  // Luôn đồng bộ dữ liệu session vào LocalStorage để chống mất phiên khi F5
+  useEffect(() => {
+    try {
+      if (session.role !== 'guest') {
+        localStorage.setItem('uth_session_data', JSON.stringify(session));
+        localStorage.setItem('uth_user_role', session.role);
+        localStorage.setItem('uth_session_auth', 'true');
+      } else {
+        localStorage.removeItem('uth_session_data');
+        localStorage.removeItem('uth_session_auth');
+        localStorage.setItem('uth_user_role', 'guest');
+      }
+    } catch (e) {
+      console.warn('Không thể đồng bộ LocalStorage:', e);
+    }
+  }, [session]);
+
   const loginAsStudent = async (mssvOrUsername: string, password?: string): Promise<UserRole> => {
     try {
       const res = await loginApi(mssvOrUsername, password);
@@ -68,6 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         localStorage.setItem('uth_user_role', 'admin');
         localStorage.setItem('uth_session_auth', 'true');
+        localStorage.setItem('uth_session_data', JSON.stringify(newSession));
         if (res.token) {
           localStorage.setItem('uth_admin_jwt_token', res.token);
           localStorage.setItem('uth_jwt_token', res.token);
@@ -91,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       localStorage.setItem('uth_user_role', 'student');
       localStorage.setItem('uth_session_auth', 'true');
+      localStorage.setItem('uth_session_data', JSON.stringify(newSession));
       if (res.token) {
         localStorage.setItem('uth_student_jwt_token', res.token);
         localStorage.setItem('uth_jwt_token', res.token);
@@ -116,12 +150,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         localStorage.setItem('uth_user_role', 'admin');
         localStorage.setItem('uth_session_auth', 'true');
+        localStorage.setItem('uth_session_data', JSON.stringify(newSession));
         setSession(newSession);
         return 'admin';
       }
       
-      // Với tài khoản sinh viên: Ném lỗi chính xác để giao diện hiển thị cho người dùng,
-      // tuyệt đối không tự ý giả lập tài khoản mẫu khi đăng nhập thất bại!
+      // Với tài khoản sinh viên: Ném lỗi chính xác để giao diện hiển thị cho người dùng
       console.warn('Đăng nhập sinh viên không thành công:', err.message);
       throw err;
     }
@@ -147,6 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     localStorage.setItem('uth_user_role', 'admin');
     localStorage.setItem('uth_session_auth', 'true');
+    localStorage.setItem('uth_session_data', JSON.stringify(newSession));
     if (token) {
       localStorage.setItem('uth_admin_jwt_token', token);
       localStorage.setItem('uth_jwt_token', token);
@@ -166,6 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       localStorage.setItem('uth_user_role', 'parent');
       localStorage.setItem('uth_session_auth', 'true');
+      localStorage.setItem('uth_session_data', JSON.stringify(newSession));
       localStorage.setItem('uth_parent_student', JSON.stringify(studentData));
       setSession(newSession);
       return res;
@@ -186,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       localStorage.setItem('uth_user_role', 'student');
       localStorage.setItem('uth_session_auth', 'true');
+      localStorage.setItem('uth_session_data', JSON.stringify(newSession));
       setSession(newSession);
     } catch (e) {
       await loginAsStudent('056205008344');
@@ -205,7 +242,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.setItem('uth_user_role', 'guest');
       localStorage.removeItem('uth_session_auth');
+      localStorage.removeItem('uth_session_data');
       localStorage.removeItem('uth_jwt_token');
+      localStorage.removeItem('uth_student_jwt_token');
+      localStorage.removeItem('uth_admin_jwt_token');
       localStorage.removeItem('uth_parent_student');
     } catch (e) {
       console.warn('Không thể lưu LocalStorage:', e);
@@ -218,12 +258,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem('uth_user_role');
       localStorage.removeItem('uth_session_auth');
+      localStorage.removeItem('uth_session_data');
       localStorage.removeItem('uth_jwt_token');
+      localStorage.removeItem('uth_student_jwt_token');
+      localStorage.removeItem('uth_admin_jwt_token');
       localStorage.removeItem('uth_parent_student');
+
       sessionStorage.removeItem('uth_user_role');
       sessionStorage.removeItem('uth_session_auth');
+      sessionStorage.removeItem('uth_session_data');
       sessionStorage.removeItem('uth_jwt_token');
       sessionStorage.removeItem('uth_parent_student');
+
       Object.keys(sessionStorage).forEach((key) => {
         if (key.startsWith('uth_airplane_')) sessionStorage.removeItem(key);
       });

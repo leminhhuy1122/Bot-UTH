@@ -10,7 +10,7 @@ import { NoteDetailView } from './NoteDetailView';
 const PaymentView = lazy(() => import('./PaymentView').then(m => ({ default: m.PaymentView })));
 const DebtLookupView = lazy(() => import('./DebtLookupView').then(m => ({ default: m.DebtLookupView })));
 const ElearningView = lazy(() => import('./ElearningView').then(m => ({ default: m.ElearningView })));
-import { AirplaneNotification } from './AirplaneNotification';
+const AirplaneNotification = lazy(() => import('./AirplaneNotification').then(m => ({ default: m.AirplaneNotification })));
 
 // Lazy load các modal chỉ khi người dùng click mở, tối ưu thời gian tải trang ban đầu
 const StudentCardModal = lazy(() => import('../modals/StudentCardModal').then(m => ({ default: m.StudentCardModal })));
