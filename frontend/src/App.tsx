@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { LoginView } from './components/auth/LoginView';
 import { DashboardView } from './components/portal/DashboardView';
-import { UthBotWidget } from './components/chat/UthBotWidget';
+const UthBotWidget = lazy(() => import('./components/chat/UthBotWidget').then(m => ({ default: m.UthBotWidget })));
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Code splitting các phân hệ lớn bằng React.lazy để tải theo nhu cầu (On-Demand Loading)
@@ -23,6 +23,9 @@ const ViewLoadingFallback = () => (
     </div>
   </div>
 );
+
+
+const VALID_PATHS = ['/login', '/portal', '/admin', '/parent', '/public', '/notedetail', '/calendar', '/payment', '/debt'];
 
 function AppContent() {
   const { role, isLoggedIn, logout, session } = useAuth();

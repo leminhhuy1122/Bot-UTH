@@ -136,6 +136,41 @@ VIETNAMESE_STOP_WORDS = {
     'nhu', 'the', 'nao', 'co', 'may', 'bao', 'nhieu', 've', 'ra', 'sao', 'thi'
 }
 
+
+def _get_item_nlp_cache(item: dict) -> dict:
+    """Truy xuất hoặc lập chỉ mục trước các thuộc tính chuẩn hóa của mục tri thức (Memoized Cache)."""
+    cached = item.get('_nlp_cache')
+    if cached is not None:
+        return cached
+
+    q_raw = item.get('question', '').strip()
+    q_norm = remove_accents(q_raw.lower()).strip()
+    q_clean = re.sub(r'[^\w\s]', ' ', q_norm).strip()
+    
+    keywords = item.get('keywords', [])
+    if isinstance(keywords, str):
+        keywords = [k.strip() for k in keywords.split(',') if k.strip()]
+        
+    kws_norm = []
+    for kw in keywords:
+        kw_n = remove_accents(kw.lower()).strip()
+        if kw_n:
+            kws_norm.append((kw_n, len(kw_n.split())))
+
+    tokens_clean = set(tokenize(q_clean))
+    tokens_norm = set(tokenize(q_norm))
+
+    cached = {
+        'item_q': q_raw,
+        'item_q_norm': q_norm,
+        'item_q_clean': q_clean,
+        'keywords': kws_norm,
+        'tokens_clean': tokens_clean,
+        'tokens_norm': tokens_norm
+    }
+    item['_nlp_cache'] = cached
+    return cached
+
 def match_knowledge_items(query: str, knowledge_items: list[dict]) -> list[dict]:
     """Tìm các mục tri thức phù hợp nhất với câu hỏi bằng TF-IDF Weighting & Content Token Matching."""
     q_norm = remove_accents(query.lower()).strip()

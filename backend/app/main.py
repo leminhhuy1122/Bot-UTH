@@ -32,10 +32,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Cấu hình CORS cho phép React frontend kết nối
+# Cấu hình CORS cho phép React frontend kết nối linh hoạt (hỗ trợ mọi cổng localhost khi chạy nhiều dự án)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,27 +52,19 @@ async def add_security_headers(request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
-# Gắn các Routers theo chuẩn /api/v1 và /api
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(auth_router, prefix="/api")
-
-app.include_router(campus_router, prefix="/api/v1")
-app.include_router(campus_router, prefix="/api")
-
-app.include_router(student_router, prefix="/api/v1")
-app.include_router(student_router, prefix="/api")
-
-app.include_router(parent_router, prefix="/api/v1")
-app.include_router(parent_router, prefix="/api")
-
-app.include_router(admin_router, prefix="/api/v1")
-app.include_router(admin_router, prefix="/api")
-
-app.include_router(backup_router, prefix="/api/v1")
-app.include_router(backup_router, prefix="/api")
-
-app.include_router(chat_router, prefix="/api/v1")
-app.include_router(chat_router, prefix="/api")
+# Gắn các Routers chuẩn RESTful (hỗ trợ cả /api/v1 và tiền tố rút gọn /api)
+ALL_ROUTERS = [
+    auth_router,
+    campus_router,
+    student_router,
+    parent_router,
+    admin_router,
+    backup_router,
+    chat_router,
+]
+for r in ALL_ROUTERS:
+    app.include_router(r, prefix="/api/v1")
+    app.include_router(r, prefix="/api")
 
 @app.get("/")
 @app.get("/api/health")

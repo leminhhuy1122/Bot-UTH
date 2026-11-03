@@ -15,44 +15,25 @@ const reset = '\x1b[0m';
 const ROOT_DIR = __dirname;
 const FRONTEND_DIR = path.join(ROOT_DIR, 'frontend');
 const BACKEND_DIR = path.join(ROOT_DIR, 'backend');
+const PORT_FILE = path.join(ROOT_DIR, '.backend_port');
 
 console.log(`${bold}${cyan}================================================================${reset}`);
 console.log(`${bold}${green}🚀 CỔNG SINH VIÊN & TRỢ LÝ ẢO UTH - KHỞI ĐỘNG HỆ THỐNG TOÀN DIỆN${reset}`);
-console.log(`${cyan}👉 Giao diện Sinh viên (Vite):  ${bold}http://localhost:3000${reset}`);
-console.log(`${cyan}👉 Backend API (FastAPI):       ${bold}http://localhost:8000${reset}`);
-console.log(`${cyan}👉 Tài liệu API (Swagger UI):   ${bold}http://localhost:8000/docs${reset}`);
+console.log(`${cyan}👉 Giao diện Sinh viên (Vite):  ${bold}http://localhost:3000 (tự động đổi cổng nếu bận)${reset}`);
+console.log(`${cyan}👉 Backend API (FastAPI):       ${bold}http://localhost:8008 (tự động chống xung đột)${reset}`);
 console.log(`${bold}${cyan}================================================================${reset}\n`);
 
-// 1. Tự động giải phóng cổng nếu có tiến trình cũ còn sót
-function freePortIfBusy(port) {
-  if (process.platform === 'win32') {
-    try {
-      const output = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf-8' });
-      const lines = output.trim().split('\n');
-      for (const line of lines) {
-        const parts = line.trim().split(/\s+/);
-        const pid = parts[parts.length - 1];
-        if (pid && !isNaN(pid) && pid !== '0' && pid !== String(process.pid)) {
-          console.log(`${yellow}⚡ Cổng ${port} có tiến trình cũ (PID: ${pid}). Đang giải phóng cổng...${reset}`);
-          execSync(`taskkill /pid ${pid} /T /F`, { stdio: 'ignore' });
-        }
-      }
-    } catch (e) {
-      // Cổng đang trống
-    }
-  }
-}
-
-freePortIfBusy(8000);
-freePortIfBusy(3000);
-
-// 2. Tìm trình thông dịch Python hoạt động tốt trên hệ thống
+// 1. Tìm trình thông dịch Python hoạt động tốt trên hệ thống
 function getPythonCommand() {
+  const localAppData = process.env.LOCALAPPDATA || '';
   const candidates = [
     path.join(ROOT_DIR, '.venv', 'Scripts', 'python.exe'),
     path.join(ROOT_DIR, 'venv', 'Scripts', 'python.exe'),
-    path.join(ROOT_DIR, '.venv', 'bin', 'python'),
-    path.join(ROOT_DIR, 'venv', 'bin', 'python'),
+    path.join(ROOT_DIR, 'backend', '.venv', 'Scripts', 'python.exe'),
+    path.join(localAppData, 'Python', 'bin', 'python.exe'),
+    path.join(localAppData, 'Programs', 'Python', 'Python312', 'python.exe'),
+    path.join(localAppData, 'Programs', 'Python', 'Python311', 'python.exe'),
+    path.join(localAppData, 'Programs', 'Python', 'Python310', 'python.exe'),
     'python',
     'python3',
     'py',
@@ -79,7 +60,7 @@ let backendProc = null;
 let frontendProc = null;
 let isShuttingDown = false;
 
-// 3. Xử lý dừng tiến trình an toàn khi nhấn Ctrl+C
+// 2. Xử lý dừng tiến trình an toàn khi nhấn Ctrl+C (Chỉ dừng tiến trình của dự án UTH)
 function cleanShutdown() {
   if (isShuttingDown) return;
   isShuttingDown = true;
@@ -108,7 +89,20 @@ function cleanShutdown() {
 process.on('SIGINT', cleanShutdown);
 process.on('SIGTERM', cleanShutdown);
 
-// 4. Kiểm tra cổng mạng đã mở chưa (tránh lỗi ECONNREFUSED)
+// 3. Đọc cổng backend thực tế do backend/run.py ghi nhận
+function getActiveBackendPort() {
+  try {
+    if (fs.existsSync(PORT_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PORT_FILE, 'utf-8'));
+      if (data && data.port) {
+        return parseInt(data.port, 10);
+      }
+    }
+  } catch (e) {}
+  return parseInt(process.env.BACKEND_PORT || '8008', 10);
+}
+
+// 4. Kiểm tra cổng mạng đã mở chưa
 function checkPort(port, host = '127.0.0.1') {
   return new Promise((resolve) => {
     const socket = new net.Socket();
@@ -129,19 +123,20 @@ function checkPort(port, host = '127.0.0.1') {
   });
 }
 
-async function waitForBackend(port = 8000, maxAttempts = 60) {
+async function waitForBackend(maxAttempts = 50) {
   for (let i = 0; i < maxAttempts; i++) {
-    if (isShuttingDown) return false;
+    if (isShuttingDown) return { isReady: false, port: 8008 };
+    const port = getActiveBackendPort();
     const isOpen = await checkPort(port);
-    if (isOpen) return true;
+    if (isOpen) return { isReady: true, port };
     await new Promise((r) => setTimeout(r, 200));
   }
-  return false;
+  return { isReady: false, port: getActiveBackendPort() };
 }
 
 // 5. Khởi chạy Backend FastAPI (Python)
 function startBackend() {
-  console.log(`${cyan}[BACKEND]${reset} Đang khởi động FastAPI trên cổng 8000...`);
+  console.log(`${cyan}[BACKEND]${reset} Đang khởi động FastAPI (tự động phát hiện cổng trống an toàn)...`);
 
   const runPy = path.join(BACKEND_DIR, 'run.py');
   backendProc = spawn(pythonCmd, [runPy], {
@@ -166,8 +161,18 @@ function startBackend() {
   backendProc.stderr.on('data', (data) => {
     const lines = data.toString('utf-8').split('\n');
     for (const line of lines) {
-      if (line.trim()) {
-        console.error(`${cyan}[BACKEND]${reset} ${yellow}${line.trimEnd()}${reset}`);
+      const trimmed = line.trimEnd();
+      if (!trimmed) continue;
+
+      // Phân loại log Uvicorn: INFO là hoạt động hoàn toàn bình thường, không phải lỗi
+      if (trimmed.includes('INFO:')) {
+        console.log(`${cyan}[BACKEND]${reset} ${gray}${trimmed}${reset}`);
+      } else if (trimmed.includes('WARNING:')) {
+        console.warn(`${cyan}[BACKEND]${reset} ${yellow}${trimmed}${reset}`);
+      } else if (trimmed.includes('ERROR:') || trimmed.includes('Traceback')) {
+        console.error(`${cyan}[BACKEND]${reset} ${red}${trimmed}${reset}`);
+      } else {
+        console.log(`${cyan}[BACKEND]${reset} ${trimmed}`);
       }
     }
   });
@@ -180,8 +185,8 @@ function startBackend() {
 }
 
 // 6. Khởi chạy Frontend React Vite
-function startFrontend() {
-  console.log(`${green}[FRONTEND]${reset} Đang khởi động Vite Dev Server trên cổng 3000...`);
+function startFrontend(backendPort = 8008) {
+  console.log(`${green}[FRONTEND]${reset} Đang khởi động Vite Dev Server (kết nối Backend cổng ${backendPort})...`);
 
   const viteBin = path.join(FRONTEND_DIR, 'node_modules', 'vite', 'bin', 'vite.js');
   
@@ -189,6 +194,7 @@ function startFrontend() {
     cwd: FRONTEND_DIR,
     env: {
       ...process.env,
+      BACKEND_PORT: String(backendPort),
       FORCE_COLOR: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -219,19 +225,20 @@ function startFrontend() {
   });
 }
 
-// 7. Khởi chạy thông minh: Đảm bảo Backend sẵn sàng trước khi bật Frontend
+// 7. Khởi chạy thông minh: Backend sẵn sàng trước khi bật Frontend
 async function startSystem() {
   startBackend();
-  console.log(`${gray}⏳ Đang chờ Backend (FastAPI cổng 8000) sẵn sàng tiếp nhận kết nối...${reset}`);
+  console.log(`${gray}⏳ Đang chờ Backend UTH kết nối CSDL và sẵn sàng phục vụ...${reset}`);
 
-  const isReady = await waitForBackend(8000, 50);
+  const { isReady, port } = await waitForBackend(100);
   if (isReady) {
-    console.log(`${green}✅ [BACKEND SẴN SÀNG] Cổng 8000 đã hoạt động mượt mà!${reset}\n`);
+    console.log(`${bold}${green}✅ [BACKEND SẴN SÀNG] Máy chủ UTH đang chạy mượt mà tại cổng ${port}!${reset}`);
+    console.log(`${cyan}👉 Swagger API Docs: http://localhost:${port}/docs${reset}\n`);
   } else {
-    console.log(`${yellow}⚠️ [CHÚ Ý] Backend đang tải thêm dữ liệu, tiếp tục kích hoạt Frontend...${reset}\n`);
+    console.log(`${gray}ℹ️ Backend đang hoàn tất nạp dữ liệu, tiếp tục mở giao diện Frontend...${reset}\n`);
   }
 
-  startFrontend();
+  startFrontend(port);
 }
 
 startSystem();
