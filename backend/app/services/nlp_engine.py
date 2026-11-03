@@ -22,12 +22,14 @@ def classify_intent(query: str) -> tuple[str, float]:
     
     intent_weights = {
         'ASSIGNMENTS': [
-            ('bai tap', 3.5), ('deadline', 3.5), ('han nop', 3.5), ('elearning', 3.0),
-            ('nop bai', 3.5), ('cham diem', 3.0), ('tieu luan', 3.0), ('do an', 3.0),
+            ('bai tap', 4.0), ('deadline', 3.5), ('han nop bai', 4.5), ('han nop do an', 4.5),
+            ('han nop tieu luan', 4.5), ('han nop', 1.8), ('elearning', 3.5),
+            ('nop bai', 4.0), ('cham diem', 3.0), ('tieu luan', 3.5), ('do an', 3.5),
             ('lab', 2.5), ('som nhat', 3.0), ('gap nhat', 3.0), ('nop truoc', 3.0),
-            ('het han', 3.0), ('cai nao nop', 3.5), ('cai nao can nop', 3.5),
-            ('bai nao', 3.0), ('mon nao nop', 3.0), ('chua nop', 3.0), ('da nop', 3.0),
-            ('diem bai', 3.0), ('uu tien nop', 3.0), ('nop o dau', 3.0), ('lam sao nop', 3.0)
+            ('het han', 2.5), ('cai nao nop', 3.5), ('cai nao can nop', 3.5),
+            ('bai nao', 3.0), ('mon nao nop', 3.0), ('chua nop', 3.0), ('da nop', 2.5),
+            ('diem bai', 3.0), ('uu tien nop', 3.0), ('nop o dau', 3.0), ('lam sao nop', 3.0),
+            ('can nop bai', 4.5), ('bai can nop', 4.5)
         ],
         'SCHEDULE': [
             ('lich hoc', 3.5), ('thoi khoa bieu', 3.5), ('tkb', 3.0),
@@ -58,10 +60,14 @@ def classify_intent(query: str) -> tuple[str, float]:
             ('chuyen can', 2.0), ('giua ky', 2.0), ('cuoi ky', 2.0)
         ],
         'TUITION': [
-            ('hoc phi', 3.0), ('cong no', 3.0), ('thanh toan', 2.5),
-            ('dong tien', 2.5), ('hoa don', 2.0), ('tien hoc', 2.5),
-            ('vnpay', 2.0), ('ngan hang', 2.0), ('vietcombank', 3.0),
-            ('so tai khoan', 2.5), ('stk', 2.5), ('no phi', 2.5)
+            ('hoc phi', 4.0), ('cong no', 4.5), ('thanh toan', 3.0),
+            ('dong tien', 3.5), ('hoa don', 2.5), ('tien hoc', 3.5),
+            ('vnpay', 2.5), ('ngan hang', 2.5), ('vietcombank', 3.5),
+            ('so tai khoan', 3.0), ('stk', 3.0), ('no phi', 3.5),
+            ('tien can nop', 5.0), ('so tien can nop', 5.5), ('can nop bao nhieu', 5.0),
+            ('nop hoc phi', 5.0), ('dong hoc phi', 5.0), ('chuyen khoan hoc phi', 5.0),
+            ('han nop hoc phi', 5.0), ('han dong hoc phi', 5.0), ('tinh trang cong no', 5.5),
+            ('cong no hoc phi', 5.5), ('con no', 4.0), ('no hoc phi', 4.5)
         ],
         'REGISTRATION': [
             ('dang ky', 2.5), ('hoc phan', 2.5), ('tin chi', 2.5),
@@ -120,6 +126,22 @@ def classify_intent(query: str) -> tuple[str, float]:
         for pat, weight in patterns:
             if pat in q_norm:
                 scores[intent] += weight
+
+    # Cross-Intent Disambiguation: Giải quyết triệt để xung đột chéo giữa TUITION và ASSIGNMENTS
+    if scores['ASSIGNMENTS'] > 0 and scores['TUITION'] > 0:
+        tuition_indicators = [
+            'hoc phi', 'cong no', 'tien hoc', 'tien can nop', 'so tien', 'dong tien',
+            'thanh toan', 'stk', 'vietcombank', 'con no', 'no phi', 'tinh trang cong no'
+        ]
+        assignment_indicators = ['bai tap', 'elearning', 'tieu luan', 'do an', 'lab', 'nop bai', 'cham diem']
+        has_tuition = any(k in q_norm for k in tuition_indicators)
+        has_assignment = any(k in q_norm for k in assignment_indicators)
+        if has_tuition and not has_assignment:
+            scores['TUITION'] += 8.0
+            scores['ASSIGNMENTS'] = max(0.0, scores['ASSIGNMENTS'] - 5.0)
+        elif has_assignment and not has_tuition:
+            scores['ASSIGNMENTS'] += 8.0
+            scores['TUITION'] = max(0.0, scores['TUITION'] - 5.0)
 
     best_intent = max(scores, key=scores.get)
     max_score = scores[best_intent]

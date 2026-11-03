@@ -309,7 +309,8 @@ def get_student_fallback_answer(
     student_name: str, 
     matched_kb: list, 
     student_data: Optional[Dict[str, Any]] = None,
-    history: Optional[List[Any]] = None
+    history: Optional[List[Any]] = None,
+    classified_intent: Optional[str] = None
 ) -> str:
     lower = query.lower()
 
@@ -421,21 +422,103 @@ def get_student_fallback_answer(
                 f"Tuy nhiên, bạn nên cố gắng ôn tập tốt để đạt từ điểm B (7.0 trở lên) nhằm giữ phong độ tiến tới danh hiệu Xuất sắc nhé! 🚀"
             )
 
-        # Xử lý thông minh câu hỏi về Bài tập Elearning & Hạn nộp của riêng sinh viên
-        assignment_indicators = [
-            'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab',
-            'cái nào cần nộp', 'nộp sớm nhất', 'nộp trước', 'gấp nhất', 'sớm nhất', 'cần nộp', 'ưu tiên nộp',
-            'hết hạn trước', 'hạn chót', 'hạn cuối', 'chưa nộp', 'đã nộp', 'điểm bài', 'kết quả bài',
-            'cái nào nộp', 'bài nào', 'môn nào nộp', 'nộp ở đâu', 'làm sao nộp'
+        # === INTENT FIREWALL: Tách biệt hoàn toàn từ khóa cốt lõi giữa Học phí và Bài tập ===
+        TUITION_CORE = [
+            'học phí', 'công nợ', 'tiền học', 'nợ học phí', 'đóng học phí', 'nộp học phí',
+            'thanh toán học phí', 'chuyển khoản học phí', 'stk học phí', 'số tài khoản trường',
+            'tiền cần nộp', 'số tiền cần nộp', 'cần nộp bao nhiêu tiền', 'đóng tiền', 'tiền nợ',
+            'công nợ học phí', 'hạn nộp học phí', 'hạn đóng học phí', 'tình trạng công nợ',
+            'nợ bao nhiêu', 'còn nợ', 'tiền cần đóng', 'số tiền phải nộp', 'học phí của tôi',
+            'thanh toán học phí', 'stk vietcombank', 'vietcombank', 'nợ bao nhiêu tiền'
         ]
-        # Kích hoạt bài tập nếu từ khóa khớp HOẶC nếu câu hỏi ngắn kế thừa ngữ cảnh bài tập
-        is_assignment_query = any(k in lower for k in assignment_indicators) or (is_followup and active_topic == 'ASSIGNMENTS')
+        ASSIGNMENT_CORE = [
+            'bài tập', 'elearning', 'tiểu luận', 'đồ án', 'lab', 'nộp bài', 'chấm điểm',
+            'cần nộp bài', 'bài cần nộp', 'môn nào cần nộp', 'điểm bài tập', 'kết quả bài',
+            'deadline bài', 'hạn nộp bài'
+        ]
+
+        has_tuition_core = any(k in lower for k in TUITION_CORE)
+        has_assignment_core = any(k in lower for k in ASSIGNMENT_CORE)
+
+        # 1. Xác định ý định HỌC PHÍ (Ưu tiên cao nhất)
+        is_tuition_query = (
+            has_tuition_core or
+            (classified_intent == 'TUITION' and not has_assignment_core) or
+            (is_followup and active_topic == 'TUITION' and not has_assignment_core)
+        )
+
+        # 2. Xử lý câu hỏi về Quy chế xếp loại học lực / Sinh viên giỏi / Xuất sắc / Học bổng UTH
+        academic_ranking_indicators = [
+            'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'loại khá',
+            'xếp loại giỏi', 'xếp loại xuất sắc', 'xếp loại khá', 'điều kiện giỏi', 'điều kiện xuất sắc',
+            'điều kiện học sinh giỏi', 'điều kiện sinh viên giỏi', 'học bổng giỏi', 'học lực giỏi',
+            'tiêu chuẩn giỏi', 'tiêu chuẩn xuất sắc', 'tiêu chuẩn sinh viên giỏi', 'danh hiệu sinh viên giỏi'
+        ]
+        if any(k in lower for k in academic_ranking_indicators):
+            ranking_text = f"Hiện tại bạn đang có CPA tích lũy **{cpa4}/4.00** và Điểm rèn luyện **{tp}/100** điểm (Xếp loại hiện tại: **{ranking}**)."
+            if cpa4 >= 3.60 and tp >= 90:
+                self_eval = "🌟 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Xuất sắc** của trường UTH rồi nhé! Thành tích học tập và rèn luyện của bạn vô cùng tuyệt vời!"
+            elif cpa4 >= 3.20 and tp >= 80:
+                self_eval = "🥇 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Giỏi** của trường UTH rồi nhé! Cố gắng nâng thêm một chút nữa để chạm mốc Xuất sắc (CPA ≥ 3.60) nhé!"
+            else:
+                self_eval = f"👉 Bạn hãy tiếp tục phấn đấu nâng CPA lên từ 3.20 và Điểm rèn luyện từ 80 điểm trở lên để chạm mốc Xếp loại Giỏi nhé!"
+
+            return (
+                f"Chào {name}! Theo **Quy chế Đào tạo Tín chỉ của Trường ĐH Giao thông Vận tải TP.HCM (UTH)**, "
+                f"để đạt danh hiệu **Sinh viên Giỏi (hoặc Xếp loại học lực Giỏi)**, bạn cần đáp ứng các điều kiện sau:\n\n"
+                f"1. 🎯 **Điểm trung bình học tập (CPA/GPA)**: Đạt từ **3.20 đến 3.59 / 4.00** (tương đương 8.0 đến 8.9 thang điểm 10).\n"
+                f"2. 🏅 **Điểm rèn luyện (ĐRL)**: Đạt từ **80 điểm trở lên** (Xếp loại Tốt trở lên).\n"
+                f"3. 📚 **Khối lượng học tập**: Đăng ký và hoàn thành tối thiểu số tín chỉ quy định của học kỳ chính (từ 14 - 15 tín chỉ trở lên).\n"
+                f"4. ⚖️ **Kỷ luật & Học phần**: Không bị kỷ luật từ mức khiển trách trở lên trong học kỳ xét; không có môn nào bị điểm F (đối với xét Học bổng khuyến khích học tập).\n\n"
+                f"*(Nếu muốn đạt danh hiệu **Xuất sắc**: CPA từ **3.60/4.00** trở lên và Điểm rèn luyện từ **90 điểm** trở lên)*.\n\n"
+                f"📊 **Đối chiếu với kết quả của bạn**: {ranking_text}\n{self_eval} 🚀"
+            )
+
+        # 3. [PHASE 2 PRIORITY REORDER]: Xử lý HỌC PHÍ & CÔNG NỢ TRƯỚC BÀI TẬP
+        if is_tuition_query:
+            if debt > 0:
+                return (
+                    f"Chào {name}! Theo hệ thống kế toán & Cổng thanh toán UTH, tình trạng học phí học kỳ này của bạn như sau:\n\n"
+                    f"- 💰 **Tình trạng công nợ**: Còn nợ **{debt:,.0f} VNĐ**\n"
+                    f"- 📋 **Tổng học phí học kỳ**: **{total:,.0f} VNĐ**\n"
+                    f"- ✅ **Số tiền bạn đã đóng**: **{paid:,.0f} VNĐ**\n\n"
+                    f"🏦 **Thông tin tài khoản nộp học phí UTH**:\n"
+                    f"- **Ngân hàng**: Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - Chi nhánh TP.HCM\n"
+                    f"- **Số tài khoản**: **0071000078912**\n"
+                    f"- **Cú pháp chuyển khoản bắt buộc**: `HOCPHI {mssv} {name}`\n\n"
+                    f"👉 Bạn có thể bấm nút **'Mở Cổng thanh toán học phí UTH'** bên dưới để quét mã QR thanh toán tự động ngay nhé! 💳"
+                )
+            else:
+                return (
+                    f"Chào {name}! Theo hệ thống kế toán UTH, bạn đã hoàn tất **100% học phí** học kỳ này (Tổng tiền: **{total:,.0f} VNĐ**), công nợ hiện tại là **0 VNĐ**.\n\n"
+                    f"🌟 Bạn không còn khoản nợ học phí nào và hoàn toàn đủ điều kiện dự thi các môn học kỳ này. Chúc bạn học tập thật tốt!"
+                )
+
+        # 4. [PHASE 1 FIREWALL]: Xử lý Bài tập Elearning (Chỉ chạy khi KHÔNG PHẢI học phí)
+        assignment_indicators = [
+            'bài tập', 'deadline', 'hạn nộp bài', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab',
+            'cái nào cần nộp', 'nộp sớm nhất', 'nộp trước', 'gấp nhất', 'sớm nhất', 'ưu tiên nộp',
+            'hết hạn trước', 'hạn chót', 'hạn cuối', 'chưa nộp', 'đã nộp', 'điểm bài', 'kết quả bài',
+            'cái nào nộp', 'bài nào', 'môn nào nộp', 'nộp ở đâu', 'làm sao nộp',
+            'cần nộp bài', 'bài cần nộp'
+        ]
+        
+        # Nếu có từ khóa cốt lõi học phí và không có từ khóa bài tập -> TUYỆT ĐỐI CHẶN ASSIGNMENTS
+        if has_tuition_core and not has_assignment_core:
+            is_assignment_query = False
+        else:
+            is_assignment_query = (
+                has_assignment_core or
+                any(k in lower for k in assignment_indicators) or
+                (classified_intent == 'ASSIGNMENTS' and not has_tuition_core) or
+                (is_followup and active_topic == 'ASSIGNMENTS')
+            )
 
         if is_assignment_query:
             asms = student_data.get("assignments", [])
 
             # 0.1 Hỏi cách nộp bài / nơi nộp bài
-            if any(k in lower for k in ['nộp ở đâu', 'làm sao nộp', 'cách nộp', 'chỗ nộp', 'nơi nộp', 'nộp như thế nào']):
+            if any(k in lower for k in ['nộp ở đâu', 'nộp bài ở đâu', 'làm sao nộp', 'cách nộp', 'cách nộp bài', 'chỗ nộp', 'nơi nộp', 'nộp như thế nào']):
                 return (
                     f"Chào {name}! Để nộp bài tập trực tuyến, bạn có 2 cách cực kỳ nhanh chóng:\n"
                     f"1. ✈️ **Bấm trực tiếp vào chiếc máy bay 3D** đang bay kéo banner trên màn hình Dashboard để chuyển thẳng đến bài tập cần nộp.\n"
@@ -444,7 +527,7 @@ def get_student_fallback_answer(
                 )
 
             # 0.2 Hỏi bài nào cần nộp sớm nhất / gấp nhất / ưu tiên nộp trước
-            if any(k in lower for k in ['sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'đầu tiên', 'sớm hơn', 'cái nào cần nộp', 'cái nào']):
+            if any(k in lower for k in ['sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'đầu tiên', 'sớm hơn', 'cái nào cần nộp', 'cái nào', 'nộp gấp', 'bài nào cần nộp']):
                 pending_asms = [a for a in asms if a.get("status") == "pending"]
                 if pending_asms:
                     sorted_asms = sorted(pending_asms, key=lambda x: x.get("daysLeft", 999))
@@ -476,7 +559,7 @@ def get_student_fallback_answer(
                         res += f"{i}. **{a.get('courseName')}**: {a.get('title')}{score_text}{fb_text}\n"
                     return res
                 else:
-                    return f"Chào {name}, hiện tại bạn chưa nộp bài tập nào. Hãy kiểm tra các bài tập đang chờ nộp bên dưới để không bị trễ hạn nhé!"
+                    return f"Chào {name}! Hiện tại bạn chưa nộp bài tập nào trên hệ thống Elearning UTH. Hãy kiểm tra các bài tập đang chờ nộp bên dưới để không bị trễ hạn nhé!"
 
             # 2. Hỏi cụ thể theo từng môn học (Quản trị mạng, Cloud, AI, Thực tập, Logistics...)
             course_keywords = ['mạng', 'cloud', 'đám mây', 'ai', 'trí tuệ', 'thực tập', 'doanh nghiệp', 'logistics', 'kho', 'vận tải', 'ô tô', 'động cơ', 'cầu đường', 'xây dựng', 'hàng hải', 'ecdis', 'iot', 'chuyên ngành']
@@ -515,52 +598,6 @@ def get_student_fallback_answer(
                 return res
             else:
                 return f"Chào {name}! Tuyệt vời quá, hiện tại bạn không có bài tập nào bị quá hạn. Bạn đã nộp đầy đủ các bài tập được giao trên hệ thống Elearning UTH! 🌟"
-
-        # Xử lý câu hỏi về Quy chế xếp loại học lực / Sinh viên giỏi / Xuất sắc / Học bổng UTH
-        academic_ranking_indicators = [
-            'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'loại khá',
-            'xếp loại giỏi', 'xếp loại xuất sắc', 'xếp loại khá', 'điều kiện giỏi', 'điều kiện xuất sắc',
-            'điều kiện học sinh giỏi', 'điều kiện sinh viên giỏi', 'học bổng giỏi', 'học lực giỏi',
-            'tiêu chuẩn giỏi', 'tiêu chuẩn xuất sắc', 'tiêu chuẩn sinh viên giỏi', 'danh hiệu sinh viên giỏi'
-        ]
-        if any(k in lower for k in academic_ranking_indicators):
-            ranking_text = f"Hiện tại bạn đang có CPA tích lũy **{cpa4}/4.00** và Điểm rèn luyện **{tp}/100** điểm (Xếp loại hiện tại: **{ranking}**)."
-            if cpa4 >= 3.60 and tp >= 90:
-                self_eval = "🌟 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Xuất sắc** của trường UTH rồi nhé! Thành tích học tập và rèn luyện của bạn vô cùng tuyệt vời!"
-            elif cpa4 >= 3.20 and tp >= 80:
-                self_eval = "🥇 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Giỏi** của trường UTH rồi nhé! Cố gắng nâng thêm một chút nữa để chạm mốc Xuất sắc (CPA ≥ 3.60) nhé!"
-            else:
-                self_eval = f"👉 Bạn hãy tiếp tục phấn đấu nâng CPA lên từ 3.20 và Điểm rèn luyện từ 80 điểm trở lên để chạm mốc Xếp loại Giỏi nhé!"
-
-            return (
-                f"Chào {name}! Theo **Quy chế Đào tạo Tín chỉ của Trường ĐH Giao thông Vận tải TP.HCM (UTH)**, "
-                f"để đạt danh hiệu **Sinh viên Giỏi (hoặc Xếp loại học lực Giỏi)**, bạn cần đáp ứng các điều kiện sau:\n\n"
-                f"1. 🎯 **Điểm trung bình học tập (CPA/GPA)**: Đạt từ **3.20 đến 3.59 / 4.00** (tương đương 8.0 đến 8.9 thang điểm 10).\n"
-                f"2. 🏅 **Điểm rèn luyện (ĐRL)**: Đạt từ **80 điểm trở lên** (Xếp loại Tốt trở lên).\n"
-                f"3. 📚 **Khối lượng học tập**: Đăng ký và hoàn thành tối thiểu số tín chỉ quy định của học kỳ chính (từ 14 - 15 tín chỉ trở lên).\n"
-                f"4. ⚖️ **Kỷ luật & Học phần**: Không bị kỷ luật từ mức khiển trách trở lên trong học kỳ xét; không có môn nào bị điểm F (đối với xét Học bổng khuyến khích học tập).\n\n"
-                f"*(Nếu muốn đạt danh hiệu **Xuất sắc**: CPA từ **3.60/4.00** trở lên và Điểm rèn luyện từ **90 điểm** trở lên)*.\n\n"
-                f"📊 **Đối chiếu với kết quả của bạn**: {ranking_text}\n{self_eval} 🚀"
-            )
-
-        # Xóa bỏ các từ khóa đơn lẻ gây đụng độ cho Học phí
-        is_tuition_query = any(k in lower for k in [
-            'học phí', 'tiền học', 'công nợ', 'nợ học phí', 'đóng học phí', 'nộp học phí',
-            'thanh toán học phí', 'chuyển khoản học phí', 'stk học phí', 'số tài khoản trường'
-        ]) or (is_followup and active_topic == 'TUITION')
-
-        if is_tuition_query:
-            if debt > 0:
-                return (
-                    f"Chào {name}, theo hệ thống kế toán UTH, học phí học kỳ này của bạn hiện còn nợ **{debt:,.0f} VNĐ** "
-                    f"(Tổng học phí: {total:,.0f} VNĐ, bạn đã đóng: {paid:,.0f} VNĐ). "
-                    f"Bạn nhớ chuyển khoản hoàn tất qua STK Vietcombank **0071000078912**, cú pháp `HOCPHI {mssv} {name}` để không bị ảnh hưởng lịch thi nhé!"
-                )
-            else:
-                return (
-                    f"Chào {name}, bạn đã hoàn tất 100% học phí học kỳ này ({total:,.0f} VNĐ), công nợ hiện tại là **0 VNĐ**. "
-                    f"Bạn hoàn toàn yên tâm học tập và chuẩn bị tốt cho các kỳ thi sắp tới nhé!"
-                )
 
         gpa_query_indicators = [
             'điểm gpa', 'điểm cpa', 'bảng điểm', 'điểm số', 'điểm rèn luyện', 'kết quả học tập',
@@ -692,8 +729,8 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
             }
 
     # 2. Hành động mở Bài tập Elearning / Nộp bài
-    if any(k in lower_q for k in ['bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'cái nào cần nộp', 'sớm nhất', 'gấp nhất', 'tiểu luận', 'lab', 'mở bài tập', 'mở elearning']):
-        if not any(k in lower_q for k in ['học phí']):
+    if any(k in lower_q for k in ['bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'cái nào cần nộp', 'sớm nhất', 'gấp nhất', 'tiểu luận', 'lab', 'mở bài tập', 'mở elearning', 'bài nào', 'nộp gấp', 'nộp bài ở đâu']):
+        if not any(k in lower_q for k in ['học phí', 'công nợ', 'tiền học', 'tiền cần nộp', 'số tiền']):
             return {
                 'type': 'OPEN_VIEW',
                 'target': 'elearning',
@@ -703,7 +740,7 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
             }
 
     # 3. Hành động mở Cổng thanh toán học phí / Công nợ
-    if any(k in lower_q for k in ['học phí', 'công nợ', 'tiền học', 'thanh toán', 'đóng học phí', 'stk', 'ngân hàng', 'mở học phí', 'mở thanh toán']):
+    if any(k in lower_q for k in ['học phí', 'công nợ', 'tiền học', 'thanh toán', 'đóng học phí', 'stk', 'ngân hàng', 'mở học phí', 'mở thanh toán', 'tiền cần nộp', 'số tiền cần nộp', 'tình trạng công nợ', 'công nợ hiện tại']):
         return {
             'type': 'OPEN_VIEW',
             'target': 'payment',
@@ -887,22 +924,26 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
 
     # Thuật toán Định tuyến siêu tốc (Fast In-Memory Personal Query Routing < 20ms)
     lower_q = sanitized_query.lower()
-    is_personal_data_query = (live_student_data is not None) and any(
-        k in lower_q for k in [
-            'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
-            'cái nào', 'sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'cần nộp', 'nộp ở đâu', 'bài nào', 'môn nào nộp',
-            'lịch học', 'thời khóa biểu', 'lịch tuần này', 'phòng học', 'tiết học', 'ca học',
-            'học phí', 'tiền học', 'công nợ', 'nợ học phí', 'đóng học phí', 'bao nhiêu tiền học', 'stk học phí',
-            'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
-            'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
-            'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
-        ]
+    is_personal_data_query = (live_student_data is not None) and (
+        intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES'] or
+        any(
+            k in lower_q for k in [
+                'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
+                'cái nào', 'sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'cần nộp', 'nộp ở đâu', 'bài nào', 'môn nào nộp',
+                'lịch học', 'thời khóa biểu', 'lịch tuần này', 'phòng học', 'tiết học', 'ca học',
+                'học phí', 'tiền học', 'công nợ', 'nợ học phí', 'đóng học phí', 'bao nhiêu tiền học', 'stk học phí',
+                'tiền cần nộp', 'số tiền cần nộp', 'tình trạng công nợ',
+                'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
+                'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
+                'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
+            ]
+        )
     )
 
     used_gemini = False
     if is_personal_data_query:
         # Trả lời tức thì từ CSDL sinh viên (< 20ms), không chờ mạng cloud
-        reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history)
+        reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history, classified_intent=intent)
     else:
         student_system_prompt = build_personalized_system_prompt("student", sanitized_query, student_ctx, live_student_data)
         try:
@@ -922,7 +963,7 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
             reply = None
 
         if not reply:
-            reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history)
+            reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history, classified_intent=intent)
         
     # Output Guardrail: Kiểm duyệt câu trả lời
     st_mssv = student_ctx.mssv if student_ctx else None
@@ -1108,23 +1149,27 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
 
         # THUẬT TOÁN ĐỊNH TUYẾN SIÊU TỐC: Nếu là tra cứu dữ liệu cá nhân sinh viên/phụ huynh -> Stream tức thì (< 20ms)
         lower_q = sanitized_query.lower()
-        is_personal_data_query = (user_role in ["student", "parent"]) and (live_student_data is not None) and any(
-            k in lower_q for k in [
-                'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
-                'cái nào', 'sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'cần nộp', 'nộp ở đâu', 'bài nào', 'môn nào nộp',
-                'lịch học', 'thời khóa biểu', 'lịch tuần này', 'phòng học', 'tiết học', 'ca học',
-                'học phí', 'tiền học', 'công nợ', 'nợ học phí', 'đóng học phí', 'bao nhiêu tiền học', 'stk học phí',
-                'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
-                'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
-                'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
-            ]
+        is_personal_data_query = (user_role in ["student", "parent"]) and (live_student_data is not None) and (
+            intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES'] or
+            any(
+                k in lower_q for k in [
+                    'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
+                    'cái nào', 'sớm nhất', 'gấp nhất', 'nộp trước', 'hết hạn trước', 'ưu tiên', 'cần nộp', 'nộp ở đâu', 'bài nào', 'môn nào nộp',
+                    'lịch học', 'thời khóa biểu', 'lịch tuần này', 'phòng học', 'tiết học', 'ca học',
+                    'học phí', 'tiền học', 'công nợ', 'nợ học phí', 'đóng học phí', 'bao nhiêu tiền học', 'stk học phí',
+                    'tiền cần nộp', 'số tiền cần nộp', 'tình trạng công nợ',
+                    'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
+                    'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
+                    'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
+                ]
+            )
         )
 
         if is_personal_data_query:
             matched = match_knowledge_items(sanitized_query, current_kb)
             if user_role == "student":
                 student_name = student_ctx.name if student_ctx else "Nguyễn Văn A"
-                fast_reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history)
+                fast_reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history, classified_intent=intent)
             else:
                 student_name = student_ctx.name if student_ctx else "con em"
                 fast_reply = get_parent_fallback_answer(sanitized_query, student_name, matched, live_student_data)
@@ -1160,7 +1205,7 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
                 matched = match_knowledge_items(sanitized_query, current_kb)
                 if user_role == "student":
                     student_name = student_ctx.name if student_ctx else "Nguyễn Văn A"
-                    fallback_reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history)
+                    fallback_reply = get_student_fallback_answer(sanitized_query, student_name, matched, live_student_data, history=req.history, classified_intent=intent)
                 elif user_role == "parent":
                     student_name = student_ctx.name if student_ctx else "con em"
                     fallback_reply = get_parent_fallback_answer(sanitized_query, student_name, matched, live_student_data)
