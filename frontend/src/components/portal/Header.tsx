@@ -23,6 +23,8 @@ interface HeaderProps {
   onOpenNotifications?: () => void;
   onOpenPayment?: () => void;
   onOpenDebt?: () => void;
+  onOpenCourseRegistration?: () => void;
+  onOpenCurriculum?: () => void;
   notifications?: AppNotification[];
   unreadNotificationCount?: number;
   onMarkAllNotificationsRead?: () => void;
@@ -39,6 +41,8 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onOpenNotifications,
   onOpenPayment,
   onOpenDebt,
+  onOpenCourseRegistration,
+  onOpenCurriculum,
   notifications = [],
   unreadNotificationCount = 0,
   onMarkAllNotificationsRead,
@@ -371,6 +375,8 @@ export const Header: React.FC<HeaderProps> = React.memo(({
         onOpenNotifications={onOpenNotifications}
         onOpenPayment={onOpenPayment}
         onOpenDebt={onOpenDebt}
+        onOpenCourseRegistration={onOpenCourseRegistration}
+        onOpenCurriculum={onOpenCurriculum}
       />
     </>
   );

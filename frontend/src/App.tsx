@@ -33,7 +33,7 @@ function AppContent() {
   // Xác định view ban đầu dựa trên URL pathname và trạng thái đăng nhập (cho phép xem /payment không cần đăng nhập)
   const [currentView, setCurrentView] = useState<'public' | 'login' | 'portal' | 'admin' | 'parent' | 'payment' | 'debt' | 'not_found'>(() => {
     const path = window.location.pathname.toLowerCase();
-    const validPaths = ['/login', '/portal', '/admin', '/parent', '/public', '/notedetail', '/calendar', '/payment', '/debt'];
+    const validPaths = ['/login', '/portal', '/admin', '/parent', '/public', '/notedetail', '/calendar', '/payment', '/debt', '/course-registration', '/register-courses', '/elearning', '/curriculum', '/chuong-trinh-khung'];
     if (path === '/404' || (path !== '/' && path !== '' && !validPaths.includes(path))) {
       return 'not_found';
     }
@@ -59,7 +59,7 @@ function AppContent() {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname.toLowerCase();
-      const validPaths = ['/login', '/portal', '/admin', '/parent', '/public', '/notedetail', '/calendar', '/payment', '/debt'];
+      const validPaths = ['/login', '/portal', '/admin', '/parent', '/public', '/notedetail', '/calendar', '/payment', '/debt', '/course-registration', '/register-courses', '/elearning', '/curriculum', '/chuong-trinh-khung'];
       if (path === '/404' || (path !== '/' && path !== '' && !validPaths.includes(path))) {
         setCurrentView('not_found');
       } else if (path === '/login') {
@@ -74,7 +74,7 @@ function AppContent() {
         setCurrentView('payment');
       } else if (path === '/debt') {
         setCurrentView('debt');
-      } else if (path === '/portal' || path === '/notedetail' || path === '/calendar') {
+      } else if (path === '/portal' || path === '/notedetail' || path === '/calendar' || path === '/course-registration' || path === '/register-courses' || path === '/elearning') {
         setCurrentView(isLoggedIn ? 'portal' : 'login');
       } else {
         setCurrentView(isLoggedIn ? (role === 'admin' ? 'admin' : 'portal') : 'login');
