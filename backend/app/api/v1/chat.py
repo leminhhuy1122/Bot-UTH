@@ -299,9 +299,13 @@ def get_guest_fallback_answer(query: str, matched_kb: list) -> str:
         )
 
     return (
-        "Xin chào quý khách! Tôi là UTH Virtual Assistant — Trợ lý ảo hỗ trợ thông tin Trường ĐH Giao thông Vận tải TP.HCM. "
-        "Tôi có thể giải đáp thông tin tuyển sinh, ngành học, cơ sở đào tạo, biểu phí và quy định chung của nhà trường.\n\n"
-        "*(Để tra cứu thông tin cá nhân như thời khóa biểu, điểm số, học phí của sinh viên, vui lòng đăng nhập tài khoản sinh viên hoặc vào mục Tra cứu Phụ huynh).*"
+        "Xin chào quý khách! Tôi là UTH Virtual Assistant — Trợ lý ảo hỗ trợ thông tin Trường ĐH Giao thông Vận tải TP.HCM.\n\n"
+        "Hiện tại câu hỏi này chưa có sẵn trong cơ sở dữ liệu giải đáp tự động của UTH AI. "
+        "Để được hỗ trợ chi tiết và chính xác nhất, quý khách vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
+        "- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        "- 📞 **Tổng đài Nhà trường & Tư vấn tuyển sinh**: **(028) 3899 2862**\n"
+        "- 📧 **Email tiếp nhận thông tin**: `uth@ut.edu.vn`\n\n"
+        "👉 Quý khách có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
     )
 
 def get_student_fallback_answer(
@@ -643,9 +647,25 @@ def get_student_fallback_answer(
                 )
         return first_ans
 
+    # Gợi ý kênh hỗ trợ chính thức và phòng ban chuyên trách tương ứng
+    dept_hint = ""
+    if any(w in lower for w in ['bảo hiểm', 'bhyt', 'học bổng', 'chính sách', 'kỷ luật', 'rèn luyện', 'miễn giảm', 'vay vốn']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1)** | ĐT: **(028) 3512 0783** | Fanpage: [Thông tin sinh viên UTH](https://web.facebook.com/ThongtinsinhvienUTH)"
+    elif any(w in lower for w in ['học vụ', 'đăng ký môn', 'lịch thi', 'tốt nghiệp', 'bảng điểm', 'chứng chỉ', 'điểm chuẩn', 'hoãn thi']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Đào tạo (Phòng A-102, Cơ sở 1)** | ĐT: **(028) 3512 7440**"
+    elif any(w in lower for w in ['hóa đơn', 'học phí', 'hoàn tiền', 'kế toán', 'ngân hàng']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Kế hoạch - Tài chính (Phòng A-103, Cơ sở 1)**"
+    elif any(w in lower for w in ['ký túc xá', 'ktx', 'nội trú']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Ban Quản lý Ký túc xá UTH (Cơ sở 2 & Cơ sở 3)**"
+    elif any(w in lower for w in ['thư viện', 'mượn sách', 'tài liệu']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Trung tâm Thông tin - Thư viện (LIC, Tòa nhà B, Cơ sở 1)**"
+
     return (
-        f"Chào bạn {student_name}! Mình là UTH AI Assistant. "
-        f"Mình luôn sẵn sàng giải đáp chi tiết về điểm số, công nợ học phí, lịch học và tiến độ đào tạo của riêng bạn."
+        f"Chào bạn {student_name}! Hiện tại câu hỏi này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
+        f"Để được hỗ trợ giải quyết nhanh chóng và chính xác nhất cho trường hợp của bạn, bạn vui lòng gửi yêu cầu hỗ trợ trực tiếp đến Nhà trường nhé:\n"
+        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        f"- 📞 **Tổng đài Nhà trường**: **(028) 3899 2862**{dept_hint}\n\n"
+        f"👉 Bạn có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
     )
 
 def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, student_data: Optional[Dict[str, Any]] = None) -> str:
@@ -697,8 +717,13 @@ def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, 
         return first_ans
 
     return (
-        f"Kính chào Quý phụ huynh của sinh viên {student_name}! Tôi là Trợ lý ảo tư vấn hỗ trợ Phụ huynh UTH. "
-        "Tôi luôn sẵn sàng giải đáp về tình hình học tập, công nợ học phí và thời khóa biểu của cháu."
+        f"Kính chào Quý phụ huynh! Hiện tại nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
+        f"Để được hỗ trợ chi tiết về tình hình học tập và các thủ tục của con em, Quý phụ huynh vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
+        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        f"- 📞 **Tổng đài tiếp nhận UTH**: **(028) 3899 2862**\n"
+        f"- 🏛️ **Phòng Công tác Sinh viên**: (028) 3512 0783\n"
+        f"- 🏛️ **Phòng Đào tạo**: (028) 3512 7440\n\n"
+        f"👉 Quý phụ huynh có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để gửi yêu cầu hỗ trợ trực tiếp!"
     )
 
 def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
@@ -767,6 +792,16 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
             'label': '📋 Mở Cổng dịch vụ một cửa UTH',
             'icon': 'FileText',
             'description': 'Đăng ký giấy tờ xác nhận và thủ tục học vụ'
+        }
+
+    # 6. Hành động mở Cổng hỗ trợ trực tuyến UTH (Khi câu hỏi ngoài phạm vi dữ liệu)
+    if any(k in lower_r for k in ['support.ut.edu.vn', 'chưa có trong cơ sở dữ liệu', 'gửi yêu cầu hỗ trợ', 'cổng hỗ trợ trực tuyến']):
+        return {
+            'type': 'OPEN_LINK',
+            'target': 'https://support.ut.edu.vn',
+            'label': '🌐 Gửi yêu cầu hỗ trợ (support.ut.edu.vn)',
+            'icon': 'ExternalLink',
+            'description': 'Mở cổng hỗ trợ trực tuyến UTH để gửi yêu cầu đến phòng ban'
         }
 
     return None

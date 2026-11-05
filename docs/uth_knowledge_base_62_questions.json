@@ -1370,5 +1370,23 @@
     "answer": "Trang hỗ trợ học liệu và tài liệu ôn luyện chứng chỉ đầu ra cho sinh viên UTH:\n👉 **Tài liệu – chứng chỉ MOS & Tiếng Anh UTH**: [facebook.com/uthtailieumostienganh](https://www.facebook.com/uthtailieumostienganh)\n\nTrang cung cấp:\n- Bộ tài liệu ôn thi tin học văn phòng MOS (Word, Excel, PowerPoint) bám sát đề thi chuẩn quốc tế.\n- Lộ trình và tài liệu luyện thi Chuẩn đầu ra Tiếng Anh (TOEIC, IELTS, B1 VSTEP).\n- Hướng dẫn nộp chứng chỉ để xét chuẩn đầu ra và miễn giảm học phần tương ứng.",
     "updatedAt": "02/11/2026",
     "isActive": true
+  },
+  {
+    "id": "uth-faq-84",
+    "question": "Thời gian và cách thức nộp tiền Bảo hiểm y tế (BHYT) sinh viên tại UTH như thế nào?",
+    "answer": "Quy định về thời gian và cách thức tham gia Bảo hiểm y tế (BHYT) tại UTH:\n1. **Thời gian thu BHYT định kỳ**: Nhà trường tổ chức thu BHYT vào đầu mỗi năm học (thường từ tháng 9 đến tháng 10 hàng năm) cùng đợt thu học phí Học kỳ 1 hoặc theo Thông báo riêng của Phòng Công tác Sinh viên.\n2. **Mức đóng & Kênh nộp tiền**: Mức đóng theo quy định của Luật BHYT đối với sinh viên (được Nhà nước hỗ trợ 30% mức đóng). Sinh viên nộp trực tuyến qua Cổng thanh toán [payment.ut.edu.vn](https://payment.ut.edu.vn) hoặc chuyển khoản theo hướng dẫn trong thông báo nộp tiền.\n3. **Thời hạn sử dụng & Tra cứu thẻ**: Thẻ BHYT có giá trị sử dụng 12 tháng theo năm tài chính. Sinh viên cài đặt ứng dụng **VssID** để tra cứu và sử dụng hình ảnh thẻ BHYT điện tử khi đi khám chữa bệnh tại các cơ sở y tế.\n- Mọi thắc mắc cần giải đáp thêm, sinh viên liên hệ **Phòng Công tác Sinh viên** (Phòng A-104, Cơ sở 1 - ĐT: 028 3512 0783).",
+    "category": "Y tế & Bảo hiểm",
+    "keywords": [
+      "bảo hiểm y tế",
+      "bhyt",
+      "nộp tiền bhyt",
+      "thời gian nộp bhyt",
+      "hạn nộp bhyt",
+      "đóng bhyt khi nào",
+      "nộp tiền",
+      "phòng công tác sinh viên",
+      "vssid",
+      "thẻ bhyt"
+    ]
   }
 ]

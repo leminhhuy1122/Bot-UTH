@@ -368,6 +368,11 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
   const handleExecuteAction = (action: any) => {
     if (!action || !action.target) return;
 
+    if (action.type === 'OPEN_LINK' || action.target.startsWith('http')) {
+      window.open(action.target, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     if (action.target === 'schedule') {
       window.dispatchEvent(new CustomEvent('uth:open-schedule'));
     } else if (action.target === 'full-schedule') {
@@ -430,6 +435,15 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
         label: '💳 Mở Cổng thanh toán học phí UTH',
         icon: 'CreditCard',
         description: 'Xem chi tiết hóa đơn học phí và chuyển khoản trực tuyến'
+      };
+    }
+    if (lower.includes('support.ut.edu.vn') || lower.includes('gửi yêu cầu hỗ trợ') || lower.includes('cổng hỗ trợ trực tuyến')) {
+      return {
+        type: 'OPEN_LINK',
+        target: 'https://support.ut.edu.vn',
+        label: '🌐 Gửi yêu cầu hỗ trợ (support.ut.edu.vn)',
+        icon: 'ExternalLink',
+        description: 'Mở Cổng hỗ trợ trực tuyến UTH để gửi yêu cầu đến phòng ban'
       };
     }
     return null;
@@ -666,6 +680,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                           const act = getMessageAction(msg);
                           const isSchedule = act.target === 'schedule' || act.target === 'full-schedule';
                           const isElearning = act.target === 'elearning';
+                          const isLink = act.type === 'OPEN_LINK' || act.target?.startsWith('http');
                           return (
                             <div className="bg-gradient-to-r from-teal-50/90 via-emerald-50/80 to-teal-50/50 border border-teal-200/90 hover:border-teal-400 rounded-2xl p-3 shadow-2xs hover:shadow-sm transition-all group">
                               <div className="flex items-center justify-between gap-3">
@@ -675,6 +690,8 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                                       <Calendar className="w-4 h-4 stroke-[2.2]" />
                                     ) : isElearning ? (
                                       <BookOpen className="w-4 h-4 stroke-[2.2]" />
+                                    ) : isLink ? (
+                                      <ExternalLink className="w-4 h-4 stroke-[2.2]" />
                                     ) : (
                                       <CreditCard className="w-4 h-4 stroke-[2.2]" />
                                     )}
@@ -695,7 +712,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                                   onClick={() => handleExecuteAction(act)}
                                   className="px-3 py-1.5 bg-[#007062] hover:bg-[#005a4e] text-white rounded-xl text-[12px] font-semibold flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95 transition-all shrink-0 hover:shadow-xs"
                                 >
-                                  <span>Mở ngay</span>
+                                  <span>{isLink ? 'Truy cập' : 'Mở ngay'}</span>
                                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                                 </button>
                               </div>
