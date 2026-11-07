@@ -235,6 +235,7 @@ export const BackupRecoveryCenter: React.FC = () => {
   // Xóa bản backup
   const handleDelete = (backup: BackupItem) => {
     showConfirm(
+      'Xóa bản sao lưu',
       `Bạn có chắc chắn muốn xóa bản sao lưu [${backup.id}] (${backup.size_formatted}) khỏi máy chủ? Thao tác này không thể hoàn tác.`,
       async () => {
         const ok = await deleteBackup(backup.id);
@@ -245,6 +246,7 @@ export const BackupRecoveryCenter: React.FC = () => {
           showToast('Không thể xóa bản sao lưu này.', 'error', 'Thất bại');
         }
       },
+      'danger',
       'Xác nhận xóa bản sao lưu'
     );
   };

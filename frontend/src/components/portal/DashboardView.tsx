@@ -465,7 +465,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <main className="flex-1 w-full">
           <CourseRegistrationView
             onBackToDashboard={handleBackToDashboard}
-            studentName={currentStudent?.fullName || currentStudent?.name}
+            studentName={currentStudent?.name}
           />
         </main>
       ) : activeView === 'curriculum' ? (

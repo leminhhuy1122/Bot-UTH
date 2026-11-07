@@ -128,6 +128,7 @@ export interface AdminStudentItem {
   upcomingCourses?: string[];
   semestersGrades?: any[];
   assignments?: any[];
+  otherFees?: any[];
   extraData?: any;
 }
 

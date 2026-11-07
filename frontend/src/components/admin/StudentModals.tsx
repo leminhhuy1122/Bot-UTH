@@ -15,7 +15,14 @@ import {
   Award,
   Sparkles,
   RefreshCw,
-  Check
+  Check,
+  Plus,
+  Edit2,
+  Edit3,
+  Trash2,
+  Save,
+  BookOpen,
+  Clock
 } from 'lucide-react';
 import { AdminStudentItem, createAdminStudent, updateAdminStudent, batchCreateAdminStudents } from '../../services/adminService';
 import { useToast } from '../../contexts/ToastContext';
