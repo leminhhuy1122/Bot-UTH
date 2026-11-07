@@ -299,13 +299,9 @@ def get_guest_fallback_answer(query: str, matched_kb: list) -> str:
         )
 
     return (
-        "Xin chào quý khách! Tôi là UTH Virtual Assistant — Trợ lý ảo hỗ trợ thông tin Trường ĐH Giao thông Vận tải TP.HCM.\n\n"
-        "Hiện tại câu hỏi này chưa có sẵn trong cơ sở dữ liệu giải đáp tự động của UTH AI. "
-        "Để được hỗ trợ chi tiết và chính xác nhất, quý khách vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
-        "- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
-        "- 📞 **Tổng đài Nhà trường & Tư vấn tuyển sinh**: **(028) 3899 2862**\n"
-        "- 📧 **Email tiếp nhận thông tin**: `uth@ut.edu.vn`\n\n"
-        "👉 Quý khách có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
+        "Nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động. Quý khách vui lòng liên hệ:\n"
+        "- 🌐 **Cổng hỗ trợ**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        "- 📞 **Tổng đài Nhà trường & Tuyển sinh**: **(028) 3899 2862** | 📧 `uth@ut.edu.vn`"
     )
 
 def get_student_fallback_answer(
@@ -351,10 +347,10 @@ def get_student_fallback_answer(
         is_ambiguous_short = stripped_q in ['hạn nộp', 'hạn', 'khi nào nộp', 'hạn chót', 'thời hạn', 'nộp khi nào', 'deadline', 'nộp']
         if not is_followup and is_ambiguous_short and not any(k in lower for k in ['học phí', 'bài tập', 'môn', 'tiền', 'công nợ']):
             return (
-                f"Chào bạn {name}! Mình nhận thấy câu hỏi của bạn có thể liên quan đến 2 mục khác nhau. Bạn đang muốn kiểm tra:\n"
-                f"1. 📚 **Hạn nộp bài tập Elearning** (Các môn chuyên ngành sắp hết hạn)\n"
-                f"2. 💰 **Hạn đóng học phí & công nợ** học kỳ này\n\n"
-                f"👉 Bạn hãy nhắn rõ hơn (ví dụ: *'hạn bài tập'* hoặc *'hạn học phí'*) để mình hỗ trợ ngay nhé!"
+                "Bạn đang muốn kiểm tra:\n"
+                "1. 📚 **Hạn nộp bài tập Elearning**\n"
+                "2. 💰 **Hạn đóng học phí & công nợ**\n"
+                "Vui lòng nhắn rõ hơn (vd: *'hạn bài tập'* hoặc *'hạn học phí'*)."
             )
 
         # 0.0 Xử lý câu hỏi Giới thiệu năng lực trợ lý ảo UTH (Capabilities)
@@ -365,14 +361,8 @@ def get_student_fallback_answer(
         ]
         if any(k in lower for k in capabilities_indicators):
             return (
-                f"Chào bạn {name}! Mình là **UTH Assistant** — Trợ lý ảo thông minh đồng hành cùng sinh viên Trường ĐH Giao thông Vận tải TP.HCM (UTH). 🌟\n\n"
-                f"Mình có thể hỗ trợ bạn giải quyết nhanh chóng các nghiệp vụ học vụ sau:\n"
-                f"1. 📊 **Tra cứu & Mô phỏng điểm số**: Xem điểm GPA/CPA, điểm rèn luyện, đối soát điều kiện Sinh viên Giỏi/Xuất sắc và tính giả định kéo điểm (What-if).\n"
-                f"2. 📚 **Nhắc hẹn Bài tập Elearning**: Kiểm tra danh sách bài tập trực tuyến, cảnh báo bài cận hạn nộp và hướng dẫn nộp bài trực tiếp.\n"
-                f"3. 📅 **Thời khóa biểu & Phòng học**: Tra cứu lịch học trong tuần, số phòng học, ca học và giảng viên phụ trách.\n"
-                f"4. 💰 **Công nợ & Học phí**: Tra cứu học phí ngành, các khoản học phí khác (Turnitin, thư viện, BHYT...), số tiền đã nộp và hướng dẫn chuyển khoản.\n"
-                f"5. 🚀 **Actionable Copilot**: Tự động mở nhanh các cửa sổ chức năng (Thời khóa biểu, Cổng Elearning, Cổng thanh toán) chỉ với 1 nút bấm.\n\n"
-                f"👉 Bạn có thể hỏi bất cứ điều gì, ví dụ: *'Bài tập nào cần nộp gấp?'* hoặc *'Điểm GPA hiện tại của tôi'* nhé!"
+                f"Mình là **UTH Assistant** — Trợ lý ảo hỗ trợ sinh viên UTH. "
+                f"Mình hỗ trợ bạn tra cứu nhanh các nghiệp vụ: **Điểm GPA/CPA**, **Lịch học tuần**, **Bài tập Elearning** và **Học phí/Công nợ**. Bạn cần xem thông tin nào?"
             )
 
         # 0.01 Xử lý mô phỏng giả định điểm số tín chỉ (What-if GPA/CPA Calculator)
@@ -415,15 +405,9 @@ def get_student_fallback_answer(
             drop_amount = round(current_cpa - new_cpa, 2)
 
             return (
-                f"Chào {name}! Mình xin mô phỏng chi tiết tác động điểm số của bạn theo **Quy chế tín chỉ UTH**:\n\n"
-                f"1. 📊 **Quy đổi điểm môn {course_name} ({course_credits:.0f} tín chỉ)**:\n"
-                f"   - Điểm **{score_10:g}/10** tương đương điểm chữ **{letter_grade}**, quy đổi sang hệ 4 là **{score_4:.1f}/4.00**.\n"
-                f"2. 📉 **Tác động đến CPA tích lũy toàn khóa**:\n"
-                f"   - CPA hiện tại của bạn: **{current_cpa:.2f}/4.00** (đã tích lũy **{current_acc:.0f} tín chỉ**).\n"
-                f"   - Sau khi tính thêm môn {course_name}: Tổng tín chỉ đạt **{new_acc_credits:.0f} TC**.\n"
-                f"   - **CPA mới dự kiến**: **{new_cpa:.2f}/4.00** (Bị kéo giảm **{drop_amount:.2f} điểm**).\n\n"
-                f"💡 **Đánh giá học vụ**: Mặc dù điểm giảm {drop_amount:.2f}, CPA {new_cpa:.2f} vẫn nằm trên mức 3.20 nên bạn **vẫn giữ vững Xếp loại Giỏi**! "
-                f"Tuy nhiên, bạn nên cố gắng ôn tập tốt để đạt từ điểm B (7.0 trở lên) nhằm giữ phong độ tiến tới danh hiệu Xuất sắc nhé! 🚀"
+                f"Mô phỏng điểm môn {course_name} ({course_credits:.0f} TC) nếu đạt **{score_10:g}/10** (hệ 4: **{score_4:.1f}**):\n"
+                f"- **CPA mới dự kiến**: **{new_cpa:.2f}/4.00** (thay đổi {drop_amount:+.2f} điểm).\n"
+                f"- **Xếp loại học lực**: Bạn vẫn giữ vững **Xếp loại Giỏi**."
             )
 
         # === INTENT FIREWALL: Tách biệt hoàn toàn từ khóa cốt lõi giữa Học phí và Bài tập ===
@@ -459,43 +443,26 @@ def get_student_fallback_answer(
             'tiêu chuẩn giỏi', 'tiêu chuẩn xuất sắc', 'tiêu chuẩn sinh viên giỏi', 'danh hiệu sinh viên giỏi'
         ]
         if any(k in lower for k in academic_ranking_indicators):
-            ranking_text = f"Hiện tại bạn đang có CPA tích lũy **{cpa4}/4.00** và Điểm rèn luyện **{tp}/100** điểm (Xếp loại hiện tại: **{ranking}**)."
-            if cpa4 >= 3.60 and tp >= 90:
-                self_eval = "🌟 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Xuất sắc** của trường UTH rồi nhé! Thành tích học tập và rèn luyện của bạn vô cùng tuyệt vời!"
-            elif cpa4 >= 3.20 and tp >= 80:
-                self_eval = "🥇 Bạn đã hoàn toàn đạt chuẩn **Xếp loại Giỏi** của trường UTH rồi nhé! Cố gắng nâng thêm một chút nữa để chạm mốc Xuất sắc (CPA ≥ 3.60) nhé!"
-            else:
-                self_eval = f"👉 Bạn hãy tiếp tục phấn đấu nâng CPA lên từ 3.20 và Điểm rèn luyện từ 80 điểm trở lên để chạm mốc Xếp loại Giỏi nhé!"
-
+            achieved = cpa4 >= 3.20 and tp >= 80
+            status_note = "Đã đạt chuẩn Giỏi" if achieved else "Cần nâng thêm CPA/ĐRL"
             return (
-                f"Chào {name}! Theo **Quy chế Đào tạo Tín chỉ của Trường ĐH Giao thông Vận tải TP.HCM (UTH)**, "
-                f"để đạt danh hiệu **Sinh viên Giỏi (hoặc Xếp loại học lực Giỏi)**, bạn cần đáp ứng các điều kiện sau:\n\n"
-                f"1. 🎯 **Điểm trung bình học tập (CPA/GPA)**: Đạt từ **3.20 đến 3.59 / 4.00** (tương đương 8.0 đến 8.9 thang điểm 10).\n"
-                f"2. 🏅 **Điểm rèn luyện (ĐRL)**: Đạt từ **80 điểm trở lên** (Xếp loại Tốt trở lên).\n"
-                f"3. 📚 **Khối lượng học tập**: Đăng ký và hoàn thành tối thiểu số tín chỉ quy định của học kỳ chính (từ 14 - 15 tín chỉ trở lên).\n"
-                f"4. ⚖️ **Kỷ luật & Học phần**: Không bị kỷ luật từ mức khiển trách trở lên trong học kỳ xét; không có môn nào bị điểm F (đối với xét Học bổng khuyến khích học tập).\n\n"
-                f"*(Nếu muốn đạt danh hiệu **Xuất sắc**: CPA từ **3.60/4.00** trở lên và Điểm rèn luyện từ **90 điểm** trở lên)*.\n\n"
-                f"📊 **Đối chiếu với kết quả của bạn**: {ranking_text}\n{self_eval} 🚀"
+                f"Điều kiện đạt danh hiệu **Sinh viên Giỏi** UTH:\n"
+                f"- **CPA tích lũy**: từ **3.20/4.00** trở lên.\n"
+                f"- **Điểm rèn luyện**: từ **80/100** điểm trở lên (không nợ môn F, không kỷ luật).\n"
+                f"👉 Hiện tại bạn: CPA **{cpa4}/4.00**, ĐRL **{tp}/100** ({status_note})."
             )
 
         # 3. [PHASE 2 PRIORITY REORDER]: Xử lý HỌC PHÍ & CÔNG NỢ TRƯỚC BÀI TẬP
         if is_tuition_query:
             if debt > 0:
                 return (
-                    f"Chào {name}! Theo hệ thống kế toán & Cổng thanh toán UTH, tình trạng học phí học kỳ này của bạn như sau:\n\n"
-                    f"- 💰 **Tình trạng công nợ**: Còn nợ **{debt:,.0f} VNĐ**\n"
-                    f"- 📋 **Tổng học phí học kỳ**: **{total:,.0f} VNĐ**\n"
-                    f"- ✅ **Số tiền bạn đã đóng**: **{paid:,.0f} VNĐ**\n\n"
-                    f"🏦 **Thông tin tài khoản nộp học phí UTH**:\n"
-                    f"- **Ngân hàng**: Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank) - Chi nhánh TP.HCM\n"
-                    f"- **Số tài khoản**: **0071000078912**\n"
-                    f"- **Cú pháp chuyển khoản bắt buộc**: `HOCPHI {mssv} {name}`\n\n"
-                    f"👉 Bạn có thể bấm nút **'Mở Cổng thanh toán học phí UTH'** bên dưới để quét mã QR thanh toán tự động ngay nhé! 💳"
+                    f"Tình trạng học phí và công nợ của bạn:\n"
+                    f"- **Tình trạng công nợ**: Còn nợ **{debt:,.0f} VNĐ** (Tổng học phí: {total:,.0f} VNĐ, đã nộp: {paid:,.0f} VNĐ).\n"
+                    f"- **STK Vietcombank**: **0071000078912** (Cú pháp: `HOCPHI {mssv} {name}`)."
                 )
             else:
                 return (
-                    f"Chào {name}! Theo hệ thống kế toán UTH, bạn đã hoàn tất **100% học phí** học kỳ này (Tổng tiền: **{total:,.0f} VNĐ**), công nợ hiện tại là **0 VNĐ**.\n\n"
-                    f"🌟 Bạn không còn khoản nợ học phí nào và hoàn toàn đủ điều kiện dự thi các môn học kỳ này. Chúc bạn học tập thật tốt!"
+                    f"Bạn đã hoàn tất 100% học phí học kỳ này, công nợ hiện tại: **0 VNĐ** (đủ điều kiện dự thi)."
                 )
 
         # 4. [PHASE 1 FIREWALL]: Xử lý Bài tập Elearning (Chỉ chạy khi KHÔNG PHẢI học phí)
@@ -524,10 +491,7 @@ def get_student_fallback_answer(
             # 0.1 Hỏi cách nộp bài / nơi nộp bài
             if any(k in lower for k in ['nộp ở đâu', 'nộp bài ở đâu', 'làm sao nộp', 'cách nộp', 'cách nộp bài', 'chỗ nộp', 'nơi nộp', 'nộp như thế nào']):
                 return (
-                    f"Chào {name}! Để nộp bài tập trực tuyến, bạn có 2 cách cực kỳ nhanh chóng:\n"
-                    f"1. ✈️ **Bấm trực tiếp vào chiếc máy bay 3D** đang bay kéo banner trên màn hình Dashboard để chuyển thẳng đến bài tập cần nộp.\n"
-                    f"2. 💻 Hoặc vào menu chọn mục **'Đào tạo trực tuyến (Elearning)'**, chọn đúng môn học và bấm nút **'Nộp bài ngay'**.\n\n"
-                    f"*(Bạn nhớ nộp trước thời hạn đóng cổng Elearning được hiển thị bên cạnh mỗi bài tập nhé!)*"
+                    "Để nộp bài tập, bạn vào mục **Đào tạo trực tuyến (Elearning)** trên thanh menu hoặc bấm vào **chiếc máy bay** trên màn hình để nộp trực tiếp."
                 )
 
             # 0.2 Hỏi bài nào cần nộp sớm nhất / gấp nhất / ưu tiên nộp trước
@@ -536,34 +500,26 @@ def get_student_fallback_answer(
                 if pending_asms:
                     sorted_asms = sorted(pending_asms, key=lambda x: x.get("daysLeft", 999))
                     earliest = sorted_asms[0]
-                    urgent_badge = "🚨 **CẦN NỘP GẤP TRONG 3 NGÀY**" if earliest.get("daysLeft", 99) <= 3 else "⏰ **HẠN NỘP GẦN NHẤT**"
-                    res = (
-                        f"Chào {name}! Bài tập bạn cần ưu tiên nộp sớm nhất là:\n\n"
-                        f"{urgent_badge}:\n"
-                        f"- **Môn học**: **{earliest.get('courseName')}**\n"
-                        f"- **Tên bài**: {earliest.get('title')}\n"
-                        f"- **Hạn chót**: **{earliest.get('deadline')}** (Chỉ còn **{earliest.get('daysLeft')} ngày**!)\n"
+                    next_str = f"\n- Kế tiếp: **{sorted_asms[1].get('courseName')}** (hạn {sorted_asms[1].get('deadline')})." if len(sorted_asms) > 1 else ""
+                    return (
+                        f"Bài tập cần nộp sớm nhất:\n"
+                        f"- **{earliest.get('courseName')}**: {earliest.get('title')} — Hạn nộp: **{earliest.get('deadline')}** (còn **{earliest.get('daysLeft')} ngày**).{next_str}"
                     )
-                    if len(sorted_asms) > 1:
-                        next_asm = sorted_asms[1]
-                        res += f"\n📅 Bài tiếp theo sau đó là **{next_asm.get('courseName')}** (Hạn nộp: **{next_asm.get('deadline')}**, còn **{next_asm.get('daysLeft')} ngày**).\n"
-                    res += "\n👉 Bạn hãy bấm trực tiếp vào **máy bay thông báo trên màn hình** hoặc vào mục **'Đào tạo trực tuyến (Elearning)'** để nộp bài ngay nhé! ✈️"
-                    return res
                 else:
-                    return f"Chào {name}! Hiện tại bạn không có bài tập nào bị quá hạn hay cần nộp gấp. Bạn đã hoàn tất đầy đủ các bài tập được giao trên Elearning rồi! 🌟"
+                    return "Bạn không có bài tập nào cần nộp gấp, toàn bộ bài tập Elearning đã hoàn tất."
 
             # 1. Hỏi về bài đã nộp hoặc điểm bài tập
             if any(k in lower for k in ['đã nộp', 'điểm bài tập', 'chấm điểm', 'điểm bài', 'kết quả bài', 'được bao nhiêu điểm']):
                 submitted_asms = [a for a in asms if a.get("status") in ["submitted", "graded"]]
                 if submitted_asms:
-                    res = f"Chào {name}! Tình trạng các bài tập bạn đã nộp trên Elearning:\n"
-                    for i, a in enumerate(submitted_asms, 1):
-                        score_text = f" -> 🏆 Điểm: **{a.get('score')}/10**" if a.get("score") is not None else " (Đang chờ chấm)"
-                        fb_text = f" (Nhận xét: *{a.get('feedback')}*)" if a.get("feedback") else ""
-                        res += f"{i}. **{a.get('courseName')}**: {a.get('title')}{score_text}{fb_text}\n"
-                    return res
+                    lines = []
+                    for a in submitted_asms:
+                        score_text = f" — Điểm: **{a.get('score')}/10**" if a.get('score') is not None else " (Đang chờ chấm)"
+                        fb_text = f" (*{a.get('feedback')}*)" if a.get('feedback') else ""
+                        lines.append(f"- **{a.get('courseName')}**: {a.get('title')}{score_text}{fb_text}")
+                    return "Kết quả bài tập đã nộp trên Elearning:\n" + "\n".join(lines)
                 else:
-                    return f"Chào {name}! Hiện tại bạn chưa nộp bài tập nào trên hệ thống Elearning UTH. Hãy kiểm tra các bài tập đang chờ nộp bên dưới để không bị trễ hạn nhé!"
+                    return "Bạn chưa nộp bài tập nào trên hệ thống Elearning UTH."
 
             # 2. Hỏi cụ thể theo từng môn học (Quản trị mạng, Cloud, AI, Thực tập, Logistics...)
             course_keywords = ['mạng', 'cloud', 'đám mây', 'ai', 'trí tuệ', 'thực tập', 'doanh nghiệp', 'logistics', 'kho', 'vận tải', 'ô tô', 'động cơ', 'cầu đường', 'xây dựng', 'hàng hải', 'ecdis', 'iot', 'chuyên ngành']
@@ -573,35 +529,19 @@ def get_student_fallback_answer(
                     if any(kw in lower for kw in a.get('courseName', '').lower().split()) or any(kw in lower for kw in a.get('title', '').lower().split())
                 ]
                 if matched_by_course:
-                    res = f"Chào {name}! Thông tin bài tập môn học bạn đang quan tâm:\n"
+                    lines = []
                     for a in matched_by_course:
-                        stt = "✅ Đã nộp bài" if a.get('status') == 'submitted' else ("🏆 Đã chấm điểm" if a.get('status') == 'graded' else f"⏳ Còn **{a.get('daysLeft', 0)} ngày**")
-                        res += f"- **{a.get('courseName')}**: {a.get('title')}\n  ⏰ Hạn nộp: **{a.get('deadline')}** ({stt})\n"
-                        if a.get('score') is not None:
-                            res += f"  🏆 Điểm số: **{a.get('score')}/10** ({a.get('feedback')})\n"
-                    res += "\n👉 Bạn có thể vào mục **'Đào tạo trực tuyến (Elearning)'** hoặc bấm vào máy bay 3D trên màn hình để nộp bài nhé!"
-                    return res
+                        stt = "Đã nộp" if a.get('status') == 'submitted' else ("Đã chấm" if a.get('status') == 'graded' else f"còn {a.get('daysLeft', 0)} ngày")
+                        lines.append(f"- **{a.get('courseName')}**: {a.get('title')} — Hạn nộp: **{a.get('deadline')}** ({stt})")
+                    return "Thông tin bài tập theo môn bạn hỏi:\n" + "\n".join(lines)
 
             # 3. Hỏi chung về danh sách bài tập / hạn nộp sắp tới
             pending_asms = [a for a in asms if a.get("status") == "pending"]
             if pending_asms:
-                urgent_asms = [a for a in pending_asms if a.get("daysLeft", 99) <= 3]
-                normal_asms = [a for a in pending_asms if a.get("daysLeft", 99) > 3]
-
-                res = f"Chào {name}! Hiện bạn có **{len(pending_asms)} bài tập** trực tuyến cần hoàn thành:\n"
-                if urgent_asms:
-                    res += "🚨 **CẢNH BÁO BÀI TẬP CẬN HẠN (Sắp hết hạn trong 3 ngày):**\n"
-                    for a in urgent_asms:
-                        res += f"- ⏰ **{a.get('courseName')}**: {a.get('title')} - Hạn nộp: **{a.get('deadline')}** (Chỉ còn **{a.get('daysLeft')} ngày**!)\n"
-                if normal_asms:
-                    res += "\n📅 **Các bài tập sắp tới:**\n"
-                    for a in normal_asms:
-                        res += f"- **{a.get('courseName')}**: {a.get('title')} - Hạn nộp: **{a.get('deadline')}** (Còn **{a.get('daysLeft')} ngày**)\n"
-
-                res += "\n✈️ Bạn có thể bấm trực tiếp vào **máy bay thông báo đang bay trên màn hình** hoặc chọn mục **'Đào tạo trực tuyến'** để vào nộp bài ngay nhé!"
-                return res
+                lines = [f"- **{a.get('courseName')}**: {a.get('title')} — Hạn: **{a.get('deadline')}** (còn **{a.get('daysLeft')} ngày**)" for a in pending_asms[:3]]
+                return f"Danh sách bài tập cần hoàn thành ({len(pending_asms)} bài):\n" + "\n".join(lines)
             else:
-                return f"Chào {name}! Tuyệt vời quá, hiện tại bạn không có bài tập nào bị quá hạn. Bạn đã nộp đầy đủ các bài tập được giao trên hệ thống Elearning UTH! 🌟"
+                return "Bạn không có bài tập nào tồn đọng trên hệ thống Elearning UTH."
 
         gpa_query_indicators = [
             'điểm gpa', 'điểm cpa', 'bảng điểm', 'điểm số', 'điểm rèn luyện', 'kết quả học tập',
@@ -609,30 +549,22 @@ def get_student_fallback_answer(
             'kết quả hiện tại', 'gpa hiện tại', 'cpa hiện tại', 'điểm học kỳ'
         ]
         if any(k in lower for k in gpa_query_indicators):
-            top_courses = [f"*{c['name']}* ({c['score10']}/10)" for c in courses_detail[:2]]
-            top_str = f" Trong đó các môn tiêu biểu: {', '.join(top_courses)}." if top_courses else ""
             return (
-                f"Chào {name}, điểm GPA học kỳ hiện tại của bạn đạt **{gpa4}/4.00**, "
-                f"CPA tích lũy toàn khóa đạt **{cpa4}/4.00** (Xếp loại: **{ranking}**), điểm rèn luyện: **{tp}/100** điểm.{top_str} "
-                f"Kết quả học tập của bạn rất đáng ghi nhận, hãy tiếp tục phát huy nhé!"
+                f"Kết quả học tập của bạn:\n"
+                f"- **GPA**: **{gpa4}/4.00** | **CPA tích lũy**: **{cpa4}/4.00**\n"
+                f"- **Xếp loại**: **{ranking}** | **Điểm rèn luyện**: **{tp}/100**."
             )
 
         if any(k in lower for k in ['tín chỉ', 'tốt nghiệp', 'ra trường']):
-            return (
-                f"Chào {name}, hiện tại bạn đã tích lũy được **{acc:.0f} / {req:.0f} tín chỉ**, "
-                f"còn thiếu **{rem:.0f} tín chỉ** nữa để đủ điều kiện xét tốt nghiệp ra trường."
-            )
+            return f"Bạn đã tích lũy **{acc:.0f}/{req:.0f} tín chỉ** (còn thiếu **{rem:.0f} tín chỉ** để xét tốt nghiệp)."
 
         if any(k in lower for k in ['lịch học', 'thời khóa biểu', 'tkb', 'hôm nay học gì', 'lịch tuần này', 'phòng học nào', 'tiết học', 'ca học', 'môn học tuần này', 'lịch của tôi']):
             if schedule:
-                sch_lines = "\n".join([f"- **{item['day']}**: {item['course']} (Phòng: {item['room']}, Giờ: {item['time']})" for item in schedule[:3]])
-                return (
-                    f"Chào {name}, lịch học các môn trong tuần này của bạn:\n{sch_lines}\n\n"
-                    f"👉 *Bạn có muốn mình hỗ trợ mở Thời khóa biểu chi tiết trên màn hình cho bạn luôn không?*"
-                )
+                sch_lines = "\n".join([f"- **{item['day']}**: {item['course']} (Phòng {item['room']}, {item['time']})" for item in schedule[:3]])
+                return f"Lịch học tuần này của bạn:\n{sch_lines}"
             elif registered:
                 reg_lines = "\n".join([f"- {c}" for c in registered[:4]])
-                return f"Chào {name}, các môn học bạn đang theo học kỳ này:\n{reg_lines}"
+                return f"Lịch học các môn bạn đã đăng ký:\n{reg_lines}"
 
         # 5. Xử lý Bảo hiểm y tế (BHYT) & Bảo hiểm tai nạn
         if classified_intent == 'INSURANCE' or any(k in lower for k in ['bảo hiểm', 'bhyt', 'vssid']):
@@ -641,31 +573,26 @@ def get_student_fallback_answer(
                     if 'bhyt' in item.get('id', '').lower() or 'bảo hiểm' in item.get('question', '').lower() or '84' in item.get('id', ''):
                         return item.get('answer', '')
             return (
-                f"Chào bạn {name}! Về việc tham gia và nộp tiền **Bảo hiểm y tế (BHYT)** sinh viên UTH:\n\n"
-                f"1. 📅 **Thời gian nộp định kỳ**: Thu vào đầu mỗi năm học (tháng 9 - tháng 10) cùng đợt học phí Học kỳ 1 hoặc theo thông báo riêng của Nhà trường.\n"
-                f"2. 💳 **Kênh nộp tiền**: Nộp trực tuyến qua Cổng thanh toán học phí [payment.ut.edu.vn](https://payment.ut.edu.vn) hoặc chuyển khoản theo cú pháp thông báo.\n"
-                f"3. 📱 **Tra cứu thẻ BHYT**: Sinh viên cài đặt ứng dụng **VssID** để tra cứu mã số và xuất trình thẻ BHYT điện tử khi khám chữa bệnh.\n\n"
-                f"👉 Mọi thắc mắc thêm bạn vui lòng liên hệ **Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1 - ĐT: 028 3512 0783)** để được giải quyết nhé!"
+                "Thông tin Bảo hiểm y tế (BHYT) sinh viên:\n"
+                "- **Thời gian nộp**: Đầu năm học (tháng 9 - 10) cùng đợt học phí HK1.\n"
+                "- **Nộp tiền**: Trực tuyến qua Cổng thanh toán UTH.\n"
+                "- **Hỗ trợ**: Phòng Công tác Sinh viên (Phòng A-104, ĐT: 028 3512 0783)."
             )
 
         # 6. Xử lý Đăng ký học phần (Course Registration)
         if classified_intent in ['REGISTRATION', 'COURSE_REGISTRATION'] or any(k in lower for k in ['đăng ký học phần', 'dkhp', 'đăng ký môn học', 'mở đăng ký môn', 'đăng ký môn']):
             return (
-                f"Chào bạn {name}! Về nghiệp vụ **Đăng ký học phần** tại Trường ĐH Giao thông Vận tải TP.HCM (UTH):\n\n"
-                f"1. 🗓️ **Thời gian mở cổng**: Theo kế hoạch đăng ký học phần từng học kỳ do Phòng Đào tạo công bố (chia theo từng khóa/khoa).\n"
-                f"2. 💻 **Thao tác đăng ký**: Bạn có thể tra cứu lớp học phần, số tín chỉ, giảng viên và bấm đăng ký trực tiếp ngay trên Cổng sinh viên.\n"
-                f"3. ⚠️ **Lưu ý tín chỉ**: Đăng ký tối thiểu 14 tín chỉ (đối với sinh viên học lực bình thường) và đối soát điều kiện môn tiên quyết trước khi đăng ký.\n\n"
-                f"👉 Bạn hãy bấm nút **'Mở Đăng ký học phần'** bên dưới để vào hệ thống đăng ký ngay nhé! 📝"
+                "Về Đăng ký học phần UTH:\n"
+                "- **Thời gian mở cổng**: Theo thông báo của Phòng Đào tạo trên Cổng sinh viên.\n"
+                "- **Thao tác**: Vào mục Đăng ký học phần để chọn lớp và kiểm tra số tín chỉ."
             )
 
         # 7. Xử lý Chương trình khung (Curriculum)
         if classified_intent == 'CURRICULUM' or any(k in lower for k in ['chương trình khung', 'ctk', 'chương trình đào tạo', 'khung đào tạo']):
             return (
-                f"Chào bạn {name}! Về **Chương trình khung đào tạo** ngành {student_data.get('major', 'của bạn')}:\n\n"
-                f"1. 📚 **Tổng khối lượng đào tạo**: Yêu cầu tích lũy tối thiểu **{req:.0f} tín chỉ** (hiện bạn đã hoàn thành **{acc:.0f} TC**, còn thiếu **{rem:.0f} TC**).\n"
-                f"2. 🗂️ **Cấu trúc chương trình**: Bao gồm Khối kiến thức Đại cương, Cơ sở ngành, Chuyên ngành bắt buộc, Tự chọn và Đồ án tốt nghiệp.\n"
-                f"3. 🔍 **Tra cứu chi tiết**: Bạn có thể xem lộ trình chuẩn từng học kỳ, học phần tiên quyết và mã môn học chuẩn.\n\n"
-                f"👉 Bạn hãy bấm nút **'Mở Chương trình khung'** bên dưới để xem chi tiết cây môn học của ngành mình nhé! 📚"
+                f"Chương trình khung đào tạo ngành {student_data.get('major', 'của bạn')}:\n"
+                f"- Yêu cầu tích lũy: **{req:.0f} tín chỉ** (đã đạt **{acc:.0f} TC**, còn thiếu **{rem:.0f} TC**).\n"
+                f"- Bạn có thể bấm nút bên dưới để xem chi tiết cây môn học."
             )
 
     # Chỉ trả về câu trả lời FAQ nếu câu hỏi thực sự phù hợp ngữ nghĩa
@@ -684,22 +611,16 @@ def get_student_fallback_answer(
     # Gợi ý kênh hỗ trợ chính thức và phòng ban chuyên trách tương ứng
     dept_hint = ""
     if any(w in lower for w in ['bảo hiểm', 'bhyt', 'học bổng', 'chính sách', 'kỷ luật', 'rèn luyện', 'miễn giảm', 'vay vốn']):
-        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1)** | ĐT: **(028) 3512 0783** | Fanpage: [Thông tin sinh viên UTH](https://web.facebook.com/ThongtinsinhvienUTH)"
+        dept_hint = " | Phòng Công tác Sinh viên: (028) 3512 0783"
     elif any(w in lower for w in ['học vụ', 'đăng ký môn', 'lịch thi', 'tốt nghiệp', 'bảng điểm', 'chứng chỉ', 'điểm chuẩn', 'hoãn thi']):
-        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Đào tạo (Phòng A-102, Cơ sở 1)** | ĐT: **(028) 3512 7440**"
+        dept_hint = " | Phòng Đào tạo: (028) 3512 7440"
     elif any(w in lower for w in ['hóa đơn', 'học phí', 'hoàn tiền', 'kế toán', 'ngân hàng']):
-        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Kế hoạch - Tài chính (Phòng A-103, Cơ sở 1)**"
-    elif any(w in lower for w in ['ký túc xá', 'ktx', 'nội trú']):
-        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Ban Quản lý Ký túc xá UTH (Cơ sở 2 & Cơ sở 3)**"
-    elif any(w in lower for w in ['thư viện', 'mượn sách', 'tài liệu']):
-        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Trung tâm Thông tin - Thư viện (LIC, Tòa nhà B, Cơ sở 1)**"
+        dept_hint = " | Phòng Kế hoạch - Tài chính"
 
     return (
-        f"Chào bạn {student_name}! Hiện tại câu hỏi này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
-        f"Để được hỗ trợ giải quyết nhanh chóng và chính xác nhất cho trường hợp của bạn, bạn vui lòng gửi yêu cầu hỗ trợ trực tiếp đến Nhà trường nhé:\n"
-        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
-        f"- 📞 **Tổng đài Nhà trường**: **(028) 3899 2862**{dept_hint}\n\n"
-        f"👉 Bạn có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
+        f"Nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n"
+        f"Bạn vui lòng liên hệ Cổng hỗ trợ trực tuyến: [support.ut.edu.vn](https://support.ut.edu.vn) "
+        f"hoặc Tổng đài Nhà trường: **(028) 3899 2862**{dept_hint}."
     )
 
 def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, student_data: Optional[Dict[str, Any]] = None) -> str:
@@ -720,21 +641,20 @@ def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, 
         if any(k in lower for k in ['học phí', 'tiền', 'nợ', 'đóng']):
             if debt > 0:
                 return (
-                    f"Kính chào Quý phụ huynh, hệ thống ghi nhận sinh viên {name} (MSSV: **{mssv}**) hiện còn khoản nợ học phí là **{debt:,.0f} VNĐ** "
-                    f"(Tổng học phí: {total:,.0f} VNĐ, đã đóng: {paid:,.0f} VNĐ). "
-                    f"Quý phụ huynh có thể chuyển khoản trực tiếp qua STK Vietcombank chính thức của trường: **0071000078912**, cú pháp: `HOCPHI {mssv} {name}`."
+                    f"Kính gửi Quý phụ huynh, sinh viên {name} (MSSV: **{mssv}**) còn nợ học phí: **{debt:,.0f} VNĐ** "
+                    f"(Tổng học phí: {total:,.0f} VNĐ, đã đóng: {paid:,.0f} VNĐ).\n"
+                    f"STK Vietcombank: **0071000078912**, cú pháp: `HOCPHI {mssv} {name}`."
                 )
             else:
                 return (
-                    f"Kính chào Quý phụ huynh, sinh viên {name} (MSSV: **{mssv}**) đã hoàn thành 100% học phí học kỳ này ({total:,.0f} VNĐ), hiện không còn dư nợ nào. "
-                    f"Quý phụ huynh hoàn toàn có thể yên tâm về tiến độ học tập của cháu."
+                    f"Kính gửi Quý phụ huynh, sinh viên {name} (MSSV: **{mssv}**) đã hoàn thành 100% học phí học kỳ này ({total:,.0f} VNĐ), hiện không còn nợ."
                 )
 
         if any(k in lower for k in ['điểm', 'kết quả', 'rèn luyện', 'học tập']):
             return (
-                f"Kính chào Quý phụ huynh, kết quả học tập của cháu {name} (MSSV: **{mssv}**): GPA đạt **{gpa4}/4.00**, "
-                f"CPA tích lũy toàn khóa đạt **{cpa4}/4.00** (Xếp loại: **{ranking}**), điểm rèn luyện: **{tp}/100** điểm. "
-                f"Cháu đã hoàn thành {acc:.0f}/{req:.0f} tín chỉ theo đúng khung đào tạo của trường."
+                f"Kết quả học tập của cháu {name} (MSSV: **{mssv}**):\n"
+                f"- **GPA**: **{gpa4}/4.00** | **CPA**: **{cpa4}/4.00** (Xếp loại: **{ranking}**).\n"
+                f"- **Điểm rèn luyện**: **{tp}/100** | Tín chỉ đã tích lũy: **{acc:.0f}/{req:.0f} TC**."
             )
 
     # Chỉ trả về câu trả lời FAQ nếu câu hỏi thực sự phù hợp ngữ nghĩa
@@ -751,13 +671,9 @@ def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, 
         return first_ans
 
     return (
-        f"Kính chào Quý phụ huynh! Hiện tại nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
-        f"Để được hỗ trợ chi tiết về tình hình học tập và các thủ tục của con em, Quý phụ huynh vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
-        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
-        f"- 📞 **Tổng đài tiếp nhận UTH**: **(028) 3899 2862**\n"
-        f"- 🏛️ **Phòng Công tác Sinh viên**: (028) 3512 0783\n"
-        f"- 🏛️ **Phòng Đào tạo**: (028) 3512 7440\n\n"
-        f"👉 Quý phụ huynh có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để gửi yêu cầu hỗ trợ trực tiếp!"
+        f"Nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động. Quý phụ huynh vui lòng liên hệ:\n"
+        f"- 🌐 **Cổng hỗ trợ**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        f"- 📞 **Tổng đài Nhà trường**: **(028) 3899 2862** | Phòng Đào tạo: (028) 3512 7440"
     )
 
 def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
@@ -929,8 +845,8 @@ async def chat_guest(req: ChatRequest, request: Request, db: Session = Depends(g
         prompt=sanitized_query,
         system_instruction=guest_system_prompt,
         history=[h.model_dump() for h in req.history],
-        temperature=bot_config.get("temperature", 0.6),
-        max_tokens=bot_config.get("maxTokens", 450)
+        temperature=bot_config.get("temperature", 0.3),
+        max_tokens=bot_config.get("maxTokens", 220)
     )
 
     used_gemini = reply is not None
@@ -1052,8 +968,8 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
                     prompt=sanitized_query,
                     system_instruction=student_system_prompt,
                     history=[h.model_dump() for h in req.history],
-                    temperature=bot_config.get("temperature", 0.6),
-                    max_tokens=bot_config.get("maxTokens", 450)
+                    temperature=bot_config.get("temperature", 0.3),
+                    max_tokens=bot_config.get("maxTokens", 220)
                 ),
                 timeout=3.0
             )
@@ -1155,8 +1071,8 @@ async def chat_parent(req: ChatRequest, request: Request, db: Session = Depends(
         prompt=sanitized_query,
         system_instruction=parent_system_prompt,
         history=[h.model_dump() for h in req.history],
-        temperature=bot_config.get("temperature", 0.6),
-        max_tokens=bot_config.get("maxTokens", 450)
+        temperature=bot_config.get("temperature", 0.3),
+        max_tokens=bot_config.get("maxTokens", 220)
     )
     
     used_gemini = reply is not None
@@ -1289,8 +1205,8 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
                         prompt=sanitized_query,
                         system_instruction=system_prompt,
                         history=history_dicts,
-                        temperature=bot_config.get("temperature", 0.6),
-                        max_tokens=bot_config.get("maxTokens", 450)
+                        temperature=bot_config.get("temperature", 0.3),
+                        max_tokens=bot_config.get("maxTokens", 220)
                     ):
                         full_accumulated.append(chunk)
                         used_gemini = True

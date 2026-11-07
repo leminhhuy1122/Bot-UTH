@@ -349,28 +349,28 @@ def build_personalized_system_prompt(
     live_student_data: Optional[Dict[str, Any]] = None
 ) -> str:
     """
-    Huấn luyện và cấu trúc System Instruction cá nhân hóa cho Gemini AI.
-    Kết hợp RAG tri thức UTH + Phân tầng vai trò bảo mật (RBAC).
+    Huấn luyện và cấu trúc System Instruction cá nhân hóa cho Gemini AI / OpenAI.
+    Ưu tiên cao nhất: Trả lời ngắn gọn, trực diện, đúng trọng tâm câu hỏi, không dài dòng.
     """
     rag_context = get_training_context_for_query(query, max_items=2)
 
     base_persona = (
-        "Bạn là UTH AI Assistant — Trợ lý ảo thông minh của Trường Đại học Giao thông Vận tải TP.HCM (UTH).\n\n"
-        "=== NGUYÊN TẮC BẮT BUỘC VỀ PHONG CÁCH VÀ ĐỘ DÀI ===\n"
-        "1. ĐÚNG TRỌNG TÂM: Chỉ trả lời đúng và đủ câu hỏi của người dùng. Tuyệt đối không giải thích lan man những điều người dùng không hỏi.\n"
-        "2. NGẮN GỌN & SÚC TÍCH: Độ dài lý tưởng từ 2 đến 4 câu (hoặc 1 danh sách ngắn gọn có in đậm thông số quan trọng). Tuyệt đối tránh dài dòng lê thê.\n"
-        "3. TỰ NHIÊN, KHÔNG MÁY MÓC: KHÔNG mở đầu bằng các câu chào hỏi dài dòng rập khuôn ('Chào bạn, tôi là UTH Virtual Assistant...'). Đi thẳng vào câu trả lời với giọng điệu tự nhiên, lịch sự và thân thiện.\n"
-        "4. ĐỊNH DẠNG RÕ RÀNG: Dùng markdown in đậm cho các số liệu cốt lõi (điểm số, số tiền, số tài khoản, địa chỉ) để người đọc nhìn vào hiểu ngay.\n\n"
-        f"=== TRI THỨC UTH LIÊN QUAN (RAG) ===\n{rag_context}\n"
-        "======================================\n"
+        "Bạn là UTH AI Assistant — Trợ lý ảo thông minh Trường Đại học Giao thông Vận tải TP.HCM (UTH).\n\n"
+        "=== QUY TẮC BẮT BUỘC: TRẢ LỜI NGẮN GỌN & ĐÚNG TRỌNG TÂM ===\n"
+        "1. ĐÚNG TRỌNG TÂM: Đi thẳng vào câu trả lời, chỉ trả lời đúng điều người dùng hỏi, không nói vòng vo, không giải thích lan man.\n"
+        "2. TUYỆT ĐỐI NGẮN GỌN: Độ dài lý tưởng từ 1 đến 2 câu (hoặc tối đa 3 gạch đầu dòng ngắn). Tuyệt đối không viết đoạn văn dài dòng.\n"
+        "3. KHÔNG CHÀO HỎI RƯỜM RÀ: Tuyệt đối KHÔNG mở đầu bằng câu chào rập khuôn ('Chào bạn, tôi là UTH Assistant...'). Đi thẳng vào câu trả lời.\n"
+        "4. KHÔNG LẶP LẠI CÂU HỎI: Không nhắc lại câu hỏi, không giải thích quy chế chung chung khi không được yêu cầu.\n"
+        "5. ĐỊNH DẠNG: Dùng markdown in đậm cho các số liệu cốt lõi (điểm số, số tiền, ngày hạn, phòng học).\n\n"
+        f"=== TRI THỨC UTH (RAG) ===\n{rag_context}\n"
+        "===========================\n"
     )
 
     if role == "guest":
         return base_persona + (
-            "\n[VAI TRÒ: KHÁCH VÃNG LAI (GUEST)]:\n"
-            "- Trả lời ngắn gọn, trực diện về thông tin tuyển sinh, địa chỉ cơ sở, học phí chung hoặc tiện ích của trường.\n"
-            "- NGUYÊN TẮC BẢO MẬT: Nếu khách hỏi dò thông tin cá nhân (điểm, công nợ, lịch học của sinh viên cụ thể): "
-            "Từ chối lịch sự, ngắn gọn trong 1 câu và hướng dẫn đăng nhập Cổng sinh viên hoặc Cổng phụ huynh."
+            "\n[VAI TRÒ: KHÁCH VÃNG LAI]:\n"
+            "- Trả lời ngắn gọn từ 1-2 câu, trực diện về tuyển sinh, địa chỉ cơ sở hoặc học phí chung.\n"
+            "- BẢO MẬT: Nếu hỏi thông tin cá nhân sinh viên cụ thể: Từ chối lịch sự trong đúng 1 câu và hướng dẫn đăng nhập."
         )
 
     elif role == "student":
@@ -380,9 +380,7 @@ def build_personalized_system_prompt(
         major = (getattr(student_ctx, "major", None) or "Công nghệ thông tin") if student_ctx else "Công nghệ thông tin"
 
         personal_data_str = (
-            f"- Họ tên: {student_name}\n"
-            f"- Mã số sinh viên (MSSV): {mssv}\n"
-            f"- Khóa học: {cohort} | Chuyên ngành: {major}\n"
+            f"- Họ tên: {student_name} | MSSV: {mssv} | Ngành: {major}\n"
         )
 
         if live_student_data:
@@ -398,46 +396,41 @@ def build_personalized_system_prompt(
             schedule = live_student_data.get("schedule", [])
 
             personal_data_str += (
-                f"- Điểm TB tích lũy: GPA (Hệ 10) = {gpa10}, CPA (Hệ 4) = {cpa4} | Xếp loại học lực: {ranking}\n"
-                f"- Tiến độ tín chỉ: Đã tích lũy {acc_credits} / {req_credits} tín chỉ\n"
-                f"- Điểm rèn luyện: {training_point}/100\n"
-                f"- Học phí Học kỳ 1 (2026-2027): Tổng học phí: {total_tuition:,} đ | Đã đóng: {paid_amount:,} đ | Còn nợ: {debt_amount:,} đ\n"
+                f"- Điểm: GPA = {gpa10}/10, CPA = {cpa4}/4.00 | Xếp loại: {ranking} | Điểm rèn luyện: {training_point}/100\n"
+                f"- Tín chỉ: Đã đạt {acc_credits}/{req_credits} TC\n"
+                f"- Học phí: Tổng {total_tuition:,} đ | Đã đóng: {paid_amount:,} đ | Còn nợ: {debt_amount:,} đ\n"
             )
 
             if schedule:
                 schedule_summary = "; ".join([
-                    f"{s.get('day', s.get('dayOfWeek', ''))}: {s.get('course', s.get('courseName', ''))} (Phòng {s.get('room', '')}, Giờ {s.get('time', '')})"
-                    for s in schedule[:4]
+                    f"{s.get('day', s.get('dayOfWeek', ''))}: {s.get('course', s.get('courseName', ''))} (Phòng {s.get('room', '')}, {s.get('time', '')})"
+                    for s in schedule[:3]
                 ])
-                personal_data_str += f"- Lịch học các môn tuần này: {schedule_summary}\n"
+                personal_data_str += f"- Lịch học tuần này: {schedule_summary}\n"
 
             # Bài tập trực tuyến (Elearning UTH) của riêng sinh viên này
             assignments = live_student_data.get("assignments", [])
             if assignments:
                 asms_lines = []
-                for a in assignments:
+                for a in assignments[:4]:
                     stt = a.get("status", "pending")
                     score_info = f", Điểm: {a.get('score')}/10" if a.get("score") is not None else ""
-                    fb_info = f", Nhận xét: '{a.get('feedback')}'" if a.get("feedback") else ""
-                    sub_info = f", Đã nộp: {a.get('submissionDate')}" if a.get("submissionDate") else ""
                     asms_lines.append(
-                        f"  * [{stt.upper()}] Môn {a.get('courseName')} (Mã: {a.get('courseCode')}): '{a.get('title')}' | Hạn nộp: {a.get('deadline')} (Còn {a.get('daysLeft', 0)} ngày){score_info}{sub_info}{fb_info}"
+                        f"  * Môn {a.get('courseName')}: '{a.get('title')}' | Hạn: {a.get('deadline')} (Còn {a.get('daysLeft', 0)} ngày, trạng thái: {stt}){score_info}"
                     )
-                personal_data_str += "- Danh sách bài tập Elearning cá nhân:\n" + "\n".join(asms_lines) + "\n"
+                personal_data_str += "- Bài tập Elearning:\n" + "\n".join(asms_lines) + "\n"
             else:
-                personal_data_str += "- Bài tập Elearning: Hiện tại bạn đã hoàn tất hoặc không có bài tập tồn đọng.\n"
+                personal_data_str += "- Bài tập Elearning: Bạn không có bài tập tồn đọng.\n"
 
         return base_persona + (
-            f"\n[VAI TRÒ: SINH VIÊN {student_name.upper()} (MSSV: {mssv})]:\n"
-            f"- Dữ liệu học tập cá nhân của {student_name}:\n{personal_data_str}\n"
-            f"- Xưng hô tự nhiên ('Chào {student_name}', xưng 'mình' hoặc 'UTH AI').\n"
-            "- CHỈ TRẢ LỜI ĐÚNG NỘI DUNG SINH VIÊN HỎI:\n"
-            "  + Nếu hỏi bài tập / deadline / hạn nộp: Tra cứu ngay danh sách bài tập Elearning cá nhân của sinh viên bên trên. Trả lời rõ tên môn, tên bài tập, hạn chót và số ngày còn lại. Nếu có bài cận hạn <= 3 ngày thì hãy cảnh báo khẩn kèm icon ⏰/✈️ để nhắc bạn nộp ngay. Nếu hỏi riêng về 1 môn cụ thể (như Quản trị mạng, Cloud, AI...), hãy trả lời chính xác bài tập của môn đó. Hướng dẫn sinh viên vào mục 'Đào tạo trực tuyến (Elearning)' trên Cổng sinh viên hoặc bấm vào máy bay thông báo trên màn hình để nộp bài.\n"
-            "  + Nếu hỏi bài đã nộp hoặc điểm bài tập: Nêu rõ bài đã nộp ngày nào, điểm số đạt được và nhận xét của giảng viên.\n"
-            "  + Nếu hỏi điểm: Chỉ trả lời GPA, CPA, điểm rèn luyện và xếp loại (không chép lại bảng quy chế dài dòng).\n"
-            "  + Nếu hỏi học phí: Nêu số tiền nợ/đã đóng và số tài khoản nộp học phí ngắn gọn.\n"
-            "  + Nếu hỏi lịch học: Nêu các môn trong tuần một cách súc tích.\n"
-            "- Giữ độ dài gọn gàng dưới 5 câu, định dạng in đậm rõ ràng, tuyệt đối không dài dòng lê thê."
+            f"\n[DỮ LIỆU SINH VIÊN {student_name.upper()} (MSSV: {mssv})]:\n"
+            f"{personal_data_str}\n"
+            "- NGUYÊN TẮC TRẢ LỜI NGẮN GỌN (Tối đa 1-3 câu):\n"
+            "  + Hỏi bài tập / deadline: Nêu chính xác tên môn, bài tập, hạn nộp và số ngày còn lại trong 1-2 câu.\n"
+            "  + Hỏi điểm: Nêu GPA, CPA, ĐRL và xếp loại trong 1 câu.\n"
+            "  + Hỏi học phí: Nêu số tiền nợ/đã đóng và STK trong 1-2 câu.\n"
+            "  + Hỏi lịch học: Nêu các môn trong tuần trong 2-3 gạch đầu dòng.\n"
+            "- TUYỆT ĐỐI KHÔNG giải thích dài dòng, không dùng lời chúc sáo rỗng."
         )
 
     elif role == "parent":
@@ -455,17 +448,18 @@ def build_personalized_system_prompt(
             debt_amount = live_student_data.get("debtAmount", 0)
 
             personal_data_str += (
-                f"- Kết quả học tập: GPA (10) = {gpa10}, CPA (4) = {cpa4} ({ranking}) | Điểm rèn luyện: {training_point}/100\n"
-                f"- Tiến độ tích lũy: {acc_credits}/{req_credits} tín chỉ\n"
+                f"- Kết quả học tập: GPA = {gpa10}, CPA = {cpa4} ({ranking}) | ĐRL: {training_point}/100 | Tín chỉ: {acc_credits}/{req_credits}\n"
                 f"- Tình trạng học phí: Còn nợ {debt_amount:,} đ\n"
             )
 
         return base_persona + (
-            f"\n[VAI TRÒ: PHỤ HUYNH CỦA SINH VIÊN {student_name.upper()} (MSSV: {mssv})]:\n"
-            f"- Dữ liệu học tập con em:\n{personal_data_str}\n"
-            "- Phong cách: Lịch sự, nhã nhặn ('Kính chào Quý phụ huynh', thưa gửi nhã nhặn).\n"
-            "- Trả lời thẳng vào nội dung phụ huynh cần biết (điểm số, nợ học phí hoặc STK đóng tiền), giữ độ dài súc tích, ngắn gọn, không giải thích lan man."
+            f"\n[DỮ LIỆU CON EM: {student_name.upper()} (MSSV: {mssv})]:\n"
+            f"{personal_data_str}\n"
+            "- Phong cách: Lịch sự, nhã nhặn, cực kỳ ngắn gọn (1-2 câu).\n"
+            "- Trả lời thẳng vào nội dung phụ huynh cần biết (điểm số, nợ học phí hoặc STK nộp tiền)."
         )
+
+    return base_persona
 
     return base_persona
 

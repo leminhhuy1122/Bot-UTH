@@ -47,14 +47,14 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Generate initial welcome message based on user role
+  // Generate initial welcome message based on user role (Ngắn gọn, đúng trọng tâm)
   const getWelcomeMessage = (): ChatMessage => {
     const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     if (isParent) {
       return {
         id: 'msg-welcome-parent',
         sender: 'bot',
-        text: `Xin chào Quý phụ huynh của sinh viên **${student?.name || 'con em'}**! 👋\n\nTôi là **UTH Assistant**, trợ lý ảo đồng hành cùng Quý phụ huynh.\n\nBạn có thể đặt câu hỏi về kết quả học tập, thời khóa biểu, học phí và các thủ tục sinh viên.`,
+        text: `Kính chào Quý phụ huynh! Mình là **UTH Assistant**. Bạn cần tra cứu điểm số, thời khóa biểu hay học phí của sinh viên **${student?.name || 'con em'}**?`,
         timestamp: timeStr,
       };
     }
@@ -63,7 +63,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       return {
         id: 'msg-welcome-guest',
         sender: 'bot',
-        text: `Xin chào quý khách và các bạn học sinh! 👋\n\nTôi là **UTH Assistant**, trợ lý ảo Trường Đại học Giao thông Vận tải TP.HCM.\n\nBạn có thể đặt câu hỏi về thông tin tuyển sinh, ngành đào tạo, học phí và các cơ sở của trường.`,
+        text: `Xin chào bạn! Mình là **UTH Assistant**. Bạn cần tìm hiểu ngành tuyển sinh, cơ sở đào tạo hay mức học phí nào của trường?`,
         timestamp: timeStr,
       };
     }
@@ -71,15 +71,13 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
     const pendingAsms = (student?.assignments || []).filter((a: any) => a.status === 'pending');
     const urgentAsms = pendingAsms.filter((a: any) => (a.daysLeft ?? 99) <= 3);
     const deadlineNote = urgentAsms.length > 0
-      ? `\n\n🚨 **CẢNH BÁO DEADLINE**: Bạn đang có bài tập sắp hết hạn trong 3 ngày tới (*${urgentAsms[0].courseName}: ${urgentAsms[0].title}*). Bạn có thể bấm vào máy bay 3D hoặc hỏi tôi để nộp bài ngay nhé! ✈️`
-      : pendingAsms.length > 0
-      ? `\n\n📚 Bạn đang có **${pendingAsms.length} bài tập** trực tuyến trên Elearning. Hãy hỏi tôi bất cứ lúc nào để kiểm tra tiến độ nộp bài!`
+      ? ` 🚨 *Bài tập môn ${urgentAsms[0].courseName} sắp hết hạn (còn ${urgentAsms[0].daysLeft} ngày).*`
       : '';
 
     return {
       id: 'msg-welcome-student',
       sender: 'bot',
-      text: `Xin chào bạn **${student?.name || 'Nguyễn Văn A'}**! 👋\n\nTôi là **UTH Assistant**, trợ lý ảo đồng hành cùng bạn.${deadlineNote}\n\nBạn có thể hỏi tôi về bài tập, hạn nộp, lịch học, điểm số và học phí của riêng bạn.`,
+      text: `Chào **${student?.name || 'bạn'}**!${deadlineNote} Bạn cần tra cứu điểm GPA, lịch học tuần, bài tập hay học phí?`,
       timestamp: timeStr,
     };
   };

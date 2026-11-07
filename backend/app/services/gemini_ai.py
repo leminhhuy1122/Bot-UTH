@@ -156,7 +156,7 @@ def _build_openai_payload(
     system_instruction: str = "",
     history: Optional[List[Dict[str, str]]] = None,
     stream: bool = False,
-    max_tokens: int = 380
+    max_tokens: int = 220
 ) -> dict:
     """Tạo payload OpenAI chuẩn hóa, súc tích và tiết kiệm token tối đa."""
     messages = []
@@ -173,7 +173,7 @@ def _build_openai_payload(
     return {
         "model": OPENAI_MODEL,
         "messages": messages,
-        "temperature": 0.6,
+        "temperature": 0.3,
         "max_tokens": max_tokens,  # Khống chế chặt chẽ số token sinh ra
         "stream": stream
     }
@@ -189,8 +189,8 @@ async def generate_response(
     prompt: str,
     system_instruction: str = "",
     history: Optional[List[Dict[str, str]]] = None,
-    temperature: float = 0.6,
-    max_tokens: int = 380,
+    temperature: float = 0.3,
+    max_tokens: int = 220,
     role: str = "student"
 ) -> Optional[str]:
     """
@@ -276,8 +276,8 @@ async def generate_stream_response(
     prompt: str,
     system_instruction: str = "",
     history: Optional[List[Dict[str, str]]] = None,
-    temperature: float = 0.6,
-    max_tokens: int = 380,
+    temperature: float = 0.3,
+    max_tokens: int = 220,
     role: str = "student"
 ) -> AsyncGenerator[str, None]:
     """

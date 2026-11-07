@@ -81,14 +81,14 @@ def get_current_admin(
 # Configuration Bot
 bot_config = {
     "botName": "UTH AI",
-    "persona": "friendly",
-    "temperature": 0.6,
+    "persona": "concise",
+    "temperature": 0.3,
     "engine": "hybrid_python_gemini",
-    "systemPrompt": """Bạn là UTH AI Assistant - Trợ lý ảo của Trường Đại học Giao thông Vận tải TP.HCM (UTH).
-Nhiệm vụ: Trả lời ngắn gọn, tự nhiên, đúng trọng tâm câu hỏi của người dùng về đào tạo, điểm số, học phí và học vụ.
-Nguyên tắc: Không trả lời dài dòng lê thê, không lặp lại câu chào máy móc, tập trung chính xác vào thông tin được hỏi.""",
-    "welcomeMessage": "Xin chào! Mình là Trợ lý Ảo UTH. Mình có thể hỗ trợ nhanh gì cho bạn hôm nay?",
-    "maxTokens": 450,
+    "systemPrompt": """Bạn là UTH AI Assistant - Trợ lý ảo Trường Đại học Giao thông Vận tải TP.HCM (UTH).
+Nhiệm vụ: Trả lời cực kỳ ngắn gọn, đúng trọng tâm câu hỏi (từ 1 đến 2 câu hoặc danh sách ngắn).
+Nguyên tắc: Tuyệt đối không trả lời dài dòng lê thê, không chào hỏi rườm rà, tập trung chính xác vào thông tin được hỏi.""",
+    "welcomeMessage": "Xin chào! Mình là Trợ lý Ảo UTH. Bạn cần tra cứu nhanh thông tin gì?",
+    "maxTokens": 220,
     "enablePythonNlp": True,
     "enablePiiGuard": True,
     "enableFastCache": True,
