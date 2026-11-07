@@ -49,7 +49,7 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 select-none font-sans">
 
       {/* ================= CARD 1: KẾT QUẢ HỌC TẬP ================= */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px] sm:h-[390px]">
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
           <h3 className="text-base font-bold text-[#00695c] tracking-tight">
             Kết quả học tập
@@ -123,7 +123,7 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
       </div>
 
       {/* ================= CARD 2: TIẾN ĐỘ HỌC TẬP ================= */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px] sm:h-[390px]">
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
           <h3 className="text-base font-bold text-[#00695c] tracking-tight">
             Tiến độ học tập
@@ -166,7 +166,7 @@ export const AcademicResults: React.FC<AcademicResultsProps> = ({ semesters = []
       </div>
 
       {/* ================= CARD 3: LỚP HỌC PHẦN (ĐÃ LÀM GỌN & ĐẸP) ================= */}
-      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between h-[390px]">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between min-h-[350px] sm:h-[390px]">
         {/* Header: Tiêu đề & Chọn học kỳ */}
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
           <h3 className="text-base font-bold text-[#00695c] tracking-tight">
