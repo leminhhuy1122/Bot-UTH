@@ -752,9 +752,9 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
           role: activeRole,
           mssv: testMssv,
           securityShield: {
-            passed: activeRole !== 'guest' || (!q.toLowerCase().includes('056205008344') && !q.toLowerCase().includes('điểm')),
-            status: (activeRole === 'guest' && (q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) ? 'BLOCKED' : 'SAFE',
-            reason: (activeRole === 'guest' && (q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) 
+            passed: activeRole !== 'guest' || (!q.toLowerCase().includes('082205009017') && !q.toLowerCase().includes('056205008344') && !q.toLowerCase().includes('điểm')),
+            status: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) ? 'BLOCKED' : 'SAFE',
+            reason: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) 
               ? 'Khách vãng lai bị từ chối tra cứu thông tin cá nhân của sinh viên. Đã kích hoạt lá chắn bảo mật PII Guard.' 
               : 'Truy vấn hợp lệ, an toàn và tuân thủ chính sách phân quyền.',
           },

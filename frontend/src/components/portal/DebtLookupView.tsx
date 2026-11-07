@@ -192,7 +192,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
       const otherFees = generateOtherFeesForStudent(activeStudent, semesterName);
       setSearchResult({
         ...activeStudent,
-        name: activeStudent.name || 'Nguyễn Văn A',
+        name: activeStudent.name || 'Nguyễn Đăng Khôi',
         totalTuition: totalTuition,
         debtAmount: totalDebt,
         paidAmount: totalPaid,
@@ -401,7 +401,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
                     </span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 truncate">
-                    {searchResult.name || 'Nguyễn Văn A'}
+                    {searchResult.name || 'Nguyễn Đăng Khôi'}
                   </h3>
                 </div>
 

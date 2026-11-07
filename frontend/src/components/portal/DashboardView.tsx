@@ -1,5 +1,8 @@
 import { CourseRegistrationView } from './CourseRegistrationView';
 import { CurriculumView } from './CurriculumView';
+import { MobileBottomNav } from './MobileBottomNav';
+import { MobileMetricCards2x2 } from './MobileMetricCards2x2';
+import { MobileStudentCompactBar } from './MobileStudentCompactBar';
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Header } from './Header';
 import { StudentInfoCard } from './StudentInfoCard';
@@ -473,7 +476,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <CurriculumView onBackToDashboard={handleBackToDashboard} />
         </main>
       ) : (
-        <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6">
+        <main className="flex-1 max-w-[1440px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 sm:pb-16 space-y-4 sm:space-y-6">
           {/* 3D Airplane Deadline Notification chuẩn ảnh tham chiếu UTH */}
           {mostUrgentAssignment && (
             <AirplaneNotification
@@ -489,8 +492,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <DashboardSkeleton />
           ) : (
             <>
-              {/* Khu vực trên: Thẻ thông tin sinh viên & Lịch tháng */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              {/* === BẢN MOBILE (sm:hidden) - ĐÚNG 100% GIAO DIỆN VÀ DỮ LIỆU GỐC UTH === */}
+              <div className="block sm:hidden space-y-3.5">
+                {/* 1. Thẻ Thông tin sinh viên chuẩn ảnh thực tế UTH */}
+                <StudentInfoCard
+                  student={currentStudent}
+                  onOpenCardModal={() => setIsCardModalOpen(true)}
+                />
+
+                {/* 2. Lưới 4 ô vuông nhỏ (Grid 2x2): Thông báo, Lịch tuần, Điểm CPA, Tín chỉ */}
+                <MobileMetricCards2x2
+                  notificationCount={unreadNotificationCount}
+                  weeklyScheduleCount={weeklyScheduleCount}
+                  cpa={(currentStudent as any)?.cpa4 || (currentStudent as any)?.cpa || 3.56}
+                  passedCredits={(currentStudent as any)?.accumulatedCredits || 52}
+                  totalCredits={(currentStudent as any)?.requiredCredits || 145}
+                  onOpenNotifications={handleOpenNotifications}
+                  onOpenSchedule={handleOpenFullSchedule}
+                  onOpenAcademicResults={() => {
+                    const el = document.getElementById('academic-results-section');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  onOpenCurriculum={handleOpenCurriculum}
+                />
+              </div>
+
+              {/* === BẢN DESKTOP (hidden sm:grid): Thẻ thông tin SV chi tiết & Lịch tháng === */}
+              <div className="hidden sm:grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between">
                   <StudentInfoCard
                     student={currentStudent}
@@ -516,8 +544,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
               </div>
 
-              {/* Lưới 10 dịch vụ sinh viên */}
+              {/* Lưới 10 dịch vụ sinh viên (2 cột trên Mobile, 5 cột trên Desktop) */}
               <section aria-label="Dịch vụ học đường UTH" className="pt-1">
+                <div className="flex items-center justify-between mb-2.5 px-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-4 bg-[#00897b] rounded-full inline-block" />
+                    <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+                      Dịch vụ sinh viên
+                    </h2>
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    10 tiện ích
+                  </span>
+                </div>
                 <ServiceGrid
                   services={serviceItems}
                   onSelectService={handleOpenService}
@@ -525,7 +564,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </section>
 
               {/* Cụm kết quả học tập */}
-              <section aria-label="Kết quả học tập">
+              <section id="academic-results-section" aria-label="Kết quả học tập">
                 <AcademicResults semesters={semesters} />
               </section>
             </>
@@ -568,6 +607,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           />
         </Suspense>
       )}
+      {/* THANH ĐIỀU HƯỚNG ĐÁY CỐ ĐỊNH (FIXED BOTTOM NAVIGATION BAR) - QUY TẮC VÙNG NGÓN CÁI */}
+      <MobileBottomNav
+        activeView={activeView}
+        onNavigate={(view) => {
+          if (view === 'dashboard') {
+            handleBackToDashboard();
+          } else if (view === 'calendar') {
+            handleOpenFullSchedule();
+          } else if (view === 'course-registration') {
+            handleOpenCourseRegistration();
+          } else if (view === 'debt') {
+            handleOpenDebt();
+          } else if (view === 'curriculum') {
+            handleOpenCurriculum();
+          }
+        }}
+        weeklyScheduleCount={weeklyScheduleCount}
+      />
     </div>
   );
 };
