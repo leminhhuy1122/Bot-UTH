@@ -1,3 +1,5 @@
+import { CourseRegistrationView } from './CourseRegistrationView';
+import { CurriculumView } from './CurriculumView';
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Header } from './Header';
 import { StudentInfoCard } from './StudentInfoCard';
@@ -45,13 +47,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [currentStudent, setCurrentStudent] = useState<StudentProfile>(initialStudent);
 
   // Quản lý view hiển thị: 'dashboard' (Trang chủ), 'calendar' (Thời khóa biểu), 'notifications', 'payment', hoặc 'debt' (Tra cứu công nợ)
-  const [activeView, setActiveView] = useState<'dashboard' | 'calendar' | 'notifications' | 'payment' | 'debt' | 'elearning'>(() => {
+  const [activeView, setActiveView] = useState<'dashboard' | 'calendar' | 'notifications' | 'payment' | 'debt' | 'elearning' | 'course-registration' | 'curriculum'>(() => {
     const path = window.location.pathname.toLowerCase();
     if (path === '/notedetail') return 'notifications';
     if (path === '/calendar') return 'calendar';
     if (path === '/payment') return 'payment';
     if (path === '/debt' || path === '/cong-no') return 'debt';
     if (path === '/elearning' || path === '/dao-tao-truc-tuyen') return 'elearning';
+    if (path === '/course-registration' || path === '/register-courses' || path === '/dang-ky-hoc-phan') return 'course-registration';
+    if (path === '/curriculum' || path === '/chuong-trinh-khung') return 'curriculum';
     return 'dashboard';
   });
 
@@ -137,6 +141,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         setActiveView('payment');
       } else if (path === '/elearning' || path === '/dao-tao-truc-tuyen') {
         setActiveView('elearning');
+      } else if (path === '/course-registration' || path === '/register-courses' || path === '/dang-ky-hoc-phan') {
+        setActiveView('course-registration');
+      } else if (path === '/curriculum' || path === '/chuong-trinh-khung') {
+        setActiveView('curriculum');
       } else {
         setActiveView('dashboard');
       }
@@ -212,6 +220,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     window.history.pushState(null, '', '/elearning');
   }, []);
 
+  // Mở trang Đăng ký học phần chuẩn dữ liệu gốc UTH
+  const handleOpenCourseRegistration = useCallback(() => {
+    setActiveView('course-registration');
+    window.history.pushState(null, '', '/course-registration');
+  }, []);
+
+  // Mở trang Chương trình khung chuẩn dữ liệu gốc UTH
+  const handleOpenCurriculum = useCallback(() => {
+    setActiveView('curriculum');
+    window.history.pushState(null, '', '/curriculum');
+  }, []);
+
   // Mở trang thời khóa biểu toàn màn hình khi chọn ngày trên lịch tháng
   const handleOpenScheduleForDate = useCallback((date: string) => {
     setSelectedFilterDate(date);
@@ -245,6 +265,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       handleOpenPayment();
     };
 
+    const handleOpenCourseRegistrationView = () => {
+      handleOpenCourseRegistration();
+    };
+
+    const handleOpenCurriculumView = () => {
+      handleOpenCurriculum();
+    };
+
     const handleOpenDebtView = () => {
       handleOpenDebt();
     };
@@ -269,6 +297,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     window.addEventListener('uth:open-elearning', handleOpenElearningView);
     window.addEventListener('uth:open-payment', handleOpenPaymentView);
     window.addEventListener('uth:open-debt', handleOpenDebtView);
+    window.addEventListener('uth:open-course-registration', handleOpenCourseRegistrationView);
+    window.addEventListener('uth:open-curriculum', handleOpenCurriculumView);
     window.addEventListener('uth:open-student-card', handleOpenCardModal);
     window.addEventListener('uth:open-service', handleOpenServiceModal);
 
@@ -278,10 +308,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       window.removeEventListener('uth:open-elearning', handleOpenElearningView);
       window.removeEventListener('uth:open-payment', handleOpenPaymentView);
       window.removeEventListener('uth:open-debt', handleOpenDebtView);
+      window.removeEventListener('uth:open-course-registration', handleOpenCourseRegistrationView);
+      window.removeEventListener('uth:open-curriculum', handleOpenCurriculumView);
       window.removeEventListener('uth:open-student-card', handleOpenCardModal);
       window.removeEventListener('uth:open-service', handleOpenServiceModal);
     };
-  }, [handleOpenFullSchedule, handleOpenElearning, handleOpenPayment, handleOpenDebt, selectedService]);
+  }, [handleOpenFullSchedule, handleOpenElearning, handleOpenPayment, handleOpenDebt, handleOpenCourseRegistration, handleOpenCurriculum, selectedService]);
 
   // Tính toán chính xác số lượng lịch học trong tuần theo dữ liệu gốc của từng sinh viên
   const weeklyScheduleCount = useMemo(() => {
@@ -324,6 +356,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
     if (service.id === 'srv-4' || service.title.toLowerCase().includes('thanh toán')) {
       handleOpenPayment();
+      return;
+    }
+    if (service.id === 'srv-6' || service.title.toLowerCase().includes('chương trình khung') || service.title.toLowerCase().includes('chương trình đào tạo')) {
+      handleOpenCurriculum();
+      return;
+    }
+    if (service.id === 'srv-7' || service.title.toLowerCase().includes('đăng ký học phần') || service.title.toLowerCase().includes('đăng ký môn học')) {
+      handleOpenCourseRegistration();
       return;
     }
     if (service.id === 'srv-9' || service.title.toLowerCase().includes('công nợ')) {
@@ -369,6 +409,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onOpenNotifications={handleOpenNotifications}
         onOpenPayment={handleOpenPayment}
         onOpenDebt={handleOpenDebt}
+        onOpenCourseRegistration={handleOpenCourseRegistration}
+        onOpenCurriculum={handleOpenCurriculum}
         notifications={notifications}
         unreadNotificationCount={unreadNotificationCount}
         onMarkAllNotificationsRead={handleMarkAllNotificationsRead}
@@ -418,6 +460,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onOpenBotWithQuery={handleOpenBotWithQuery}
             />
           </Suspense>
+        </main>
+      ) : activeView === 'course-registration' ? (
+        <main className="flex-1 w-full">
+          <CourseRegistrationView
+            onBackToDashboard={handleBackToDashboard}
+            studentName={currentStudent?.fullName || currentStudent?.name}
+          />
+        </main>
+      ) : activeView === 'curriculum' ? (
+        <main className="flex-1 w-full">
+          <CurriculumView onBackToDashboard={handleBackToDashboard} />
         </main>
       ) : (
         <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6">

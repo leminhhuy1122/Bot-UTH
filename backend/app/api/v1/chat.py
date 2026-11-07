@@ -299,9 +299,13 @@ def get_guest_fallback_answer(query: str, matched_kb: list) -> str:
         )
 
     return (
-        "Xin chào quý khách! Tôi là UTH Virtual Assistant — Trợ lý ảo hỗ trợ thông tin Trường ĐH Giao thông Vận tải TP.HCM. "
-        "Tôi có thể giải đáp thông tin tuyển sinh, ngành học, cơ sở đào tạo, biểu phí và quy định chung của nhà trường.\n\n"
-        "*(Để tra cứu thông tin cá nhân như thời khóa biểu, điểm số, học phí của sinh viên, vui lòng đăng nhập tài khoản sinh viên hoặc vào mục Tra cứu Phụ huynh).*"
+        "Xin chào quý khách! Tôi là UTH Virtual Assistant — Trợ lý ảo hỗ trợ thông tin Trường ĐH Giao thông Vận tải TP.HCM.\n\n"
+        "Hiện tại câu hỏi này chưa có sẵn trong cơ sở dữ liệu giải đáp tự động của UTH AI. "
+        "Để được hỗ trợ chi tiết và chính xác nhất, quý khách vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
+        "- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        "- 📞 **Tổng đài Nhà trường & Tư vấn tuyển sinh**: **(028) 3899 2862**\n"
+        "- 📧 **Email tiếp nhận thông tin**: `uth@ut.edu.vn`\n\n"
+        "👉 Quý khách có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
     )
 
 def get_student_fallback_answer(
@@ -630,6 +634,40 @@ def get_student_fallback_answer(
                 reg_lines = "\n".join([f"- {c}" for c in registered[:4]])
                 return f"Chào {name}, các môn học bạn đang theo học kỳ này:\n{reg_lines}"
 
+        # 5. Xử lý Bảo hiểm y tế (BHYT) & Bảo hiểm tai nạn
+        if classified_intent == 'INSURANCE' or any(k in lower for k in ['bảo hiểm', 'bhyt', 'vssid']):
+            if matched_kb:
+                for item in matched_kb:
+                    if 'bhyt' in item.get('id', '').lower() or 'bảo hiểm' in item.get('question', '').lower() or '84' in item.get('id', ''):
+                        return item.get('answer', '')
+            return (
+                f"Chào bạn {name}! Về việc tham gia và nộp tiền **Bảo hiểm y tế (BHYT)** sinh viên UTH:\n\n"
+                f"1. 📅 **Thời gian nộp định kỳ**: Thu vào đầu mỗi năm học (tháng 9 - tháng 10) cùng đợt học phí Học kỳ 1 hoặc theo thông báo riêng của Nhà trường.\n"
+                f"2. 💳 **Kênh nộp tiền**: Nộp trực tuyến qua Cổng thanh toán học phí [payment.ut.edu.vn](https://payment.ut.edu.vn) hoặc chuyển khoản theo cú pháp thông báo.\n"
+                f"3. 📱 **Tra cứu thẻ BHYT**: Sinh viên cài đặt ứng dụng **VssID** để tra cứu mã số và xuất trình thẻ BHYT điện tử khi khám chữa bệnh.\n\n"
+                f"👉 Mọi thắc mắc thêm bạn vui lòng liên hệ **Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1 - ĐT: 028 3512 0783)** để được giải quyết nhé!"
+            )
+
+        # 6. Xử lý Đăng ký học phần (Course Registration)
+        if classified_intent in ['REGISTRATION', 'COURSE_REGISTRATION'] or any(k in lower for k in ['đăng ký học phần', 'dkhp', 'đăng ký môn học', 'mở đăng ký môn', 'đăng ký môn']):
+            return (
+                f"Chào bạn {name}! Về nghiệp vụ **Đăng ký học phần** tại Trường ĐH Giao thông Vận tải TP.HCM (UTH):\n\n"
+                f"1. 🗓️ **Thời gian mở cổng**: Theo kế hoạch đăng ký học phần từng học kỳ do Phòng Đào tạo công bố (chia theo từng khóa/khoa).\n"
+                f"2. 💻 **Thao tác đăng ký**: Bạn có thể tra cứu lớp học phần, số tín chỉ, giảng viên và bấm đăng ký trực tiếp ngay trên Cổng sinh viên.\n"
+                f"3. ⚠️ **Lưu ý tín chỉ**: Đăng ký tối thiểu 14 tín chỉ (đối với sinh viên học lực bình thường) và đối soát điều kiện môn tiên quyết trước khi đăng ký.\n\n"
+                f"👉 Bạn hãy bấm nút **'Mở Đăng ký học phần'** bên dưới để vào hệ thống đăng ký ngay nhé! 📝"
+            )
+
+        # 7. Xử lý Chương trình khung (Curriculum)
+        if classified_intent == 'CURRICULUM' or any(k in lower for k in ['chương trình khung', 'ctk', 'chương trình đào tạo', 'khung đào tạo']):
+            return (
+                f"Chào bạn {name}! Về **Chương trình khung đào tạo** ngành {student_data.get('major', 'của bạn')}:\n\n"
+                f"1. 📚 **Tổng khối lượng đào tạo**: Yêu cầu tích lũy tối thiểu **{req:.0f} tín chỉ** (hiện bạn đã hoàn thành **{acc:.0f} TC**, còn thiếu **{rem:.0f} TC**).\n"
+                f"2. 🗂️ **Cấu trúc chương trình**: Bao gồm Khối kiến thức Đại cương, Cơ sở ngành, Chuyên ngành bắt buộc, Tự chọn và Đồ án tốt nghiệp.\n"
+                f"3. 🔍 **Tra cứu chi tiết**: Bạn có thể xem lộ trình chuẩn từng học kỳ, học phần tiên quyết và mã môn học chuẩn.\n\n"
+                f"👉 Bạn hãy bấm nút **'Mở Chương trình khung'** bên dưới để xem chi tiết cây môn học của ngành mình nhé! 📚"
+            )
+
     # Chỉ trả về câu trả lời FAQ nếu câu hỏi thực sự phù hợp ngữ nghĩa
     if matched_kb:
         first_ans = matched_kb[0].get("answer", "")
@@ -643,9 +681,25 @@ def get_student_fallback_answer(
                 )
         return first_ans
 
+    # Gợi ý kênh hỗ trợ chính thức và phòng ban chuyên trách tương ứng
+    dept_hint = ""
+    if any(w in lower for w in ['bảo hiểm', 'bhyt', 'học bổng', 'chính sách', 'kỷ luật', 'rèn luyện', 'miễn giảm', 'vay vốn']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1)** | ĐT: **(028) 3512 0783** | Fanpage: [Thông tin sinh viên UTH](https://web.facebook.com/ThongtinsinhvienUTH)"
+    elif any(w in lower for w in ['học vụ', 'đăng ký môn', 'lịch thi', 'tốt nghiệp', 'bảng điểm', 'chứng chỉ', 'điểm chuẩn', 'hoãn thi']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Đào tạo (Phòng A-102, Cơ sở 1)** | ĐT: **(028) 3512 7440**"
+    elif any(w in lower for w in ['hóa đơn', 'học phí', 'hoàn tiền', 'kế toán', 'ngân hàng']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Phòng Kế hoạch - Tài chính (Phòng A-103, Cơ sở 1)**"
+    elif any(w in lower for w in ['ký túc xá', 'ktx', 'nội trú']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Ban Quản lý Ký túc xá UTH (Cơ sở 2 & Cơ sở 3)**"
+    elif any(w in lower for w in ['thư viện', 'mượn sách', 'tài liệu']):
+        dept_hint = "\n- 🏛️ **Phòng ban chuyên trách**: **Trung tâm Thông tin - Thư viện (LIC, Tòa nhà B, Cơ sở 1)**"
+
     return (
-        f"Chào bạn {student_name}! Mình là UTH AI Assistant. "
-        f"Mình luôn sẵn sàng giải đáp chi tiết về điểm số, công nợ học phí, lịch học và tiến độ đào tạo của riêng bạn."
+        f"Chào bạn {student_name}! Hiện tại câu hỏi này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
+        f"Để được hỗ trợ giải quyết nhanh chóng và chính xác nhất cho trường hợp của bạn, bạn vui lòng gửi yêu cầu hỗ trợ trực tiếp đến Nhà trường nhé:\n"
+        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        f"- 📞 **Tổng đài Nhà trường**: **(028) 3899 2862**{dept_hint}\n\n"
+        f"👉 Bạn có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để chuyển tiếp câu hỏi ngay nhé!"
     )
 
 def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, student_data: Optional[Dict[str, Any]] = None) -> str:
@@ -697,8 +751,13 @@ def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, 
         return first_ans
 
     return (
-        f"Kính chào Quý phụ huynh của sinh viên {student_name}! Tôi là Trợ lý ảo tư vấn hỗ trợ Phụ huynh UTH. "
-        "Tôi luôn sẵn sàng giải đáp về tình hình học tập, công nợ học phí và thời khóa biểu của cháu."
+        f"Kính chào Quý phụ huynh! Hiện tại nội dung này chưa có trong cơ sở dữ liệu giải đáp tự động của UTH AI.\n\n"
+        f"Để được hỗ trợ chi tiết về tình hình học tập và các thủ tục của con em, Quý phụ huynh vui lòng liên hệ qua các kênh chính thức của Nhà trường:\n"
+        f"- 🌐 **Cổng hỗ trợ trực tuyến UTH**: [support.ut.edu.vn](https://support.ut.edu.vn)\n"
+        f"- 📞 **Tổng đài tiếp nhận UTH**: **(028) 3899 2862**\n"
+        f"- 🏛️ **Phòng Công tác Sinh viên**: (028) 3512 0783\n"
+        f"- 🏛️ **Phòng Đào tạo**: (028) 3512 7440\n\n"
+        f"👉 Quý phụ huynh có thể bấm nút **'Gửi yêu cầu hỗ trợ (support.ut.edu.vn)'** bên dưới để gửi yêu cầu hỗ trợ trực tiếp!"
     )
 
 def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
@@ -711,8 +770,8 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
 
     # BẢO VỆ CHỐNG NHẦM LẪN: Tuyệt đối không sinh Action Card nếu người dùng hỏi năng lực bot hoặc câu hỏi What-if
     suppress_keywords = [
-        'bạn có thể làm những gì', 'bạn làm được gì', 'chức năng', 'giúp được gì',
-        'hướng dẫn', 'nếu môn', 'kéo điểm', 'tụt điểm', 'giả sử', 'mô phỏng'
+        'bạn có thể làm những gì', 'bạn làm được gì', 'chức năng của bot', 'giúp được gì cho tôi',
+        'hướng dẫn sử dụng bot', 'hướng dẫn dùng bot', 'nếu môn', 'kéo điểm', 'tụt điểm', 'giả sử', 'mô phỏng'
     ]
     if any(k in lower_q for k in suppress_keywords):
         return None
@@ -730,7 +789,7 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
 
     # 2. Hành động mở Bài tập Elearning / Nộp bài
     if any(k in lower_q for k in ['bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'cái nào cần nộp', 'sớm nhất', 'gấp nhất', 'tiểu luận', 'lab', 'mở bài tập', 'mở elearning', 'bài nào', 'nộp gấp', 'nộp bài ở đâu']):
-        if not any(k in lower_q for k in ['học phí', 'công nợ', 'tiền học', 'tiền cần nộp', 'số tiền']):
+        if not any(k in lower_q for k in ['học phí', 'công nợ', 'tiền học', 'tiền cần nộp', 'số tiền', 'bảo hiểm', 'bhyt', 'học phần', 'chương trình khung', 'ctk']):
             return {
                 'type': 'OPEN_VIEW',
                 'target': 'elearning',
@@ -767,6 +826,46 @@ def resolve_response_action(query: str, reply: str) -> Optional[Dict[str, Any]]:
             'label': '📋 Mở Cổng dịch vụ một cửa UTH',
             'icon': 'FileText',
             'description': 'Đăng ký giấy tờ xác nhận và thủ tục học vụ'
+        }
+
+    # 5.1 Hành động mở Đăng ký học phần (Course Registration)
+    if any(k in lower_q for k in ['đăng ký học phần', 'dkhp', 'đăng ký môn', 'mở đăng ký môn', 'mở dkhp', 'hướng dẫn đăng ký học phần']):
+        return {
+            'type': 'OPEN_VIEW',
+            'target': 'course-registration',
+            'label': '📝 Mở Đăng ký học phần',
+            'icon': 'BookOpen',
+            'description': 'Đăng ký học phần và chọn lớp tín chỉ theo học kỳ'
+        }
+
+    # 5.2 Hành động mở Chương trình khung (Curriculum)
+    if any(k in lower_q for k in ['chương trình khung', 'ctk', 'chương trình đào tạo', 'ctdt', 'khung đào tạo']):
+        return {
+            'type': 'OPEN_VIEW',
+            'target': 'curriculum',
+            'label': '📚 Mở Chương trình khung',
+            'icon': 'BookOpen',
+            'description': 'Tra cứu chương trình khung và tiến độ tích lũy học phần'
+        }
+
+    # 5.3 Hành động nộp tiền Bảo hiểm y tế (BHYT)
+    if any(k in lower_q for k in ['bảo hiểm y tế', 'bhyt', 'nộp bhyt', 'đóng bhyt', 'tiền bảo hiểm', 'bảo hiểm']):
+        return {
+            'type': 'OPEN_VIEW',
+            'target': 'payment',
+            'label': '💳 Cổng thanh toán BHYT & Học phí',
+            'icon': 'CreditCard',
+            'description': 'Nộp tiền BHYT trực tuyến qua Cổng thanh toán UTH'
+        }
+
+    # 6. Hành động mở Cổng hỗ trợ trực tuyến UTH (Khi câu hỏi ngoài phạm vi dữ liệu)
+    if any(k in lower_r for k in ['support.ut.edu.vn', 'chưa có trong cơ sở dữ liệu', 'gửi yêu cầu hỗ trợ', 'cổng hỗ trợ trực tuyến']):
+        return {
+            'type': 'OPEN_LINK',
+            'target': 'https://support.ut.edu.vn',
+            'label': '🌐 Gửi yêu cầu hỗ trợ (support.ut.edu.vn)',
+            'icon': 'ExternalLink',
+            'description': 'Mở cổng hỗ trợ trực tuyến UTH để gửi yêu cầu đến phòng ban'
         }
 
     return None
@@ -925,7 +1024,7 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
     # Thuật toán Định tuyến siêu tốc (Fast In-Memory Personal Query Routing < 20ms)
     lower_q = sanitized_query.lower()
     is_personal_data_query = (live_student_data is not None) and (
-        intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES'] or
+        intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES', 'INSURANCE', 'REGISTRATION', 'COURSE_REGISTRATION', 'CURRICULUM'] or
         any(
             k in lower_q for k in [
                 'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
@@ -935,7 +1034,7 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
                 'tiền cần nộp', 'số tiền cần nộp', 'tình trạng công nợ',
                 'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
                 'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
-                'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
+                'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra', 'bảo hiểm', 'bhyt', 'vssid', 'đăng ký học phần', 'dkhp', 'chương trình khung', 'ctk', 'chương trình đào tạo'
             ]
         )
     )
@@ -1150,7 +1249,7 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
         # THUẬT TOÁN ĐỊNH TUYẾN SIÊU TỐC: Nếu là tra cứu dữ liệu cá nhân sinh viên/phụ huynh -> Stream tức thì (< 20ms)
         lower_q = sanitized_query.lower()
         is_personal_data_query = (user_role in ["student", "parent"]) and (live_student_data is not None) and (
-            intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES'] or
+            intent in ['ASSIGNMENTS', 'SCHEDULE', 'TUITION', 'GPA', 'WHAT_IF_SIMULATION', 'BOT_CAPABILITIES', 'INSURANCE', 'REGISTRATION', 'COURSE_REGISTRATION', 'CURRICULUM'] or
             any(
                 k in lower_q for k in [
                     'bài tập', 'deadline', 'hạn nộp', 'elearning', 'nộp bài', 'chấm điểm', 'tiểu luận', 'đồ án', 'lab', 'đã nộp', 'điểm bài',
@@ -1160,7 +1259,7 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
                     'tiền cần nộp', 'số tiền cần nộp', 'tình trạng công nợ',
                     'bảng điểm', 'điểm gpa', 'điểm cpa', 'điểm rèn luyện', 'kết quả học tập', 'điểm hiện tại', 'điểm của tôi',
                     'học sinh giỏi', 'sinh viên giỏi', 'loại giỏi', 'loại xuất sắc', 'xếp loại giỏi', 'điều kiện giỏi', 'học bổng',
-                    'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra'
+                    'tín chỉ tích lũy', 'xét tốt nghiệp', 'chuẩn đầu ra', 'bảo hiểm', 'bhyt', 'vssid', 'đăng ký học phần', 'dkhp', 'chương trình khung', 'ctk', 'chương trình đào tạo'
                 ]
             )
         )

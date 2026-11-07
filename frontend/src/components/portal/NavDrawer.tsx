@@ -22,6 +22,8 @@ interface NavDrawerProps {
   onOpenNotifications?: () => void;
   onOpenPayment?: () => void;
   onOpenDebt?: () => void;
+  onOpenCourseRegistration?: () => void;
+  onOpenCurriculum?: () => void;
 }
 
 export const NavDrawer: React.FC<NavDrawerProps> = ({
@@ -32,6 +34,8 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
   onOpenNotifications,
   onOpenPayment,
   onOpenDebt,
+  onOpenCourseRegistration,
+  onOpenCurriculum,
   onOpenCardModal,
 }) => {
   // Quản lý đóng/mở menu con nếu người dùng bấm vào
@@ -109,8 +113,26 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({
                   Thời khóa biểu tuần
                 </button>
                 <div className="py-1.5 hover:text-teal-700 cursor-pointer">Lịch thi học kỳ</div>
-                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Chương trình đào tạo</div>
-                <div className="py-1.5 hover:text-teal-700 cursor-pointer">Đăng ký môn học</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenCurriculum?.();
+                  }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors block cursor-pointer"
+                >
+                  Chương trình đào tạo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenCourseRegistration?.();
+                  }}
+                  className="w-full text-left py-1.5 hover:text-teal-700 transition-colors block cursor-pointer"
+                >
+                  Đăng ký môn học
+                </button>
               </div>
             )}
           </div>

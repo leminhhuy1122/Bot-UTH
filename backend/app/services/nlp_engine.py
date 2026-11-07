@@ -69,11 +69,7 @@ def classify_intent(query: str) -> tuple[str, float]:
             ('han nop hoc phi', 5.0), ('han dong hoc phi', 5.0), ('tinh trang cong no', 5.5),
             ('cong no hoc phi', 5.5), ('con no', 4.0), ('no hoc phi', 4.5)
         ],
-        'REGISTRATION': [
-            ('dang ky', 2.5), ('hoc phan', 2.5), ('tin chi', 2.5),
-            ('mo lop', 2.0), ('rut mon', 2.0), ('hoc lai', 2.0),
-            ('cai thien', 2.0), ('tien quyet', 2.0)
-        ],
+
         'CAMPUS': [
             ('co so', 3.0), ('dia chi', 2.5), ('vo oanh', 3.0),
             ('binh thanh', 2.5), ('thu duc', 2.5), ('truong van hai', 3.0),
@@ -118,6 +114,26 @@ def classify_intent(query: str) -> tuple[str, float]:
             ('trang chu', 3.5), ('payment ut edu', 4.0), ('lic ut edu', 4.0),
             ('hocbong ut edu', 4.0), ('daotao ut edu', 4.0), ('tuyensinh ut edu', 4.0),
             ('iec ut edu', 4.0), ('link thanh toan', 4.0), ('link hoc bong', 4.0)
+        ],
+        'INSURANCE': [
+            ('bao hiem y te', 5.0), ('bhyt', 5.0), ('bao hiem', 3.5),
+            ('nop bhyt', 5.0), ('dong bhyt', 5.0), ('tien bhyt', 4.5),
+            ('bao hiem tai nan', 4.5), ('bhtn', 4.5), ('the bhyt', 4.0),
+            ('vssid', 4.5), ('kham chua benh', 3.5), ('han nop bhyt', 5.0),
+            ('nop bao hiem', 5.0), ('dong bao hiem', 5.0), ('tien bao hiem', 4.5)
+        ],
+        'COURSE_REGISTRATION': [
+            ('dang ky hoc phan', 5.0), ('dkhp', 5.0), ('dang ky mon', 4.5),
+            ('dang ky mon hoc', 5.0), ('huy mon', 3.5), ('rut hoc phan', 4.0),
+            ('mo lop', 3.0), ('rut mon', 3.5), ('hoc lai', 3.0),
+            ('cai thien', 3.0), ('tien quyet', 3.0), ('lop hoc phan', 3.5),
+            ('lich dang ky', 4.0), ('mo cong dang ky', 4.5)
+        ],
+        'CURRICULUM': [
+            ('chuong trinh khung', 5.0), ('ctk', 4.5), ('chuong trinh dao tao', 5.0),
+            ('ctdt', 4.5), ('khung dao tao', 4.5), ('ke hoach hoc tap', 3.5),
+            ('cac mon trong nganh', 4.0), ('mon bat buoc', 3.5), ('mon tu chon', 3.5),
+            ('tong so tin chi nganh', 4.0), ('khung nganh', 4.0)
         ]
     }
 
@@ -126,6 +142,14 @@ def classify_intent(query: str) -> tuple[str, float]:
         for pat, weight in patterns:
             if pat in q_norm:
                 scores[intent] += weight
+
+    # Cross-Intent Disambiguation: Giải quyết xung đột giữa TUITION và INSURANCE (BHYT)
+    if scores.get('INSURANCE', 0) > 0 and scores.get('TUITION', 0) > 0:
+        insurance_indicators = ['bao hiem', 'bhyt', 'bhtn', 'vssid', 'the bao hiem']
+        has_insurance = any(k in q_norm for k in insurance_indicators)
+        if has_insurance:
+            scores['INSURANCE'] += 8.0
+            scores['TUITION'] = max(0.0, scores['TUITION'] - 5.0)
 
     # Cross-Intent Disambiguation: Giải quyết triệt để xung đột chéo giữa TUITION và ASSIGNMENTS
     if scores['ASSIGNMENTS'] > 0 and scores['TUITION'] > 0:
@@ -480,6 +504,18 @@ def resolve_conversation_intent(query: str, history: Optional[list] = None) -> t
             # Kiểm tra chủ đề bài tập
             if any(k in text_norm for k in ['bai tap', 'deadline', 'han nop', 'elearning', 'tieu luan', 'do an', 'lab']):
                 active_topic = 'ASSIGNMENTS'
+                break
+            # Kiểm tra chủ đề bảo hiểm y tế
+            if any(k in text_norm for k in ['bao hiem', 'bhyt', 'vssid']):
+                active_topic = 'INSURANCE'
+                break
+            # Kiểm tra chủ đề đăng ký học phần
+            if any(k in text_norm for k in ['dang ky hoc phan', 'dkhp', 'dang ky mon']):
+                active_topic = 'COURSE_REGISTRATION'
+                break
+            # Kiểm tra chủ đề chương trình khung
+            if any(k in text_norm for k in ['chuong trinh khung', 'ctk', 'chuong trinh dao tao']):
+                active_topic = 'CURRICULUM'
                 break
             # Kiểm tra chủ đề học phí
             if any(k in text_norm for k in ['hoc phi', 'cong no', 'dong tien', 'ngan hang', 'stk', 'so tai khoan']):

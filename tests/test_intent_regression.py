@@ -198,6 +198,38 @@ TEST_CASES = [
         "must_contain": ["công nợ", "VNĐ"],
         "must_not_contain": ["Elearning", "Super-T"],
         "expected_action": "payment"
+    },
+    {
+        "id": 21,
+        "query": "tôi muốn hỏi về bảo hiểm y tế nộp tiền khi nào",
+        "expected_intent": "INSURANCE",
+        "must_contain": ["Bảo hiểm y tế", "Phòng Công tác Sinh viên"],
+        "must_not_contain": ["Super-T", "bài tập", "mình luôn sẵn sàng giải đáp"],
+        "expected_action": "payment"
+    },
+    {
+        "id": 22,
+        "query": "Hạn nộp BHYT là khi nào?",
+        "expected_intent": "INSURANCE",
+        "must_contain": ["BHYT"],
+        "must_not_contain": ["Elearning", "bài tập"],
+        "expected_action": "payment"
+    },
+    {
+        "id": 23,
+        "query": "Hướng dẫn đăng ký học phần",
+        "expected_intent": "COURSE_REGISTRATION",
+        "must_contain": ["Đăng ký học phần", "Phòng Đào tạo"],
+        "must_not_contain": ["Vietcombank", "0071000078912"],
+        "expected_action": "course-registration"
+    },
+    {
+        "id": 24,
+        "query": "Xem chương trình khung ngành này",
+        "expected_intent": "CURRICULUM",
+        "must_contain": ["Chương trình khung", "tín chỉ"],
+        "must_not_contain": ["Elearning", "Super-T"],
+        "expected_action": "curriculum"
     }
 ]
 

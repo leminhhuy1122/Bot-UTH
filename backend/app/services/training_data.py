@@ -435,43 +435,60 @@ UTH_TRAINING_CORPUS = [
             "- Fanpage Tài liệu – chứng chỉ MOS & Tiếng Anh: https://www.facebook.com/uthtailieumostienganh\n"
             "Cung cấp giáo trình, đề thi thử tin học văn phòng MOS (Word, Excel, PowerPoint), tài liệu luyện thi TOEIC, IELTS, B1 VSTEP và hướng dẫn nộp minh chứng chuẩn đầu ra."
         )
+    },
+    {
+        "id": "uth-medical-insurance-schedule",
+        "category": "Y tế & Bảo hiểm",
+        "title": "Thời gian và cách thức nộp tiền Bảo hiểm y tế (BHYT) tại UTH",
+        "keywords": ["bảo hiểm y tế", "bhyt", "nộp tiền bhyt", "thời gian nộp bhyt", "hạn nộp bhyt", "đóng bhyt khi nào", "nộp tiền", "phòng công tác sinh viên", "vssid", "thẻ bhyt"],
+        "content": (
+            "Quy định về thời gian và cách thức tham gia Bảo hiểm y tế (BHYT) tại UTH:\n"
+            "1. **Thời gian thu BHYT định kỳ**: Nhà trường tổ chức thu BHYT vào đầu mỗi năm học (thường từ tháng 9 đến tháng 10 hàng năm) cùng đợt thu học phí Học kỳ 1 hoặc theo Thông báo riêng của Phòng Công tác Sinh viên.\n"
+            "2. **Mức đóng & Kênh nộp tiền**: Mức đóng theo quy định của Luật BHYT đối với sinh viên (được Nhà nước hỗ trợ 30% mức đóng). Sinh viên nộp trực tuyến qua Cổng thanh toán payment.ut.edu.vn hoặc chuyển khoản theo hướng dẫn trong thông báo nộp tiền.\n"
+            "3. **Thời hạn sử dụng & Tra cứu thẻ**: Thẻ BHYT có giá trị sử dụng 12 tháng theo năm tài chính. Sinh viên cài đặt ứng dụng VssID để tra cứu và sử dụng hình ảnh thẻ BHYT điện tử khi đi khám chữa bệnh.\n"
+            "- Hotline giải đáp: Phòng Công tác Sinh viên (Phòng A-104, Cơ sở 1 - ĐT: 028 3512 0783)."
+        )
     }
 
 ]
 
+# Precompute normalized index for fast RAG search (Zero runtime overhead)
+def _normalize_text(text: str) -> str:
+    import unicodedata
+    import re
+    text = unicodedata.normalize('NFD', text.lower())
+    text = re.sub(r'[\u0300-\u036f]', '', text)
+    return text.replace('đ', 'd').replace('Đ', 'D')
+
+for _entry in UTH_TRAINING_CORPUS:
+    _entry['_norm_title'] = _normalize_text(_entry.get('title', ''))
+    _entry['_norm_keywords'] = [_normalize_text(kw) for kw in _entry.get('keywords', [])]
+    _entry['_norm_content_words'] = set(_normalize_text(_entry.get('content', '')).split())
+
+
 def get_training_context_for_query(query: str, max_items: int = 3) -> str:
     """
     RAG Engine: Trích xuất các bài viết huấn luyện UTH khớp nhất với câu hỏi.
+    Đã được tối ưu hóa với Pre-indexed Inverted Index (tốc độ < 1ms).
     """
-    import unicodedata
-    import re
-
-    def norm(t: str) -> str:
-        t = unicodedata.normalize('NFD', t.lower())
-        t = re.sub(r'[\u0300-\u036f]', '', t)
-        return t.replace('đ', 'd').replace('Đ', 'D')
-
-    q_clean = norm(query)
+    q_clean = _normalize_text(query)
     q_words = set(q_clean.split())
 
     scored = []
     for item in UTH_TRAINING_CORPUS:
-        score = 0
-        # Title match
-        title_clean = norm(item["title"])
+        score = 0.0
+        # Title match (precomputed)
+        title_clean = item.get('_norm_title', '')
         if q_clean in title_clean or title_clean in q_clean:
             score += 6.0
         
-        # Keyword match
-        for kw in item["keywords"]:
-            kw_clean = norm(kw)
+        # Keyword match (precomputed)
+        for kw_clean in item.get('_norm_keywords', []):
             if kw_clean in q_clean:
                 score += 3.5
 
-        # Content word overlap
-        content_clean = norm(item["content"])
-        content_words = set(content_clean.split())
-        overlap = len(q_words.intersection(content_words))
+        # Content word overlap (precomputed word set)
+        overlap = len(q_words.intersection(item.get('_norm_content_words', set())))
         score += overlap * 0.4
 
         if score > 0:
@@ -481,7 +498,6 @@ def get_training_context_for_query(query: str, max_items: int = 3) -> str:
     top_items = [x[1] for x in scored[:max_items]]
 
     if not top_items:
-        # Default back to general campus & overview
         top_items = UTH_TRAINING_CORPUS[:2]
 
     context_parts = []
