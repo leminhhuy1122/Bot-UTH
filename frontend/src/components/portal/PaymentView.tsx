@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { StudentProfile } from '../../types/uth';
 import studentsData from '../../data/students_seed.json';
+import { apiUrl } from '../../config/apiConfig';
 
 interface PaymentViewProps {
   currentStudent?: StudentProfile;
@@ -32,6 +33,7 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
   const [searchResult, setSearchResult] = useState<any | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Tab phương thức thanh toán khi nợ học phí
   const [paymentMethod, setPaymentMethod] = useState<'vnpay' | 'momo' | 'bank' | 'napas'>('vnpay');
@@ -42,6 +44,7 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
   const [admissionIdInput, setAdmissionIdInput] = useState('');
   const [admissionResult, setAdmissionResult] = useState<any | null>(null);
   const [admissionSearched, setAdmissionSearched] = useState(false);
+  const [isAdmissionLoading, setIsAdmissionLoading] = useState(false);
 
   // Tự động kiểm tra thông tin sinh viên hiện tại khi vào trang
   useEffect(() => {
@@ -53,9 +56,9 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
     }
   }, [currentStudent]);
 
-  // Hàm kiểm tra thông tin sinh viên từ dữ liệu gốc
-  const performCheckInfo = (mssvToCheck: string, dobToCheck?: string) => {
-    const cleanMssv = (mssvToCheck || '').trim().toLowerCase();
+  // Hàm kiểm tra thông tin sinh viên kết hợp API Backend và Dữ liệu hạt giống
+  const performCheckInfo = async (mssvToCheck: string, dobToCheck?: string) => {
+    const cleanMssv = (mssvToCheck || '').trim();
     if (!cleanMssv) {
       setSearchError('Vui lòng nhập Mã sinh viên hoặc số CCCD.');
       setSearchResult(null);
@@ -66,11 +69,12 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
     setSearchError(null);
     setHasSearched(true);
     setPaymentSuccess(false);
+    setIsLoading(true);
 
     // 1. Kiểm tra với sinh viên hiện tại trong phiên đăng nhập
     if (currentStudent && (
-      currentStudent.mssv.toLowerCase() === cleanMssv ||
-      (currentStudent.email && currentStudent.email.toLowerCase().includes(cleanMssv))
+      currentStudent.mssv.toLowerCase() === cleanMssv.toLowerCase() ||
+      (currentStudent.email && currentStudent.email.toLowerCase().includes(cleanMssv.toLowerCase()))
     )) {
       const isDebt = currentStudent.tuitionStatus === 'Còn nợ học phí' || (currentStudent.debtAmount && currentStudent.debtAmount > 0);
       const total = currentStudent.totalTuition || 14850000;
@@ -85,17 +89,49 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
         tuitionStatus: isDebt ? 'Còn nợ học phí' : 'Đã hoàn thành',
         semester: 'Học kỳ 1 - Năm học 2026-2027',
         credits: 18,
-        receiptCode: 'UTH-BL-2026-094812',
+        receiptCode: `UTH-BL-2026-${currentStudent.mssv.slice(-6)}`,
         paymentDate: '15/09/2026'
       });
+      setIsLoading(false);
       return;
     }
 
-    // 2. Tìm kiếm trong cơ sở dữ liệu gốc (students_seed.json)
+    // 2. Gọi API Backend (Render / Local) để tra cứu dữ liệu thời gian thực
+    try {
+      const res = await fetch(apiUrl('/api/v1/parent/tuition-lookup'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mssv: cleanMssv,
+          birthDate: dobToCheck ? dobToCheck.trim() : undefined
+        })
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setSearchResult(json.data);
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        const errJson = await res.json().catch(() => null);
+        if (errJson?.detail && errJson.detail.includes('không khớp')) {
+          setSearchResult(null);
+          setSearchError(errJson.detail);
+          setIsLoading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend tuition lookup failed, using offline fallback:', err);
+    }
+
+    // 3. Fallback tìm kiếm trong cơ sở dữ liệu mẫu (students_seed.json)
     const found = (studentsData as any[]).find((s: any) =>
-      (s.mssv && s.mssv.toLowerCase() === cleanMssv) ||
+      (s.mssv && s.mssv.toLowerCase() === cleanMssv.toLowerCase()) ||
       (s.phone && s.phone === cleanMssv) ||
-      (s.email && s.email.toLowerCase().includes(cleanMssv))
+      (s.email && s.email.toLowerCase().includes(cleanMssv.toLowerCase()))
     );
 
     if (found) {
@@ -117,8 +153,9 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
       });
     } else {
       setSearchResult(null);
-      setSearchError(`Không tìm thấy hồ sơ sinh viên với mã "${mssvToCheck}". Vui lòng kiểm tra lại MSSV hoặc CCCD.`);
+      setSearchError(`Không tìm thấy hồ sơ sinh viên với mã "${cleanMssv}". Vui lòng kiểm tra lại MSSV hoặc CCCD.`);
     }
+    setIsLoading(false);
   };
 
   const handleCheckInfo = (e: React.FormEvent) => {
@@ -145,13 +182,32 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
   };
 
   // Tra cứu trúng tuyển
-  const handleCheckAdmission = (e: React.FormEvent) => {
+  const handleCheckAdmission = async (e: React.FormEvent) => {
     e.preventDefault();
     const id = admissionIdInput.trim();
     if (!id) return;
     setAdmissionSearched(true);
+    setIsAdmissionLoading(true);
 
-    // Mock tra cứu từ dữ liệu sinh viên
+    try {
+      const res = await fetch(apiUrl('/api/v1/parent/admission-lookup'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: id })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setAdmissionResult(json.data);
+          setIsAdmissionLoading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Admission lookup API error, fallback:', err);
+    }
+
+    // Fallback tra cứu từ dữ liệu sinh viên
     const found = (studentsData as any[]).find((s: any) =>
       s.mssv.toLowerCase() === id.toLowerCase() ||
       s.name.toLowerCase().includes(id.toLowerCase())
@@ -167,7 +223,7 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
         faculty: found.faculty,
         score: '26.85',
         status: 'Trúng tuyển chính thức - Đã xác nhận nhập học',
-        cohort: 'Khóa 2023 - Đợt 1',
+        cohort: `Khóa ${found.cohort || '2023'} - Đợt 1`,
         trainingType: found.trainingType || 'Chất lượng cao'
       });
     } else {
@@ -184,6 +240,7 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
         trainingType: 'Chất lượng cao'
       });
     }
+    setIsAdmissionLoading(false);
   };
 
   return (
@@ -288,10 +345,15 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
               <div className="text-center pt-2">
                 <button
                   type="submit"
-                  className="bg-[#007b82] hover:bg-[#006064] text-white font-semibold px-7 py-2.5 rounded-lg text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer inline-flex items-center gap-2"
+                  disabled={isLoading}
+                  className="bg-[#007b82] hover:bg-[#006064] text-white font-semibold px-7 py-2.5 rounded-lg text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer inline-flex items-center gap-2 disabled:opacity-60"
                 >
-                  <Search className="w-4 h-4" />
-                  <span>Kiểm tra thông tin</span>
+                  {isLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                  <span>{isLoading ? 'Đang kiểm tra thông tin...' : 'Kiểm tra thông tin'}</span>
                 </button>
               </div>
 
@@ -567,10 +629,15 @@ export const PaymentView: React.FC<PaymentViewProps> = React.memo(({
               <div className="text-center pt-2">
                 <button
                   type="submit"
-                  className="bg-[#007b82] hover:bg-[#006064] text-white font-semibold px-7 py-2.5 rounded-lg text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer inline-flex items-center gap-2"
+                  disabled={isAdmissionLoading}
+                  className="bg-[#007b82] hover:bg-[#006064] text-white font-semibold px-7 py-2.5 rounded-lg text-xs sm:text-sm shadow-xs transition-all active:scale-95 cursor-pointer inline-flex items-center gap-2 disabled:opacity-60"
                 >
-                  <Search className="w-4 h-4" />
-                  <span>Tra cứu kết quả</span>
+                  {isAdmissionLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4" />
+                  )}
+                  <span>{isAdmissionLoading ? 'Đang tra cứu...' : 'Tra cứu kết quả'}</span>
                 </button>
               </div>
 
