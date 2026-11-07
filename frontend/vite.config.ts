@@ -60,7 +60,7 @@ export default defineConfig(() => {
           changeOrigin: true,
           secure: false,
           configure: (proxy, _options) => {
-            proxy.on('error', (_err, _req, res) => {
+            proxy.on('error', (_err, _req, res: any) => {
               if (res && !res.headersSent && typeof res.writeHead === 'function') {
                 const currentTarget = getBackendTarget();
                 res.writeHead(503, { 'Content-Type': 'application/json' });

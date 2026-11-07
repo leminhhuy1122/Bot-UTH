@@ -101,7 +101,7 @@ export const CourseRegistrationView: React.FC<CourseRegistrationViewProps> = ({
     );
 
     if (isAlreadyRegistered) {
-      showToast('error', 'Học phần này đã có trong danh sách đã đăng ký của bạn!');
+      showToast('Học phần này đã có trong danh sách đã đăng ký của bạn!', 'error');
       return;
     }
 
@@ -130,7 +130,7 @@ export const CourseRegistrationView: React.FC<CourseRegistrationViewProps> = ({
     setSelectedCourseId(null);
     setSelectedClassId(null);
 
-    showToast('success', `Đăng ký thành công học phần "${activeCourse.name}" (${activeCourse.credits} tín chỉ)!`);
+    showToast(`Đăng ký thành công học phần "${activeCourse.name}" (${activeCourse.credits} tín chỉ)!`, 'success');
   };
 
   // Xác nhận hủy đăng ký
@@ -138,7 +138,7 @@ export const CourseRegistrationView: React.FC<CourseRegistrationViewProps> = ({
     if (!courseToCancel) return;
 
     setRegisteredCourses(prev => prev.filter(c => c.id !== courseToCancel.id));
-    showToast('info', `Đã hủy đăng ký môn "${courseToCancel.courseName}".`);
+    showToast(`Đã hủy đăng ký môn "${courseToCancel.courseName}".`, 'info');
     setCourseToCancel(null);
   };
 

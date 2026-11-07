@@ -709,6 +709,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                       <div className="mt-2.5 ml-11.5 max-w-[90%] animate-fadeIn">
                         {(() => {
                           const act = getMessageAction(msg);
+                          if (!act) return null;
                           const isSchedule = act.target === 'schedule' || act.target === 'full-schedule';
                           const isElearning = act.target === 'elearning';
                           const isLink = act.type === 'OPEN_LINK' || act.target?.startsWith('http');
