@@ -32,11 +32,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Cấu hình CORS cho phép React frontend kết nối linh hoạt (hỗ trợ mọi cổng localhost khi chạy nhiều dự án)
+# Cấu hình CORS cho phép React frontend kết nối linh hoạt (hỗ trợ mọi cổng localhost & mọi domain Vercel)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

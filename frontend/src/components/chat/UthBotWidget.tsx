@@ -387,6 +387,10 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       window.dispatchEvent(new CustomEvent('uth:open-student-card'));
     } else if (action.target === 'service') {
       window.dispatchEvent(new CustomEvent('uth:open-service'));
+    } else if (action.target === 'course-registration') {
+      window.dispatchEvent(new CustomEvent('uth:open-course-registration'));
+    } else if (action.target === 'curriculum') {
+      window.dispatchEvent(new CustomEvent('uth:open-curriculum'));
     }
 
     // Tự động thu nhỏ cửa sổ chat để sinh viên quan sát modal/view vừa được mở
@@ -435,6 +439,33 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
         label: '💳 Mở Cổng thanh toán học phí UTH',
         icon: 'CreditCard',
         description: 'Xem chi tiết hóa đơn học phí và chuyển khoản trực tuyến'
+      };
+    }
+    if (lower.includes('đăng ký học phần') || lower.includes('dkhp') || lower.includes('đăng ký môn')) {
+      return {
+        type: 'OPEN_VIEW',
+        target: 'course-registration',
+        label: '📝 Mở Đăng ký học phần',
+        icon: 'BookOpen',
+        description: 'Đăng ký học phần và chọn lớp tín chỉ theo học kỳ'
+      };
+    }
+    if (lower.includes('chương trình khung') || lower.includes('chương trình đào tạo') || lower.includes('khung đào tạo')) {
+      return {
+        type: 'OPEN_VIEW',
+        target: 'curriculum',
+        label: '📚 Mở Chương trình khung',
+        icon: 'BookOpen',
+        description: 'Tra cứu chương trình khung và tiến độ tích lũy học phần'
+      };
+    }
+    if (lower.includes('bảo hiểm y tế') || lower.includes('bhyt') || lower.includes('tiền bảo hiểm')) {
+      return {
+        type: 'OPEN_VIEW',
+        target: 'payment',
+        label: '💳 Cổng thanh toán BHYT & Học phí',
+        icon: 'CreditCard',
+        description: 'Nộp tiền BHYT trực tuyến qua Cổng thanh toán UTH'
       };
     }
     if (lower.includes('support.ut.edu.vn') || lower.includes('gửi yêu cầu hỗ trợ') || lower.includes('cổng hỗ trợ trực tuyến')) {

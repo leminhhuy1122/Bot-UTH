@@ -265,6 +265,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       handleOpenPayment();
     };
 
+    const handleOpenCourseRegistrationView = () => {
+      handleOpenCourseRegistration();
+    };
+
     const handleOpenCurriculumView = () => {
       handleOpenCurriculum();
     };
@@ -293,6 +297,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     window.addEventListener('uth:open-elearning', handleOpenElearningView);
     window.addEventListener('uth:open-payment', handleOpenPaymentView);
     window.addEventListener('uth:open-debt', handleOpenDebtView);
+    window.addEventListener('uth:open-course-registration', handleOpenCourseRegistrationView);
     window.addEventListener('uth:open-curriculum', handleOpenCurriculumView);
     window.addEventListener('uth:open-student-card', handleOpenCardModal);
     window.addEventListener('uth:open-service', handleOpenServiceModal);
@@ -303,11 +308,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       window.removeEventListener('uth:open-elearning', handleOpenElearningView);
       window.removeEventListener('uth:open-payment', handleOpenPaymentView);
       window.removeEventListener('uth:open-debt', handleOpenDebtView);
+      window.removeEventListener('uth:open-course-registration', handleOpenCourseRegistrationView);
       window.removeEventListener('uth:open-curriculum', handleOpenCurriculumView);
       window.removeEventListener('uth:open-student-card', handleOpenCardModal);
       window.removeEventListener('uth:open-service', handleOpenServiceModal);
     };
-  }, [handleOpenFullSchedule, handleOpenElearning, handleOpenPayment, handleOpenDebt, handleOpenCurriculum, selectedService]);
+  }, [handleOpenFullSchedule, handleOpenElearning, handleOpenPayment, handleOpenDebt, handleOpenCourseRegistration, handleOpenCurriculum, selectedService]);
 
   // Tính toán chính xác số lượng lịch học trong tuần theo dữ liệu gốc của từng sinh viên
   const weeklyScheduleCount = useMemo(() => {
