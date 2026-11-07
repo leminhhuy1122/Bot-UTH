@@ -17,7 +17,7 @@ export const MobileStudentCompactBar: React.FC<MobileStudentCompactBarProps> = R
   student,
   onOpenCardModal,
 }) => {
-  const mssv = (student as any)?.mssv || (student as any)?.studentId || '056205008344';
+  const mssv = (student as any)?.mssv || (student as any)?.studentId || '056205001234';
   const hoTen =
     (student as any)?.fullName ||
     (student as any)?.name ||

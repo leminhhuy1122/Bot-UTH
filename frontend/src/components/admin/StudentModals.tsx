@@ -436,7 +436,7 @@ export const AddEditStudentModal: React.FC<AddEditStudentModalProps> = ({
                   disabled={mode === 'edit'}
                   value={mssv}
                   onChange={(e) => setMssv(e.target.value)}
-                  placeholder="Ví dụ: 056205008344"
+                  placeholder="Ví dụ: 056205001234"
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 font-mono disabled:bg-slate-200 disabled:text-slate-500 focus:outline-none focus:border-[#008272]"
                 />
               </div>

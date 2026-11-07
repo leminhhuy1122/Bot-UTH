@@ -225,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('uth_session_data', JSON.stringify(newSession));
       setSession(newSession);
     } catch (e) {
-      await loginAsStudent('056205008344');
+      await loginAsStudent('056205001234');
     }
   };
 

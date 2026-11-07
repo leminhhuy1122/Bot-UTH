@@ -99,7 +99,7 @@ sequenceDiagram
     participant NLP as Python NLP / RAG (Public)
     participant AI as Gemini LLM
 
-    Guest->>FE: Gửi: "Cho tôi xem điểm của SV 056205008344"
+    Guest->>FE: Gửi: "Cho tôi xem điểm của SV 056205001234"
     FE->>BE: POST /api/v1/chat/guest { message }
     BE->>Guard: Kiểm tra mã độc / Dấu hiệu trích xuất PII
     Guard-->>BE: Phát hiện yêu cầu dữ liệu cá nhân (Intent: GPA / PII)
@@ -125,8 +125,8 @@ sequenceDiagram
     SV->>FE: Gửi: "Lịch học tuần này của tôi thế nào?"
     FE->>BE: POST /api/v1/chat/student { message } (Mang theo HttpOnly Cookie)
     BE->>Auth: Giải mã Token
-    Auth-->>BE: Xác thực hợp lệ: MSSV 056205008344
-    BE->>Data: Lấy TKB tuần này của đúng MSSV 056205008344
+    Auth-->>BE: Xác thực hợp lệ: MSSV 056205001234
+    BE->>Data: Lấy TKB tuần này của đúng MSSV 056205001234
     Data-->>BE: 2 môn học (Web nâng cao, AI/Machine Learning)
     BE->>AI: Gửi Prompt (Context TKB thực tế + Câu hỏi)
     AI-->>BE: Câu trả lời định dạng markdown thân thiện

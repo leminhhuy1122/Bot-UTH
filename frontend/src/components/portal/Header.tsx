@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
     student?.hoTen ||
     'Nguyễn Văn A';
 
-  const mssv = student?.mssv || student?.studentId || '056205008344';
+  const mssv = student?.mssv || student?.studentId || '056205001234';
   const avatarUrl = student?.avatarUrl || student?.avatar || '/student_avatar_ai.svg';
 
   // Xử lý khi nhấn vào Logo UTH để về trang chính

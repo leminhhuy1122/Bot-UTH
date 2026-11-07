@@ -109,7 +109,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
 
   // Trạng thái tra cứu sinh viên
   const [showSearchBox, setShowSearchBox] = useState(false);
-  const [mssvInput, setMssvInput] = useState<string>(() => currentStudent?.mssv || initialStudentProfile.mssv || '056205008344');
+  const [mssvInput, setMssvInput] = useState<string>(() => currentStudent?.mssv || initialStudentProfile.mssv || '056205001234');
   const [dobInput, setDobInput] = useState<string>(() => currentStudent?.birthDate || initialStudentProfile.birthDate || '15/08/2005');
 
   // Trạng thái kết quả
@@ -348,7 +348,7 @@ export const DebtLookupView: React.FC<DebtLookupViewProps> = React.memo(({
                   type="text"
                   value={mssvInput}
                   onChange={(e) => setMssvInput(e.target.value)}
-                  placeholder="Ví dụ: 056205008344 hoặc 056205000002"
+                  placeholder="Ví dụ: 056205001234 hoặc 056205000002"
                   className="w-full bg-white border border-slate-300 focus:border-teal-600 rounded-md px-3 py-1.5 text-xs text-slate-800 outline-none"
                 />
               </div>

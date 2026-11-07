@@ -31,7 +31,7 @@
 - **Request Body:**
   ```json
   {
-    "username": "056205008344",
+    "username": "056205001234",
     "password": "PasswordStrong123!"
   }
   ```
@@ -45,10 +45,10 @@
     "data": {
       "user": {
         "id": "usr_9b1deb4d3b7d",
-        "student_code": "056205008344",
+        "student_code": "056205001234",
         "full_name": "Nguyễn Văn A",
         "role": "student",
-        "email": "056205008344@ut.edu.vn"
+        "email": "056205001234@ut.edu.vn"
       }
     }
   }

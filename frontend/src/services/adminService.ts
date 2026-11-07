@@ -620,7 +620,7 @@ export interface AdminTestQueryResponse {
 export async function testAdminQuery(
   query: string, 
   role: 'guest' | 'student' | 'parent' = 'student',
-  mssv: string = '056205008344'
+  mssv: string = '056205001234'
 ): Promise<AdminTestQueryResponse | null> {
   try {
     const res = await adminFetch(`${API_BASE}/test-query`, {

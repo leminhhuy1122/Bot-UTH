@@ -362,7 +362,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
   const [config, setConfig] = useState<BotConfig>(initialBotConfig);
   const [testQuery, setTestQuery] = useState('');
   const [testRole, setTestRole] = useState<'guest' | 'student' | 'parent'>('student');
-  const [testMssv, setTestMssv] = useState('056205008344');
+  const [testMssv, setTestMssv] = useState('056205001234');
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<AdminTestQueryResponse | null>(null);
 
@@ -752,9 +752,9 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
           role: activeRole,
           mssv: testMssv,
           securityShield: {
-            passed: activeRole !== 'guest' || (!q.toLowerCase().includes('082205009017') && !q.toLowerCase().includes('056205008344') && !q.toLowerCase().includes('điểm')),
-            status: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) ? 'BLOCKED' : 'SAFE',
-            reason: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205008344') || q.toLowerCase().includes('điểm'))) 
+            passed: activeRole !== 'guest' || (!q.toLowerCase().includes('082205009017') && !q.toLowerCase().includes('056205001234') && !q.toLowerCase().includes('điểm')),
+            status: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205001234') || q.toLowerCase().includes('điểm'))) ? 'BLOCKED' : 'SAFE',
+            reason: (activeRole === 'guest' && (q.toLowerCase().includes('082205009017') || q.toLowerCase().includes('056205001234') || q.toLowerCase().includes('điểm'))) 
               ? 'Khách vãng lai bị từ chối tra cứu thông tin cá nhân của sinh viên. Đã kích hoạt lá chắn bảo mật PII Guard.' 
               : 'Truy vấn hợp lệ, an toàn và tuân thủ chính sách phân quyền.',
           },
@@ -1922,7 +1922,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onBackToPortal }) => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleRunPlayground('Xem điểm GPA của sinh viên 056205008344', 'guest')}
+                          onClick={() => handleRunPlayground('Xem điểm GPA của sinh viên 056205001234', 'guest')}
                           className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-md text-[11.5px] font-medium cursor-pointer transition-colors"
                           title="Thử nghiệm tra cứu thông tin cá nhân từ vai trò Khách"
                         >

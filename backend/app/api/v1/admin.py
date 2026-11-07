@@ -287,10 +287,10 @@ async def list_students(
             "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
             "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
             "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
-            "assignments": getattr(s, "assignments", None) or [],
-            "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
-            "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
-            "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
+            "assignments": getattr(s, "assignments", None) or [],
+            "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
             "assignments": getattr(s, "assignments", None) or [],
             "accumulatedCredits": s.accumulated_credits,
             "requiredCredits": s.required_credits,
@@ -386,10 +386,10 @@ async def get_student_detail(
             "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
             "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
             "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
-            "assignments": getattr(student, "assignments", None) or [],
-            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
-            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
-            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
+            "assignments": getattr(student, "assignments", None) or [],
+            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
+            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
+            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
             "assignments": getattr(student, "assignments", None) or [],
             "avatarUrl": student.avatar_url,
             "status": student.status,
@@ -1283,7 +1283,8 @@ async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
     Trung tâm Thử nghiệm AI (Role-Based Testing Center):
     Kiểm tra luồng xử lý toàn diện theo từng vai trò (Khách, Sinh viên, Phụ huynh):
     1. Kiểm tra an ninh (PII Guard, Chống lăng mạ, Chống Jailbreak).
-    2. Phân loại Ý định (NLP Intent Classification).
+    mssv: Optional[str] = "056205008344"
+    mssv: Optional[str] = "056205001234"
     3. Truy xuất Tri thức (RAG Document Matching từ SQLite).
     4. Cá nhân hóa Dữ liệu Học tập (Student Profile Context).
     5. Phản hồi thực tế từ Google Gemini 3.5 AI.
@@ -1298,7 +1299,8 @@ async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
     block_reason = None
     ai_answer = None
 
-    # Kiểm tra ngôn từ thô tục / lăng mạ
+    mssv = req.mssv or "056205008344"
+    mssv = req.mssv or "056205001234"
     is_abuse, abuse_msg = is_profanity_or_abuse(req.query)
     if is_abuse:
         is_blocked = True

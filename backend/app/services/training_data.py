@@ -137,7 +137,7 @@ UTH_TRAINING_CORPUS = [
             "- **Số tài khoản chính thức**: **0071000078912**\n"
             "- **Cú pháp nội dung chuyển khoản bắt buộc**:\n"
             "  `HOCPHI <MSSV> <Họ và tên sinh viên>`\n"
-            "  *(Ví dụ: `HOCPHI 056205008344 NGUYEN VAN AN`)*\n\n"
+            "  *(Ví dụ: `HOCPHI 056205001234 NGUYEN VAN AN`)*\n\n"
             "Lưu ý: Sinh viên cũng có thể thanh toán trực tuyến qua cổng VNPay hoặc quét mã VietQR tự động trên cổng sinh viên. "
             "Sau 1 - 2 ngày làm việc, hệ thống phòng Kế hoạch - Tài chính sẽ gạch nợ học phí tự động."
         )

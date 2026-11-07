@@ -384,7 +384,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       ? undefined
       : {
           name: student?.name || 'Nguyễn Văn A',
-          mssv: student?.mssv || '056205008344',
+          mssv: student?.mssv || '056205001234',
           cohort: student?.cohort || '2023',
           major: student?.major || 'Công nghệ thông tin',
         };

@@ -100,7 +100,7 @@ Hệ thống áp dụng đúng Quy chế đào tạo tín chỉ của Trường 
 | STT | MSSV | Họ và tên | Khóa | Khoa / Chuyên ngành | GPA (Hệ 4) | Điểm RL | Tín chỉ | Tình trạng Học phí |
 |:---:|:---:|---|:---:|---|:---:|:---:|:---:|:---:|
 | **0** | `admin` | **Ban Quản Trị Hệ Thống UTH** | - | *Quản trị viên Hệ thống* | - | - | - | **Admin Toàn quyền** |
-| 1 | `056205008344` | Nguyễn Văn A | 2023 | CNTT · Công nghệ thông tin | 3.65 (Giỏi) | 90 | 52 / 145 | ✅ Đã hoàn thành (0 đ) |
+| 1 | `056205001234` | Nguyễn Văn A | 2023 | CNTT · Công nghệ thông tin | 3.65 (Giỏi) | 90 | 52 / 145 | ✅ Đã hoàn thành (0 đ) |
 | 2 | `056205008345` | Trần Thị Bích Ngọc | 2023 | CNTT · Kỹ thuật phần mềm | 3.82 (Xuất sắc) | 95 | 55 / 145 | ✅ Đã hoàn thành (0 đ) |
 | 3 | `056204001234` | Lê Hoàng Minh | 2022 | Kinh tế vận tải · Logistics | 3.45 (Khá) | 82 | 82 / 145 | ⚠️ Còn nợ (4.500.000 đ) |
 | 4 | `056204005678` | Phạm Quỳnh Anh | 2022 | Kinh tế vận tải · QTKD Vận tải | 3.70 (Giỏi) | 88 | 86 / 145 | ✅ Đã hoàn thành (0 đ) |

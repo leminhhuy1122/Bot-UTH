@@ -219,12 +219,12 @@ Hệ thống đã tích hợp sẵn các tài khoản mẫu với dữ liệu h�
 | Vai trò | Tên đăng nhập (CCCD / Mã SV) | Mật khẩu | Họ và tên | Ngành đào tạo | Điểm nổi bật để trải nghiệm |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | 👑 **Quản trị viên** | `admin` | `Admin!@123` | Quản trị Hệ Thống | Ban Đào Tạo UTH | Truy cập Admin Studio, RAG tri thức, Quản lý CSDL |
-| 🎓 **Sinh viên 1** | `056205008344` | `123456` | Hoàng Gia Bảo | Kỹ thuật Xây dựng Cầu đường | GPA 3.25 (Khá), đã hoàn thành 100% học phí |
+| 🎓 **Sinh viên 1** | `056205001234` | `123456` | Hoàng Gia Bảo | Kỹ thuật Xây dựng Cầu đường | GPA 3.25 (Khá), đã hoàn thành 100% học phí |
 | 🎓 **Sinh viên 2** | `056202007744` | `123456` | Huỳnh Tấn Phát | Kỹ thuật Công trình Thủy | GPA 3.18 (Khá), còn nợ 1.500.000 đ học phí |
 | 🎓 **Sinh viên 3** | `056203001155` | `123456` | Trịnh Mỹ Duyên | Kinh tế Vận tải biển quốc tế | GPA 3.92 (Xuất sắc), Điểm rèn luyện 98 |
 | 🎓 **Sinh viên 4** | `056203007711` | `123456` | Vũ Minh Đạt | Kỹ thuật Điều khiển & Tự động hóa | GPA 3.55 (Giỏi), có bài tập Elearning cần nộp |
 | 🎓 **Sinh viên 5** | `056204001234` | `123456` | Lê Hoàng Minh | Logistics và Quản lý chuỗi cung ứng | GPA 3.45 (Khá), còn nợ học phí 4.500.000 đ |
-| 👨‍👩‍👧 **Phụ huynh / Tra cứu học phí** | Nhập MSSV `056205008344` + Ngày sinh `15/08/2005` | *(Không cần mật khẩu)* | Hoàng Gia Bảo | Tra cứu công nợ học phí & Bảng điểm con em |
+| 👨‍👩‍👧 **Phụ huynh / Tra cứu học phí** | Nhập MSSV `056205001234` + Ngày sinh `15/08/2005` | *(Không cần mật khẩu)* | Hoàng Gia Bảo | Tra cứu công nợ học phí & Bảng điểm con em |
 
 *(Hệ thống hỗ trợ nạp dữ liệu quy mô lớn với đầy đủ hồ sơ sinh viên trên CSDL đám mây PostgreSQL).*
 

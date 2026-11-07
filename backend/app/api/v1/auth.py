@@ -188,7 +188,7 @@ async def login(req: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/quick-login")
 async def quick_login(req: QuickLoginRequest, db: Session = Depends(get_db)):
     """Đăng nhập nhanh tiện lợi cho môi trường demo / kiểm thử."""
-    target_username = "admin" if req.role == "admin" else "056205008344"
+    target_username = "admin" if req.role == "admin" else "056205001234"
     user = db.query(User).filter_by(username=target_username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài khoản mẫu trong cơ sở dữ liệu.")

@@ -9,13 +9,13 @@ Tài liệu này quy chuẩn 100% cấu trúc dữ liệu hồ sơ sinh viên, t
 ```json
 [
   {
-    "mssv": "056205008344",
+    "mssv": "056205001234",
     "name": "Lê Minh Huy",
     "gender": "Nam",
     "birthDate": "15/08/2005",
     "birthPlace": "TP. Hồ Chí Minh",
     "phone": "0912 345 678",
-    "email": "056205008344@ut.edu.vn",
+    "email": "056205001234@ut.edu.vn",
     "educationLevel": "Đại học - chính quy",
     "cohort": "2023",
     "faculty": "Công nghệ thông tin",
@@ -84,6 +84,6 @@ Tài liệu này quy chuẩn 100% cấu trúc dữ liệu hồ sơ sinh viên, t
 
 ```csv
 mssv,name,gender,birthDate,birthPlace,phone,email,cohort,faculty,major,specialization,classId,trainingType,educationLevel
-056205008344,Lê Minh Huy,Nam,15/08/2005,TP. Hồ Chí Minh,0912 345 678,056205008344@ut.edu.vn,2023,Công nghệ thông tin,Công nghệ thông tin,Mạng máy tính,CN23CLC01,Chất lượng cao,Đại học - chính quy
+056205001234,Lê Minh Huy,Nam,15/08/2005,TP. Hồ Chí Minh,0912 345 678,056205001234@ut.edu.vn,2023,Công nghệ thông tin,Công nghệ thông tin,Mạng máy tính,CN23CLC01,Chất lượng cao,Đại học - chính quy
 ```
 

@@ -1,7 +1,7 @@
 import { StudentProfile, ScheduleEvent, SemesterData, ServiceItem, BotKnowledgeItem, BotConfig } from '../types/uth';
 
 export const initialStudentProfile: StudentProfile = {
-  mssv: '056205008344',
+  mssv: '056205001234',
   name: 'Nguyễn Văn A',
   cohort: '2023',
   gender: 'Nam',
@@ -13,7 +13,7 @@ export const initialStudentProfile: StudentProfile = {
   major: 'Công nghệ thông tin',
   specialization: 'Công nghệ thông tin',
   avatarUrl: '/student_avatar_ai.svg',
-  email: '056205008344@ut.edu.vn',
+  email: '056205001234@ut.edu.vn',
   phone: '0912 345 678',
   classId: 'CN23CLC01',
   status: 'Đang học',

@@ -18,7 +18,7 @@ from backend.app.api.v1.chat import get_student_fallback_answer, resolve_respons
 
 # Dữ liệu sinh viên giả lập để test
 mock_student_data = {
-    "mssv": "056205008344",
+    "mssv": "056205001234",
     "name": "Hoàng Gia Bảo",
     "gpa4": 3.52,
     "cpa4": 3.52,

@@ -11,7 +11,7 @@ export const StudentInfoCard: React.FC<StudentInfoCardProps> = React.memo(({
   onOpenCardModal 
 }) => {
   // Lấy dữ liệu an toàn từ props student (dữ liệu gốc của dự án UTH)
-  const mssv = (student as any)?.mssv || (student as any)?.studentId || '056205008344';
+  const mssv = (student as any)?.mssv || (student as any)?.studentId || '056205001234';
   const hoTen = (student as any)?.fullName || (student as any)?.name || (student as any)?.hoTen || 'Nguyễn Văn A';
   const ngaySinh = (student as any)?.birthDate || (student as any)?.dateOfBirth || (student as any)?.dob || (student as any)?.ngaySinh || '15/08/2005';
   const noiSinh = (student as any)?.birthPlace || (student as any)?.placeOfBirth || (student as any)?.pob || (student as any)?.noiSinh || 'TP. Hồ Chí Minh';

@@ -51,7 +51,7 @@ export const ParentPortalView: React.FC<ParentPortalViewProps> = ({
 
   // Demo auto-fill samples
   const sampleStudents = [
-    { mssv: '056205008344', birth: '15/08/2005', name: 'Nguyễn Văn An', major: 'Công nghệ thông tin' },
+    { mssv: '056205001234', birth: '15/08/2005', name: 'Nguyễn Văn An', major: 'Công nghệ thông tin' },
     { mssv: '056205008345', birth: '20/11/2005', name: 'Trần Thị Mai', major: 'Kinh tế vận tải & Logistics' },
     { mssv: '056205008347', birth: '18/09/2004', name: 'Phạm Hoàng Long', major: 'Khoa học hàng hải' },
   ];
@@ -161,7 +161,7 @@ export const ParentPortalView: React.FC<ParentPortalViewProps> = ({
                     type="text"
                     value={mssvInput}
                     onChange={(e) => setMssvInput(e.target.value)}
-                    placeholder="Ví dụ: 056205008344"
+                    placeholder="Ví dụ: 056205001234"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-[#0d796e] focus:ring-1 focus:ring-[#0d796e] transition-colors"
                     required
                   />

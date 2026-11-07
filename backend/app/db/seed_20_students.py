@@ -7,7 +7,7 @@ from backend.app.models.knowledge import KnowledgeDocument
 
 RAW_STUDENTS = [
     {
-        "mssv": "056205008344",
+        "mssv": "056205001234",
         "name": "Nguyễn Văn A",
         "gender": "Nam",
         "birthDate": "15/08/2005",

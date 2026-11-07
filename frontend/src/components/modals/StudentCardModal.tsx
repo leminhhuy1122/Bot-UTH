@@ -9,8 +9,8 @@ interface StudentCardModalProps {
 }
 
 // Component Mã Vạch Barcode chuẩn vector sinh động theo MSSV gốc
-const BarcodeSvg = ({ code = '056205008344' }: { code?: string }) => {
-  const digits = code.replace(/\D/g, '') || '056205008344';
+const BarcodeSvg = ({ code = '056205001234' }: { code?: string }) => {
+  const digits = code.replace(/\D/g, '') || '056205001234';
   const bars: number[] = [2, 1, 1, 2];
   for (let i = 0; i < digits.length; i++) {
     const d = parseInt(digits[i], 10);
@@ -61,7 +61,7 @@ export const StudentCardModal: React.FC<StudentCardModalProps> = ({ student, isO
 
   // Sử dụng dữ liệu gốc 100% từ đối tượng student của dự án
   const displayName = (student?.name || (student as any)?.fullName || (student as any)?.hoTen || 'Nguyễn Văn A').toUpperCase();
-  const displayMssv = student?.mssv || (student as any)?.studentId || '056205008344';
+  const displayMssv = student?.mssv || (student as any)?.studentId || '056205001234';
   const displayCohort = student?.cohort || (student as any)?.khoaHoc || '2023';
   const displayMajor = student?.major || (student as any)?.nganh || 'Công nghệ thông tin';
   const studentPhotoUrl = student?.avatarUrl || (student as any)?.avatar || '/student_avatar_ai.svg';
