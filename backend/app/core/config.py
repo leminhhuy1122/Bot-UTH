@@ -28,17 +28,23 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 PORT = int(os.getenv("PORT", 8000))
 HOST = os.getenv("HOST", "0.0.0.0")
 
-# Cấu hình CORS an toàn - Loại bỏ hoàn toàn Wildcard '*' để chống tấn công Cross-Origin Data Theft
+# Cấu hình CORS an toàn - hỗ trợ domain production và các origin hợp lệ
+DEFAULT_CORS_ORIGINS = [
+    "https://botuth.xyz",
+    "https://www.botuth.xyz",
+    "https://api.botuth.xyz",
+    "https://bot-uth.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173"
+]
+
 CORS_ORIGINS_RAW = os.getenv("CORS_ORIGINS", "").strip()
-if CORS_ORIGINS_RAW:
+if CORS_ORIGINS_RAW and CORS_ORIGINS_RAW != "*":
     CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_RAW.split(",") if origin.strip() and origin.strip() != "*"]
+    for d in DEFAULT_CORS_ORIGINS:
+        if d not in CORS_ORIGINS:
+            CORS_ORIGINS.append(d)
 else:
-    CORS_ORIGINS = [
-        "https://botuth.xyz",
-        "https://www.botuth.xyz",
-        "https://api.botuth.xyz",
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173"
-    ]
+    CORS_ORIGINS = DEFAULT_CORS_ORIGINS
