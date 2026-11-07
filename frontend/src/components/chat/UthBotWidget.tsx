@@ -47,6 +47,171 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Vị trí kéo thả nổi của Bot trên màn hình (Hỗ trợ kéo thả tự do mọi vị trí trên mobile & desktop)
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(() => {
+    try {
+      const saved = localStorage.getItem('uth_bot_pos_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return null;
+  });
+
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    initX: number;
+    initY: number;
+    hasMoved: boolean;
+  }>({
+    startX: 0,
+    startY: 0,
+    initX: 0,
+    initY: 0,
+    hasMoved: false,
+  });
+
+  // Khởi tạo vị trí mặc định thông minh và hút dính sát 2 bên viền màn hình (Trái hoặc Phải)
+  useEffect(() => {
+    const updateDefaultPos = () => {
+      const btnSize = 64;
+      const isMobile = window.innerWidth < 768;
+      const defaultX = window.innerWidth - btnSize - 14;
+      const defaultY = Math.max(70, window.innerHeight - btnSize - (isMobile ? 135 : 30));
+
+      setPosition((prev) => {
+        if (!prev) return { x: defaultX, y: defaultY };
+        // Luôn hút dính sang mép TRÁI hoặc PHẢI gần nhất (Không để lơ lửng ở giữa)
+        const midX = window.innerWidth / 2;
+        const isLeft = (prev.x + btnSize / 2) < midX;
+        const snapX = isLeft ? 14 : (window.innerWidth - btnSize - 14);
+        const clampedY = Math.max(60, Math.min(window.innerHeight - btnSize - (isMobile ? 85 : 25), prev.y));
+        return { x: snapX, y: clampedY };
+      });
+    };
+
+    updateDefaultPos();
+    window.addEventListener('resize', updateDefaultPos);
+    return () => window.removeEventListener('resize', updateDefaultPos);
+  }, []);
+
+  // Xử lý chạm/nhấp bắt đầu kéo
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+
+    const btnSize = 64;
+    const currentX = position?.x ?? (window.innerWidth - btnSize - 16);
+    const currentY = position?.y ?? (window.innerHeight - (window.innerWidth < 768 ? 135 : 30));
+
+    dragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      initX: currentX,
+      initY: currentY,
+      hasMoved: false,
+    };
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging) return;
+      const clientX = e.touches[0].clientX;
+      const clientY = e.touches[0].clientY;
+      const dx = clientX - dragRef.current.startX;
+      const dy = clientY - dragRef.current.startY;
+
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        dragRef.current.hasMoved = true;
+      }
+
+      const btnSize = 64;
+      const minX = 8;
+      const maxX = window.innerWidth - btnSize - 8;
+      const minY = 60;
+      const maxY = window.innerHeight - btnSize - 10;
+
+      const newX = Math.max(minX, Math.min(maxX, dragRef.current.initX + dx));
+      const newY = Math.max(minY, Math.min(maxY, dragRef.current.initY + dy));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        dragRef.current.hasMoved = true;
+      }
+
+      const btnSize = 64;
+      const minX = 8;
+      const maxX = window.innerWidth - btnSize - 8;
+      const minY = 60;
+      const maxY = window.innerHeight - btnSize - 10;
+
+      const newX = Math.max(minX, Math.min(maxX, dragRef.current.initX + dx));
+      const newY = Math.max(minY, Math.min(maxY, dragRef.current.initY + dy));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+      // Nếu chỉ chạm nhẹ và không di chuyển (< 4px) thì mở cửa sổ Bot
+      if (!dragRef.current.hasMoved) {
+        setIsOpen(true);
+        setIsMinimized(false);
+      } else {
+        // TỰ ĐỘNG HÚT DÍNH VÀO 2 BÊN VIỀN (MAGNETIC EDGE SNAPPING - CHỈ DỪNG Ở 2 BÊN, KHÔNG CHO TỰ DO Ở GIỮA)
+        const btnSize = 64;
+        const isMobile = window.innerWidth < 768;
+        const midX = window.innerWidth / 2;
+
+        setPosition((curr) => {
+          if (!curr) return null;
+          // Nếu tâm nút Bot ở nửa trái (< midX) -> Nhảy dính mép TRÁI (14px)
+          // Nếu tâm nút Bot ở nửa phải (>= midX) -> Nhảy dính mép PHẢI (14px từ mép phải)
+          const isLeft = (curr.x + btnSize / 2) < midX;
+          const snapX = isLeft ? 14 : (window.innerWidth - btnSize - 14);
+
+          // Giữ vị trí Y an toàn (không bị lọt lên thanh top bar và không đè thanh Bottom Bar trên mobile)
+          const minY = 60;
+          const maxY = window.innerHeight - btnSize - (isMobile ? 85 : 25);
+          const snapY = Math.max(minY, Math.min(maxY, curr.y));
+
+          const finalPos = { x: snapX, y: snapY };
+          try {
+            localStorage.setItem('uth_bot_pos_v2', JSON.stringify(finalPos));
+          } catch (err) {}
+          return finalPos;
+        });
+      }
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleEnd);
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleEnd);
+    };
+  }, [isDragging]);
+
   // Generate initial welcome message based on user role (Ngắn gọn, đúng trọng tâm)
   const getWelcomeMessage = (): ChatMessage => {
     const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -102,6 +267,41 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
       inputRef.current?.focus();
     }
   }, [messages, isOpen, isMinimized, isLoading]);
+
+  // Khóa cuộn trang nền trên Mobile & Dispatch sự kiện ẩn/hiện BottomNav khi mở Chatbot
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      // 1. Dispatch sự kiện để ẩn MobileBottomNav
+      window.dispatchEvent(new CustomEvent('uth:chatbot-open', { detail: { isOpen: true } }));
+
+      // 2. Body Scroll Lock trên mobile & desktop chống trôi trang phía sau
+      const scrollY = window.scrollY;
+      const originalBodyPosition = document.body.style.position;
+      const originalBodyTop = document.body.style.top;
+      const originalBodyWidth = document.body.style.width;
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalDocOverflow = document.documentElement.style.overflow;
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.position = originalBodyPosition;
+        document.body.style.top = originalBodyTop;
+        document.body.style.width = originalBodyWidth;
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalDocOverflow;
+        window.scrollTo(0, scrollY);
+
+        window.dispatchEvent(new CustomEvent('uth:chatbot-open', { detail: { isOpen: false } }));
+      };
+    } else {
+      window.dispatchEvent(new CustomEvent('uth:chatbot-open', { detail: { isOpen: false } }));
+    }
+  }, [isOpen, isMinimized]);
 
   // Handle external query trigger (e.g. from service cards or public buttons)
   useEffect(() => {
@@ -183,7 +383,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
     const studentContext = isGuest
       ? undefined
       : {
-          name: student?.name || 'Sinh viên UTH',
+          name: student?.name || 'Nguyễn Văn A',
           mssv: student?.mssv || '056205008344',
           cohort: student?.cohort || '2023',
           major: student?.major || 'Công nghệ thông tin',
@@ -512,13 +712,31 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
 
   return (
     <>
-      {/* Floating Trigger Button in bottom-right with Avatar */}
-      <div className="fixed bottom-6 right-6 z-40">
-        {!isOpen && (
+      {/* Floating Draggable Trigger Button: Tự động nhảy hút dính 2 bên viền màn hình (Magnetic Edge Snapping) */}
+      {!isOpen && position && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            zIndex: 50,
+            touchAction: 'none',
+            transition: isDragging
+              ? 'none'
+              : 'left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.25s ease-out, transform 0.2s ease',
+          }}
+          className="select-none"
+        >
           <div className="relative group">
-            {/* Tooltip */}
-            <div className="absolute right-full mr-3.5 top-1/2 -translate-y-1/2 hidden sm:flex items-center">
-              <div className="bg-slate-900/95 backdrop-blur-sm text-white text-xs font-medium py-1.5 px-3.5 rounded-xl shadow-xl whitespace-nowrap flex items-center gap-1.5 border border-slate-700/50">
+            {/* Tooltip khi hover trên Desktop */}
+            <div
+              className={`absolute top-1/2 -translate-y-1/2 hidden sm:flex items-center pointer-events-none ${
+                position.x > (typeof window !== 'undefined' ? window.innerWidth / 2 : 300)
+                  ? 'right-full mr-3.5'
+                  : 'left-full ml-3.5'
+              }`}
+            >
+              <div className="bg-slate-900/95 backdrop-blur-sm text-white text-xs font-medium py-1.5 px-3.5 rounded-xl shadow-xl whitespace-nowrap flex items-center gap-2 border border-slate-700/50">
                 <span>
                   {isParent 
                     ? `Trợ lý Phụ huynh (${student?.name || 'Con em'})` 
@@ -526,51 +744,59 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                     ? 'Hỏi Trợ lý UTH Assistant' 
                     : `Hỏi UTH Assistant (${student?.name || 'Sinh viên'})`}
                 </span>
-                <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-slate-900" />
+                <span className="text-[10px] text-teal-300 font-semibold bg-teal-950/60 px-1.5 py-0.5 rounded">
+                  Kéo thả
+                </span>
               </div>
             </div>
 
-            {/* Circular Bot Button */}
+            {/* Nút Bot tròn: Hỗ trợ Touch Drag & Mouse Drag */}
             <button
-              onClick={() => {
-                setIsOpen(true);
-                setIsMinimized(false);
-              }}
-              className="w-16 h-16 bg-white hover:bg-slate-50 border-2 border-[#007062] rounded-full shadow-2xl flex items-center justify-center cursor-pointer transition-all transform hover:scale-105 active:scale-95 group relative p-0.5 overflow-hidden"
-              title="Mở Trợ lý ảo UTH Assistant"
+              type="button"
+              onTouchStart={handleTouchStart}
+              onMouseDown={handleTouchStart}
+              style={{ touchAction: 'none' }}
+              className={`w-15 h-15 sm:w-16 sm:h-16 bg-white border-2 border-[#007062] rounded-full shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing p-0.5 overflow-hidden transition-all duration-150 ${
+                isDragging
+                  ? 'scale-110 shadow-[0_12px_36px_rgba(0,112,98,0.45)] ring-4 ring-teal-500/30'
+                  : 'hover:scale-105 active:scale-95'
+              }`}
+              title="Kéo thả đến bất cứ đâu hoặc chạm để mở UTH Assistant"
             >
               <img 
                 src="/uth_bot_avatar.png" 
                 alt="UTH Assistant" 
-                className="w-full h-full object-cover rounded-full"
+                className="w-full h-full object-cover rounded-full pointer-events-none"
+                draggable={false}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/uth_bot_avatar.svg';
                 }}
               />
 
               {/* Status Online Pulse Indicator */}
-              <span className="absolute top-1 right-1 w-3.5 h-3.5 border-2 border-white rounded-full bg-emerald-500 shadow-xs" />
+              <span className="absolute top-1 right-1 w-3.5 h-3.5 border-2 border-white rounded-full bg-emerald-500 shadow-xs pointer-events-none" />
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Bot Chat Window */}
+      {/* Bot Chat Window: Toàn màn hình chuẩn Native App trên Mobile, Thẻ nổi tinh tế trên Desktop */}
       {isOpen && (
         <div 
-          className={`fixed z-50 bg-white shadow-2xl border border-slate-200/80 flex flex-col overflow-hidden transition-all duration-200 ${
+          className={`fixed z-[70] bg-white flex flex-col overflow-hidden overscroll-contain transition-all duration-200 ${
             isMaximized
-              ? 'inset-3 sm:inset-8 w-auto h-auto rounded-3xl'
+              ? 'inset-0 sm:inset-6 md:inset-8 w-full sm:w-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl sm:border sm:border-slate-200/80'
               : isMinimized 
-              ? 'bottom-6 right-4 sm:right-6 w-[94vw] sm:w-[420px] md:w-[440px] h-[66px] rounded-2xl' 
-              : 'bottom-6 right-4 sm:right-6 w-[94vw] sm:w-[420px] md:w-[440px] h-[640px] max-h-[88vh] rounded-3xl'
+              ? 'bottom-0 sm:bottom-6 left-0 sm:left-auto right-0 sm:right-6 w-full sm:w-[420px] md:w-[440px] h-[66px] rounded-t-2xl sm:rounded-2xl border-t sm:border border-slate-200/80 shadow-2xl' 
+              : 'inset-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:w-[420px] md:w-[440px] h-[100dvh] sm:h-[640px] sm:max-h-[88vh] rounded-none sm:rounded-3xl border-none sm:border sm:border-slate-200/80 shadow-none sm:shadow-2xl'
           }`}
+          style={{ touchAction: 'pan-y' }}
         >
-          {/* Header - Matching user screenshot exactly */}
-          <div className="bg-[#007062] text-white px-4 py-3 flex items-center justify-between shrink-0 shadow-sm select-none">
-            <div className="flex items-center gap-3">
+          {/* Header - Thiết kế tối ưu Mobile Safe-Area & Desktop */}
+          <div className="bg-[#007062] text-white px-3.5 sm:px-4 py-2.5 sm:py-3 pt-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between shrink-0 shadow-sm select-none touch-none">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               {/* Circular Avatar */}
-              <div className="w-10 h-10 rounded-full bg-white/10 ring-2 ring-white/20 p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 ring-2 ring-white/20 p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
                 <img 
                   src="/uth_bot_avatar.png" 
                   alt="UTH Assistant" 
@@ -582,59 +808,67 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
               </div>
 
               {/* Title & Subtitle */}
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-[15px] font-bold tracking-tight text-white leading-none">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <h3 className="text-sm sm:text-[15px] font-bold tracking-tight text-white leading-none truncate">
                     UTH Assistant
                   </h3>
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-2xs leading-none ${
+                  <span className={`text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full shadow-2xs leading-none shrink-0 ${
                     isParent
                       ? 'bg-indigo-100 text-indigo-900'
                       : isGuest
                       ? 'bg-amber-200 text-amber-950'
                       : 'bg-[#6ee7b7] text-[#064e3b]'
                   }`}>
-                    {isParent ? 'Phụ huynh' : isGuest ? 'Chế độ Khách' : 'Sinh viên UTH'}
+                    {isParent ? 'Phụ huynh' : isGuest ? 'Khách' : 'Sinh viên'}
                   </span>
                 </div>
-                <p className="text-[11.5px] text-emerald-100/90 mt-1 leading-none font-normal">
+                <p className="text-[11px] sm:text-[11.5px] text-emerald-100/90 mt-0.5 leading-tight font-normal truncate">
                   {isParent 
                     ? `Trợ lý phụ huynh • SV ${student?.name || 'Con em'}` 
                     : isGuest 
-                    ? 'Trợ lý tư vấn tuyển sinh & dịch vụ' 
-                    : 'Trợ lý ảo hỗ trợ học tập và sinh viên'}
+                    ? 'Tư vấn tuyển sinh & dịch vụ' 
+                    : 'Trợ lý học tập & sinh viên UTH'}
                 </p>
               </div>
             </div>
 
-            {/* Window Controls: Minus, Maximize, Close (matching design reference) */}
-            <div className="flex items-center gap-1">
+            {/* Window Controls */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Nút thu nhỏ - chỉ hiện trên desktop */}
               <button
+                type="button"
                 onClick={() => {
                   setIsMinimized(!isMinimized);
                   if (isMaximized) setIsMaximized(false);
                 }}
                 title={isMinimized ? 'Mở lại cửa sổ' : 'Thu nhỏ'}
-                className="p-1.5 hover:bg-white/15 rounded-lg text-emerald-100 hover:text-white transition-colors cursor-pointer"
+                className="hidden sm:inline-flex p-1.5 hover:bg-white/15 rounded-lg text-emerald-100 hover:text-white transition-colors cursor-pointer"
               >
                 <Minus className="w-4 h-4 stroke-[2.5]" />
               </button>
+
+              {/* Nút phóng to - chỉ hiện trên desktop */}
               <button
+                type="button"
                 onClick={() => {
                   setIsMaximized(!isMaximized);
                   if (isMinimized) setIsMinimized(false);
                 }}
                 title={isMaximized ? 'Thu nhỏ kích thước chuẩn' : 'Phóng to toàn màn hình'}
-                className="p-1.5 hover:bg-white/15 rounded-lg text-emerald-100 hover:text-white transition-colors cursor-pointer"
+                className="hidden sm:inline-flex p-1.5 hover:bg-white/15 rounded-lg text-emerald-100 hover:text-white transition-colors cursor-pointer"
               >
                 {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
+
+              {/* Nút Đóng - Touch target chuẩn >= 44px trên mobile */}
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                title="Đóng trợ lý"
-                className="p-1.5 hover:bg-white/15 rounded-lg text-emerald-100 hover:text-white transition-colors cursor-pointer"
+                title="Đóng trợ lý ảo"
+                className="min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 flex items-center justify-center p-2 sm:p-1.5 hover:bg-white/15 rounded-xl text-white transition-colors cursor-pointer active:scale-95"
               >
-                <X className="w-4 h-4 stroke-[2.5]" />
+                <X className="w-5 h-5 sm:w-4 sm:h-4 stroke-[2.5]" />
               </button>
             </div>
           </div>
@@ -663,7 +897,10 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
               )}
 
               {/* Message Feed */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-white text-xs">
+              <div 
+                className="flex-1 p-4 overflow-y-auto overscroll-contain space-y-4 bg-white text-xs touch-pan-y"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -804,20 +1041,20 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Bar matching screenshot */}
-              <div className="p-3.5 bg-white border-t border-slate-100 shrink-0">
+              {/* Input Bar: Cố định đáy kèm Safe-Area cho iPhone & Android */}
+              <div className="p-2.5 sm:p-3.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-slate-100 shrink-0 touch-none">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleSendMessage();
                   }}
-                  className="flex items-center gap-2.5"
+                  className="flex items-center gap-2 sm:gap-2.5"
                 >
                   {/* Rounded capsule wrapper with paperclip */}
-                  <div className="flex-1 bg-white border border-slate-200 rounded-full px-4 py-2 flex items-center shadow-2xs focus-within:border-[#007062] focus-within:ring-2 focus-within:ring-[#007062]/20 transition-all">
-                    <span title="Đính kèm tệp / hình ảnh (Sắp ra mắt)">
+                  <div className="flex-1 bg-white border border-slate-200 rounded-full px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center shadow-2xs focus-within:border-[#007062] focus-within:ring-2 focus-within:ring-[#007062]/20 transition-all min-h-[44px]">
+                    <span title="Đính kèm tệp / hình ảnh">
                       <Paperclip 
-                        className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer -rotate-45 mr-2.5 shrink-0 transition-colors" 
+                        className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer -rotate-45 mr-2 sm:mr-2.5 shrink-0 transition-colors" 
                       />
                     </span>
                     <input
@@ -826,7 +1063,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Bạn muốn hỏi gì?"
-                      className="w-full bg-transparent text-[13.5px] text-slate-800 placeholder-slate-400 focus:outline-none"
+                      className="w-full bg-transparent text-[16px] sm:text-[13.5px] text-slate-800 placeholder-slate-400 focus:outline-none"
                       disabled={isLoading}
                     />
                   </div>
@@ -836,7 +1073,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                     <button
                       type="button"
                       onClick={handleStopGenerating}
-                      className="w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer active:scale-95"
+                      className="w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer active:scale-95"
                       title="Dừng phản hồi"
                     >
                       <Square className="w-4 h-4 fill-current" />
@@ -845,7 +1082,7 @@ export const UthBotWidget: React.FC<UthBotWidgetProps> = ({
                     <button
                       type="submit"
                       disabled={!inputMessage.trim()}
-                      className="w-10 h-10 rounded-full bg-[#007062] hover:bg-[#005a4e] disabled:opacity-40 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer active:scale-95"
+                      className="w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-[#007062] hover:bg-[#005a4e] disabled:opacity-40 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer active:scale-95"
                       title="Gửi câu hỏi"
                     >
                       <Send className="w-4 h-4 -rotate-12 translate-x-0.5" />

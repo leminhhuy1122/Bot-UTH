@@ -201,11 +201,10 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
             type="button"
             onClick={() => setShowMonthPicker(!showMonthPicker)}
             title="Nhấp để chọn nhanh tháng và năm"
-            className={`flex items-center gap-2 text-[12px] font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
-              showMonthPicker
+            className={`flex items-center gap-2 text-[12px] font-medium px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${showMonthPicker
                 ? 'border-teal-500 ring-2 ring-teal-500/20 bg-white text-slate-800 shadow-xs'
                 : 'border-slate-200/90 text-slate-700 bg-white hover:border-slate-300'
-            }`}
+              }`}
           >
             <span>{activeMonthText}</span>
             <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
@@ -259,11 +258,10 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                         setViewDate(new Date(pickerYear, idx, 1));
                         setShowMonthPicker(false);
                       }}
-                      className={`py-2 px-1 text-center text-[12px] font-medium rounded-lg transition-all cursor-pointer ${
-                        isCurrentSelected
+                      className={`py-2 px-1 text-center text-[12px] font-medium rounded-lg transition-all cursor-pointer ${isCurrentSelected
                           ? 'bg-[#00827f] text-white font-bold shadow-xs'
                           : 'text-slate-700 hover:bg-slate-100'
-                      }`}
+                        }`}
                     >
                       {mName}
                     </button>
@@ -317,9 +315,8 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                     setSelectedDateStr(isoStr);
                     onSelectEventDate(isoStr);
                   }}
-                  className={`w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-xl bg-[#bfe5e0] hover:bg-[#b0ded8] flex flex-col items-center justify-center text-teal-900 text-[12px] font-semibold transition-all cursor-pointer shadow-2xs ${
-                    isToday ? 'border-[1.5px] border-teal-800 ring-2 ring-teal-700/50' : isSelected ? 'ring-2 ring-teal-700' : ''
-                  }`}
+                  className={`w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-xl bg-[#bfe5e0] hover:bg-[#b0ded8] flex flex-col items-center justify-center text-teal-900 text-[12px] font-semibold transition-all cursor-pointer shadow-2xs ${isToday ? 'border-[1.5px] border-teal-800 ring-2 ring-teal-700/50' : isSelected ? 'ring-2 ring-teal-700' : ''
+                    }`}
                 >
                   <span className={`leading-none ${isSunday ? 'text-orange-600 font-bold' : ''}`}>{day}</span>
                   <div className="flex gap-0.5 mt-1 items-center justify-center">
@@ -336,9 +333,8 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                     setSelectedDateStr(isoStr);
                     onSelectEventDate(isoStr);
                   }}
-                  className={`w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-xl border-[1.5px] border-teal-800 bg-white flex items-center justify-center text-slate-800 text-[12px] font-bold cursor-pointer hover:bg-slate-50 transition-colors ${
-                    isSelected ? 'ring-2 ring-teal-600' : ''
-                  }`}
+                  className={`w-8 h-9 sm:w-8.5 sm:h-9.5 rounded-xl border-[1.5px] border-teal-800 bg-white flex items-center justify-center text-slate-800 text-[12px] font-bold cursor-pointer hover:bg-slate-50 transition-colors ${isSelected ? 'ring-2 ring-teal-600' : ''
+                    }`}
                 >
                   <span className={isSunday ? 'text-orange-600 font-bold' : ''}>{day}</span>
                 </button>
@@ -350,9 +346,8 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = React.memo(({ events 
                     setSelectedDateStr(isoStr);
                     onSelectEventDate(isoStr);
                   }}
-                  className={`w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-[12px] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer ${
-                    isSunday ? 'text-orange-500 font-medium' : 'text-slate-700 font-normal'
-                  } ${isSelected ? 'bg-slate-200 font-bold text-slate-900' : ''}`}
+                  className={`w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center text-[12px] hover:bg-slate-100 rounded-lg transition-colors cursor-pointer ${isSunday ? 'text-orange-500 font-medium' : 'text-slate-700 font-normal'
+                    } ${isSelected ? 'bg-slate-200 font-bold text-slate-900' : ''}`}
                 >
                   {day}
                 </button>
