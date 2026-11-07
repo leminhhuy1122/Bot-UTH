@@ -42,8 +42,9 @@
   - [2. Phân Hệ Đào Tạo Trực Tuyến & Quản Lý Deadline (Elearning UTH)](#2-phân-hệ-đào-tạo-trực-tuyến--quản-lý-deadline-elearning-uth)
   - [3. Tra Cứu Học Phí & 5 Khoản Thu Cố Định Chuẩn UTH](#3-tra-cứu-học-phí--5-khoản-thu-cố-định-chuẩn-uth)
   - [4. Đăng Ký Học Phần & Xem Chương Trình Khung Đào Tạo](#4-đăng-ký-học-phần--xem-chương-trình-khung-đào-tạo)
-  - [5. Cổng Tra Cứu Dành Cho Phụ Huynh (Parent Portal)](#5-cổng-tra-cứu-dành-cho-phụ-huynh-parent-portal)
-  - [6. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)](#6-bàn-điều-khiển-quản-trị-hệ-thống-uth-admin-studio)
+  - [5. Cổng Thanh Toán Học Phí & Tra Cứu Trực Tuyến](#5-cổng-thanh-toán-học-phí--tra-cứu-trực-tuyến)
+  - [6. Cổng Tra Cứu Tiến Độ Học Tập Cho Phụ Huynh (Parent Portal)](#6-cổng-tra-cứu-tiến-độ-học-tập-cho-phụ-huynh-parent-portal)
+  - [7. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)](#7-bàn-điều-khiển-quản-trị-hệ-thống-uth-admin-studio)
 - [👥 Tài Khoản Mẫu Trải Nghiệm (Demo Accounts)](#-tài-khoản-mẫu-trải-nghiệm-demo-accounts)
 - [📐 Kiến Trúc Kỹ Thuật Tổng Thể](#-kiến-trúc-kỹ-thuật-tổng-thể)
 - [📁 Cấu Trúc Thư Mục Dự Án](#-cấu-trúc-thư-mục-dự-án)
@@ -195,11 +196,15 @@ Giao diện phân định minh bạch theo quy chuẩn tài chính của Trườ
 - **Đăng ký học phần**: Tra cứu các môn mở trong kỳ, chọn lớp học phần phù hợp với thời khóa biểu, kiểm tra điều kiện môn tiên quyết và môn học trước, cảnh báo trùng lịch học tự động.
 - **Chương trình khung (Curriculum)**: Hiển thị sơ đồ đào tạo toàn khóa 8 học kỳ, trực quan hóa lộ trình các môn đại cương, cơ sở ngành và chuyên ngành.
 
-### 5. Cổng Tra Cứu Dành Cho Phụ Huynh (Parent Portal)
-- Xác thực 2 bước đơn giản nhưng bảo mật: Nhập **Số CCCD Phụ huynh** + **Mã sinh viên của con**.
-- Cho phép phụ huynh theo dõi sát sao: Kết quả học tập từng kỳ, Điểm rèn luyện, Tình trạng đóng học phí và thông tin cảnh báo học vụ kịp thời.
+### 5. Cổng Thanh Toán Học Phí & Tra Cứu Trực Tuyến
+- **Thanh toán học phí**: Người học hoặc phụ huynh nhập **MSSV / Số CCCD** và **Ngày sinh (dd/mm/yyyy)** để tra cứu nhanh công nợ học phí thực tế, biên lai thu và thực hiện thanh toán trực tuyến qua cổng ngân hàng (VNPay, MoMo, Chuyển khoản QR, Napas).
+- **Tra cứu thông tin trúng tuyển**: Hỗ trợ thí sinh tra cứu kết quả xét tuyển, ngành trúng tuyển, điểm chuẩn và tình trạng xác nhận nhập học đại học UTH.
 
-### 6. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)
+### 6. Cổng Tra Cứu Tiến Độ Học Tập Cho Phụ Huynh (Parent Portal)
+- Xác thực tiện lợi và an toàn bằng **Mã sinh viên (MSSV)** và **Ngày sinh của con em (dd/mm/yyyy)** (không yêu cầu mật khẩu sinh viên).
+- Cho phép phụ huynh đồng hành theo dõi: Bảng điểm chi tiết từng học kỳ, Điểm rèn luyện, Thời khóa biểu học tập và tình trạng hoàn thành học phí.
+
+### 7. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)
 - **Quản lý danh sách sinh viên**: Tìm kiếm, lọc đa tiêu chí (Khoa, Khóa học, Tình trạng học phí, Xếp loại), xem hồ sơ chi tiết, thêm mới và chỉnh sửa điểm số, học phí, bài tập Elearning.
 - **Trung tâm Cơ sở tri thức AI (Knowledge Base RAG)**: Nạp tri thức học vụ mới, duyệt và loại bỏ câu hỏi trùng lặp, hỗ trợ Import/Export file JSON, CSV hàng loạt.
 - **AI Playground & Pipeline Diagnostics**: Môi trường kiểm thử độ chính xác của bot, giả lập các vai trò (Khách, Sinh viên, Phụ huynh), kiểm tra thời gian phản hồi (latency) và kiểm duyệt an ninh.
@@ -219,7 +224,7 @@ Hệ thống đã tích hợp sẵn các tài khoản mẫu với dữ liệu h�
 | 🎓 **Sinh viên 3** | `056203001155` | `123456` | Trịnh Mỹ Duyên | Kinh tế Vận tải biển quốc tế | GPA 3.92 (Xuất sắc), Điểm rèn luyện 98 |
 | 🎓 **Sinh viên 4** | `056203007711` | `123456` | Vũ Minh Đạt | Kỹ thuật Điều khiển & Tự động hóa | GPA 3.55 (Giỏi), có bài tập Elearning cần nộp |
 | 🎓 **Sinh viên 5** | `056204001234` | `123456` | Lê Hoàng Minh | Logistics và Quản lý chuỗi cung ứng | GPA 3.45 (Khá), còn nợ học phí 4.500.000 đ |
-| 👨‍👩‍👧 **Phụ huynh** | CCCD Phụ huynh + Mã `056205008344` | *(Không cần MK)* | Phụ huynh SV | - | Tra cứu học tập và học phí của con em |
+| 👨‍👩‍👧 **Phụ huynh / Tra cứu học phí** | Nhập MSSV `056205008344` + Ngày sinh `15/08/2005` | *(Không cần mật khẩu)* | Hoàng Gia Bảo | Tra cứu công nợ học phí & Bảng điểm con em |
 
 *(Hệ thống hỗ trợ nạp dữ liệu quy mô lớn với đầy đủ hồ sơ sinh viên trên CSDL đám mây PostgreSQL).*
 
