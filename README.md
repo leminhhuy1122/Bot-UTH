@@ -1,148 +1,270 @@
-# 🎓 CỔNG THÔNG TIN SINH VIÊN & TRỢ LÝ ẢO AI COPILOT THÔNG MINH
+# 🎓 CỔNG THÔNG TIN SINH VIÊN & TRỢ LÝ ẢO AI AGENT UTH
 ### TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI THÀNH PHỐ HỒ CHÍ MINH (UTH)
+*University of Transport and Communications (UTH) - Student Portal & Actionable AI Copilot Ecosystem*
 
 <div align="center">
 
 ![UTH Logo](frontend/public/uth_logo.png)
 
-**Hệ thống Số Hóa Học Vụ Toàn Diện & Trợ Lý Ảo Trí Tuệ Nhân Tạo Thế Hệ Mới (Actionable AI Copilot & Multi-Provider RAG Gateway)**  
-*University of Transport and Communications (UTH) - Enterprise Student Portal Ecosystem*
+**Hệ sinh thái số hóa học vụ toàn diện, tích hợp Trợ lý Trí tuệ Nhân tạo Đa tác nhân (Autonomous AI Agent) hỗ trợ sinh viên 24/7 theo thời gian thực.**
 
+🌐 **Website Trực Tuyến**: [https://botuth.xyz](https://botuth.xyz) *(hoặc [https://www.botuth.xyz](https://www.botuth.xyz))*  
+🚀 **Cổng API Backend**: [https://bot-uth.onrender.com](https://bot-uth.onrender.com)  
+📑 **Swagger API Docs**: [https://bot-uth.onrender.com/docs](https://bot-uth.onrender.com/docs)  
+🔗 **Tên miền dự phòng (Vercel)**: [https://bot-uth.vercel.app](https://bot-uth.vercel.app)
+
+---
+
+[![Production Status](https://img.shields.io/badge/System-Online%20%7C%20Live-008272?style=for-the-badge&logo=statuspage&logoColor=white)](https://botuth.xyz)
+[![Vercel Deployment](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel&logoColor=white)](https://botuth.xyz)
+[![Render Cloud](https://img.shields.io/badge/Backend-Render%20Cloud-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://bot-uth.onrender.com)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React 19](https://img.shields.io/badge/Frontend-React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Neon PostgreSQL](https://img.shields.io/badge/Database-Neon.tech%20Postgres-00E599?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
-[![OpenAI GPT-4o-mini](https://img.shields.io/badge/AI%20Engine-OpenAI%20GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com)
-[![Google Gemini](https://img.shields.io/badge/AI%20Model-Gemini%203.8--flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
-[![Tailwind CSS v4](https://img.shields.io/badge/Styling-Tailwind%20CSS%20v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+[![AI Engine](https://img.shields.io/badge/AI%20Gateway-Gemini%20%2F%20GPT--4o--mini-8E75B2?style=for-the-badge&logo=openai&logoColor=white)](https://botuth.xyz)
 
 </div>
 
 ---
 
 ## 📖 MỤC LỤC
-- [🌟 Điểm Nổi Bật & Tính Năng Đột Phá](#-điểm-nổi-bật--tính-năng-đột-phá)
-- [🏛️ Các Phân Hệ Chức Năng](#️-các-phân-hệ-chức-năng)
-  - [1. Trợ Lý Ảo UTH Assistant (Actionable AI Copilot)](#1-trợ-lý-ảo-uth-assistant-actionable-ai-copilot)
-  - [2. Cổng Quản Lý Học Vụ Sinh Viên (Student Portal)](#2-cổng-quản-lý-học-vụ-sinh-viên-student-portal)
-  - [3. Phân Hệ Đào Tạo Trực Tuyến (Elearning UTH)](#3-phân-hệ-đào-tạo-trực-tuyến-elearning-uth)
-  - [4. Tra Cứu Công Nợ & Học Phí Khác Chuẩn UTH](#4-tra-cứu-công-nợ--học-phí-khác-chuẩn-uth)
-  - [5. Cổng Tra Cứu Tiến Độ Dành Cho Phụ Huynh (Parent Portal)](#5-cổng-tra-cứu-tiến-độ-dành-cho-phụ-huynh-parent-portal)
-  - [6. Bàn Điều Khiển Quản Trị & Trung Tâm Sao Lưu (Admin Studio)](#6-bàn-điều-khiển-quản-trị--trung-tâm-sao-lưu-admin-studio)
-- [🛡️ Kiến Trúc Multi-Provider AI & Lá Chắn Bảo Mật](#️-kiến-trúc-multi-provider-ai--lá-chắn-bảo-mật)
+- [🌐 Địa Chỉ Truy Cập Hệ Thống Trực Tuyến](#-địa-chỉ-truy-cập-hệ-thống-trực-tuyến)
+- [🤖 Đột Phá: Trợ Lý Ảo AI Agent Hỗ Trợ Sinh Viên (UTH AI Copilot)](#-đột-phá-trợ-lý-ảo-ai-agent-hỗ-trợ-sinh-viên-uth-ai-copilot)
+  - [1. Bản chất Autonomous Actionable Agent](#1-bản-chất-autonomous-actionable-agent)
+  - [2. Năng lực hỏi đáp & RAG quy chế UTH chuyên sâu](#2-năng-lực-hỏi-đáp--rag-quy-chế-uth-chuyên-sâu)
+  - [3. Trích xuất dữ liệu học vụ cá nhân hóa theo ngữ cảnh](#3-trích-xuất-dữ-liệu-học-vụ-cá-nhân-hóa-theo-ngữ-cảnh)
+  - [4. Bộ tính toán điểm số giả định What-if GPA/CPA](#4-bộ-tính-toán-điểm-số-giả-định-what-if-gpacpa)
+  - [5. Thẻ hành động tương tác 1 chạm (Action Cards)](#5-thẻ-hành-động-tương-tác-1-chạm-action-cards)
+  - [6. Kiến trúc AI Gateway đa tầng & Tối ưu Token](#6-kiến-trúc-ai-gateway-đa-tầng--tối-ưu-token)
+- [🏛️ Các Phân Hệ Chức Năng Chính](#️-các-phân-hệ-chức-năng-chính)
+  - [1. Cổng Quản Lý Học Vụ Sinh Viên (Student Portal)](#1-cổng-quản-lý-học-vụ-sinh-viên-student-portal)
+  - [2. Phân Hệ Đào Tạo Trực Tuyến & Quản Lý Deadline (Elearning UTH)](#2-phân-hệ-đào-tạo-trực-tuyến--quản-lý-deadline-elearning-uth)
+  - [3. Tra Cứu Học Phí & 5 Khoản Thu Cố Định Chuẩn UTH](#3-tra-cứu-học-phí--5-khoản-thu-cố-định-chuẩn-uth)
+  - [4. Đăng Ký Học Phần & Xem Chương Trình Khung Đào Tạo](#4-đăng-ký-học-phần--xem-chương-trình-khung-đào-tạo)
+  - [5. Cổng Tra Cứu Dành Cho Phụ Huynh (Parent Portal)](#5-cổng-tra-cứu-dành-cho-phụ-huynh-parent-portal)
+  - [6. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)](#6-bàn-điều-khiển-quản-trị-hệ-thống-uth-admin-studio)
+- [👥 Tài Khoản Mẫu Trải Nghiệm (Demo Accounts)](#-tài-khoản-mẫu-trải-nghiệm-demo-accounts)
+- [📐 Kiến Trúc Kỹ Thuật Tổng Thể](#-kiến-trúc-kỹ-thuật-tổng-thể)
 - [📁 Cấu Trúc Thư Mục Dự Án](#-cấu-trúc-thư-mục-dự-án)
-- [👥 Bảng Tài Khoản Mẫu Trải Nghiệm (Demo Accounts)](#-bảng-tài-khoản-mẫu-trải-nghiệm-demo-accounts)
-- [🚀 Hướng Dẫn Cài Đặt & Khởi Chạy Nhanh](#-hướng-dẫn-cài-đặt--khởi-chạy-nhanh)
+- [🚀 Hướng Dẫn Cài Đặt & Chạy Môi Trường Cục Bộ (Local Dev)](#-hướng-dẫn-cài-đặt--chạy-môi-trường-cục-bộ-local-dev)
 - [⚙️ Bảng Cấu Hình Biến Môi Trường (.env)](#️-bảng-cấu-hình-biến-môi-trường-env)
 - [⚖️ Quy Chuẩn Dự Án](#️-quy-chuẩn-dự-án)
 
 ---
 
-## 🌟 ĐIỂM NỔI BẬT & TÍNH NĂNG ĐỘT PHÁ
+## 🌐 ĐỊA CHỈ TRUY CẬP HỆ THỐNG TRỰC TUYẾN
 
-### 1. 🤖 Actionable AI Copilot (Điều hướng tương tác trực tiếp)
-Không chỉ trả lời câu hỏi bằng văn bản thuần túy, **UTH Assistant** đóng vai trò là một người trợ lý số thực thụ:
-- Tự động phát hiện ý định và đính kèm **Action Cards** tương tác (1-click mở trực tiếp Thời khóa biểu, Cổng Elearning, Cổng thanh toán học phí, Thẻ sinh viên điện tử).
-- Cơ chế CustomEvent an toàn phân phối sự kiện điều hướng giữa Bot Widget và Dashboard.
+Hệ thống đã được đóng gói và triển khai hoàn chỉnh trên hạ tầng đám mây phân tán tốc độ cao:
 
-### 2. ⚡ Multi-Provider AI Gateway & Token Optimization
-Hệ thống tích hợp cổng kết nối AI thông minh thế hệ mới:
-- **Ưu tiên 1**: `OpenAI GPT-4o-mini` — Mô hình cực kỳ thông minh, xử lý ngôn ngữ tự nhiên và tính toán logic học vụ xuất sắc.
-- **Dự phòng 1**: `Google Gemini 3.8-flash / 3.5-flash` — Tự động chuyển tiếp khi mạng quốc tế chập chờn hoặc hết quota.
-- **Dự phòng 2**: `Python NLP Engine Offline` — Động cơ RAG và toán học cục bộ hoạt động ổn định 100% ngay cả khi mất kết nối Internet.
-- **Bộ tối ưu Token 4 tầng**:
-  - *Context Compaction*: Chỉ gửi 3 tin nhắn gần nhất, cắt ngắn tin nhắn cũ $< 200$ ký tự $\rightarrow$ **Giảm 75% chi phí input token**.
-  - *Zero-Token In-Memory Cache*: Tự động lưu cache các câu hỏi tương tự trong 3 phút $\rightarrow$ **0 Token tiêu thụ**, phản hồi $< 5\text{ms}$.
-  - *Circuit Breaker*: Tự động ngắt mạch trong 60 giây khi gặp lỗi HTTP 429 hoặc lỗi lặp $\rightarrow$ **Chống 100% tình trạng kẹt và tiêu hao token hàng loạt**.
-  - *Request Debouncing*: Chặn click spam dồn dập trong khoảng thời gian $< 1.2$ giây.
-
-### 3. 📊 Bộ Mô Phỏng Điểm Số Giả Định (What-if GPA/CPA Calculator)
-- Tự động nhận diện các câu hỏi giả định học vụ phức tạp: *"Nếu môn Quản trị mạng đạt 4 điểm hệ 10 thì kéo điểm GPA của tôi xuống như thế nào?"*.
-- Áp dụng công thức quy chế tín chỉ đào tạo UTH: Quy đổi 4/10 sang thang điểm 4 (Điểm D = 1.0), tính toán tác động đến CPA tích lũy hiện tại và đưa ra cảnh báo xếp loại học lực (Xuất sắc, Giỏi, Khá) kịp thời.
-
-### 4. ✈️ Máy Bay 3D Nhắc Hẹn Deadline Thông Minh
-- Mô hình máy bay thương mại 3D UTH kéo banner thông báo bài tập cận hạn nộp trên Dashboard.
-- **Thuật toán Cooldown 30 phút theo phiên**: Chỉ cất cánh 1 lần khi vừa mới đăng nhập; khi sinh viên chuyển qua lại giữa các trang sẽ **không bị bay ra làm phiền**, và chỉ xuất hiện nhắc lại sau đúng 30 phút.
+| Dịch vụ / Phân hệ | Đường dẫn truy cập (URL) | Hạ tầng triển khai | Ghi chú |
+| :--- | :--- | :--- | :--- |
+| 🌐 **Trang chủ Cổng Sinh Viên UTH** | [**https://botuth.xyz**](https://botuth.xyz) | Vercel Edge Network | Tên miền chính thức, có chứng chỉ SSL/TLS |
+| 🌐 **Tên miền phụ (Subdomain)** | [**https://www.botuth.xyz**](https://www.botuth.xyz) | Vercel Edge Network | Tự động chuyển hướng đồng bộ 308 |
+| 🛡️ **Tên miền Vercel dự phòng** | [https://bot-uth.vercel.app](https://bot-uth.vercel.app) | Vercel Platform | Backup khi cần kiểm tra DNS |
+| ⚡ **Máy chủ API Backend** | [https://bot-uth.onrender.com](https://bot-uth.onrender.com) | Render Web Service | FastAPI Python 3.11, Auto CORS Protected |
+| 📚 **Tài liệu API tương tác (Swagger)** | [https://bot-uth.onrender.com/docs](https://bot-uth.onrender.com/docs) | OpenAPI 3.0 | Kiểm thử trực tiếp hơn 35+ API Endpoints |
+| 🩺 **Kiểm tra trạng thái máy chủ** | [https://bot-uth.onrender.com/api/health](https://bot-uth.onrender.com/api/health) | Health Check Endpoint | Giám sát kết nối CSDL và dịch vụ AI |
 
 ---
 
-## 🏛️ CÁC PHÂN HỆ CHỨC NĂNG
+## 🤖 ĐỘT PHÁ: TRỢ LÝ ẢO AI AGENT HỖ TRỢ SINH VIÊN (UTH AI COPILOT)
 
-### 1. Trợ Lý Ảo UTH Assistant (Actionable AI Copilot)
-- **Giao diện nổi (Floating Widget)** với khả năng thu nhỏ, phóng to toàn màn hình và hỗ trợ xuất nhật ký hội thoại `.txt`.
-- **Phân quyền ngữ cảnh động**:
-  - *Khách*: Tư vấn thông tin tuyển sinh, 3 cơ sở đào tạo, biểu phí chung. Chặn rò rỉ dữ liệu cá nhân (PII Guard).
-  - *Sinh viên*: Trích xuất trực tiếp lịch học tuần này, điểm GPA/CPA, tiến độ 145 tín chỉ, danh sách bài tập Elearning và công nợ học phí.
-  - *Phụ huynh*: Thông tin tình hình học tập và hướng dẫn nộp học phí qua tài khoản ngân hàng nhà trường.
+Khác biệt hoàn toàn với các chatbot hỏi đáp dựa trên cây kịch bản tĩnh (Rule-based) hoặc các bot AI chỉ trả về văn bản chung chung, **UTH Assistant** được xây dựng theo kiến trúc **Autonomous Actionable AI Agent** – một trợ lý trí tuệ nhân tạo có khả năng hiểu sâu ngữ cảnh học tập, lập luận toán học quy chế và **trực tiếp hành động** để đồng hành cùng sinh viên UTH trong suốt 4 năm đại học.
 
-### 2. Cổng Quản Lý Học Vụ Sinh Viên (Student Portal)
-- Đăng nhập bảo mật JWT bằng **Số CCCD** hoặc **Mã sinh viên**.
-- **Dashboard tổng quan**:
+```
+       ┌─────────────────────────────────────────────────────────────┐
+       │                   SINH VIÊN ĐẶT CÂU HỎI                    │
+       │    "Em còn nợ bao nhiêu học phí và hạn nộp là ngày nào?"    │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+                                      ▼
+       ┌─────────────────────────────────────────────────────────────┐
+       │             LÁ CHẮN AN NINH & BỘ LỌC NGỮ NGHĨA              │
+       │   • PII Masking       • Anti-Prompt Injection   • Rate Limit │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+                                      ▼
+       ┌─────────────────────────────────────────────────────────────┐
+       │            DYNAMIC CONTEXT & RAG RETRIEVAL ENGINE           │
+       │   • Nạp hồ sơ sinh viên: MSSV, Điểm CPA, Công nợ, Môn học   │
+       │   • Vector RAG Search: Cẩm nang học vụ 62+ câu hỏi UTH      │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+                                      ▼
+       ┌─────────────────────────────────────────────────────────────┐
+       │               AI AGENT REASONING & SYNTHESIS                │
+       │        (Gemini Flash / OpenAI / Local NLP Failover)         │
+       │  • Lập luận học vụ chính xác theo Quy chế đào tạo UTH        │
+       │  • Quyết định sinh ra Action Card điều hướng tương tác     │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+                                      ▼
+       ┌─────────────────────────────────────────────────────────────┐
+       │                CÂU TRẢ LỜI ĐÍNH KÈM THẺ HÀNH ĐỘNG           │
+       │  💬 "Hiện tại bạn còn nợ 1.500.000 đ học phí kỳ HKI 26-27...│
+       │  ┌───────────────────────────────────────────────────────┐  │
+       │  │ 💳 [Thanh Toán Học Phí] -> 1-Click mở trang chi tiết  │  │
+       │  └───────────────────────────────────────────────────────┘  │
+       └─────────────────────────────────────────────────────────────┘
+```
+
+### 1. Bản chất Autonomous Actionable Agent
+- **Tự động nhận diện ý định (Intent Classification)**: Phân tích ngữ nghĩa tự nhiên tiếng Việt, tự động nhận diện hơn 30+ loại ý định học vụ (tra cứu điểm, lịch thi, công nợ, bảo hiểm y tế, miễn giảm học phần, rút môn học, tốt nghiệp...).
+- **Cơ chế Context Injection**: Khi sinh viên đã đăng nhập, mọi câu hỏi đều được bổ sung ngầm ngữ cảnh thực tế của chính sinh viên đó (Họ tên, Khóa, Ngành, Điểm GPA/CPA, Tiến độ tín chỉ, Danh sách môn đang học, Bài tập tồn đọng). AI không cần hỏi lại *"Bạn tên gì, học ngành nào?"*.
+
+### 2. Năng lực hỏi đáp & RAG quy chế UTH chuyên sâu
+- Tích hợp toàn văn **Cẩm nang hỏi đáp sinh viên UTH Toàn tập** (hơn 62 chủ đề chuyên sâu):
+  - Quy chế đào tạo theo hệ thống tín chỉ chuẩn UTH (xếp loại học lực, cảnh báo học vụ, điều kiện tốt nghiệp).
+  - Quy định điểm rèn luyện, chuẩn đầu ra Ngoại ngữ (TOEIC/IELTS) và Tin học (MOS/IC3).
+  - Quy trình xin cấp bảng điểm, giấy chứng nhận sinh viên, tạm hoãn nghĩa vụ quân sự.
+  - Thông tin 3 cơ sở đào tạo của trường (Cơ sở 1 - Bình Thạnh, Cơ sở 2 - Quận 12, Cơ sở 3 - TP. Thủ Đức).
+- **Bộ lọc phòng thủ an toàn (Security Guardrails)**:
+  - Tự động nhận diện và từ chối các câu hỏi quấy rối, ngôn từ phản cảm.
+  - Ngăn chặn 100% các cuộc tấn công chiếm quyền Prompt (*Prompt Injection / Jailbreak*).
+  - Che giấu thông tin cá nhân (PII Protection) khi người dùng ở chế độ khách vãng lai.
+
+### 3. Trích xuất dữ liệu học vụ cá nhân hóa theo ngữ cảnh
+Sinh viên chỉ cần hỏi bằng ngôn ngữ tự nhiên thường ngày:
+- *"Hôm nay em có lịch học môn nào ở phòng mấy?"* $\rightarrow$ AI đọc dữ liệu thời khóa biểu thực của sinh viên, chỉ rõ tên môn, phòng học, giờ học và tên giảng viên.
+- *"Em còn nợ môn nào chưa trả không?"* $\rightarrow$ AI rà soát kết quả các kỳ học trước, liệt kê các môn bị điểm F kèm số tín chỉ.
+- *"Học phí kỳ này của em hết bao nhiêu, đã đóng chưa?"* $\rightarrow$ AI tách bạch rõ **Học phí ngành** và **5 khoản Học phí khác** (BHYT, Bảo hiểm tai nạn, Thư viện số...), báo số tiền còn nợ và hạn nộp.
+- *"Tuần này em có bài tập Elearning nào cần nộp gấp không?"* $\rightarrow$ AI kiểm tra danh sách bài tập đang giao, cảnh báo bài tập có hạn nộp trong 3 ngày tới.
+
+### 4. Bộ tính toán điểm số giả định What-if GPA/CPA
+Đây là tính năng độc quyền giải quyết bài toán lớn nhất của sinh viên đại học:
+- **Câu hỏi ví dụ**: *"Nếu kỳ này môn Giải tích 2 em được 4.0 điểm hệ 10 thì điểm tích lũy CPA của em có bị tụt xuống loại Khá không?"*
+- **Quy trình xử lý của Agent**:
+  1. Quy đổi điểm 4.0/10 sang thang điểm chữ (Điểm D) và thang 4 (1.0).
+  2. Lấy số tín chỉ môn học (3 TC), nhân trọng số với tổng số tín chỉ tích lũy hiện có.
+  3. Tính toán chính xác CPA mới sau khi có điểm môn này.
+  4. So sánh với ngưỡng phân loại UTH ($\ge 3.6$: Xuất sắc, $\ge 3.2$: Giỏi, $\ge 2.5$: Khá, $\ge 2.0$: Trung bình) và đưa ra lời khuyên học tập cụ thể.
+
+### 5. Thẻ hành động tương tác 1 chạm (Action Cards)
+Agent không bắt sinh viên phải tự lần mò thanh menu phức tạp:
+- Khi trả lời về lịch học $\rightarrow$ Đính kèm thẻ **"Xem Thời khóa biểu"**.
+- Khi nói về bài tập $\rightarrow$ Đính kèm thẻ **"Đến Cổng Elearning"**.
+- Khi nhắc học phí $\rightarrow$ Đính kèm thẻ **"Cổng Thanh Toán & Tra Cứu Công Nợ"**.
+- Khi hỏi về thông tin cá nhân $\rightarrow$ Đính kèm thẻ **"Mở Thẻ Sinh Viên Điện Tử (QR)"**.
+- *Chỉ với 1 click chuột, hệ thống lập tức mở thẳng giao diện tương ứng mà không làm mất đoạn chat.*
+
+### 6. Kiến trúc AI Gateway đa tầng & Tối ưu Token
+Nhằm đảm bảo khả năng hoạt động liên tục 24/7 với chi phí vận hành tối ưu nhất:
+- **Tầng 1 (Primary)**: Kết nối API LLM tiên tiến (`OpenAI GPT-4o-mini` hoặc `Google Gemini 2.5/Flash`) mang lại câu trả lời tự nhiên, uyển chuyển.
+- **Tầng 2 (Automatic Failover)**: Tự động chuyển đổi nhà cung cấp nếu một bên gặp sự cố nghẽn mạng quốc tế.
+- **Tầng 3 (Local Offline NLP & Math Engine)**: Động cơ xử lý ngôn ngữ tự nhiên và tính toán học vụ viết bằng Python thuần chạy trực tiếp trên máy chủ backend. Luôn đảm bảo phản hồi chính xác 100% các câu hỏi học vụ cốt lõi ngay cả khi không có mạng Internet.
+- **Bộ 4 tầng tối ưu chi phí**:
+  - *Zero-Token Memory Cache*: Lưu bộ nhớ tạm câu trả lời của các câu hỏi phổ biến trong 180 giây $\rightarrow$ Phản hồi trong $< 5\text{ms}$ với **0 token tiêu hao**.
+  - *Context Compaction*: Chỉ gửi 3 lượt hội thoại gần nhất, nén văn bản cũ $\rightarrow$ Giảm **75% chi phí input token**.
+  - *Circuit Breaker*: Ngắt mạch thông minh 60s khi gặp lỗi cạn hạn mức (Quota Limit).
+  - *Debouncing*: Chống gửi request dồn dập trong khoảng thời gian $< 1.2$ giây.
+
+---
+
+## 🏛️ CÁC PHÂN HỆ CHỨC NĂNG CHÍNH
+
+### 1. Cổng Quản Lý Học Vụ Sinh Viên (Student Portal)
+- **Đăng nhập linh hoạt & an toàn**: Hỗ trợ đăng nhập bằng **Mã sinh viên** hoặc **Số CCCD**. Bảo mật đa tầng với JWT Token.
+- **Dashboard điều hành học vụ**:
   - Thẻ thông tin cá nhân tích hợp mã QR Thẻ sinh viên điện tử.
-  - Widget thống kê: Điểm trung bình GPA, Điểm rèn luyện, Tiến độ tín chỉ, Trạng thái học phí.
-  - Thời khóa biểu tuần thời gian thực & Lịch tháng trực quan.
-  - Danh mục thông báo học vụ, lịch thi, dịch vụ một cửa (cấp giấy chứng nhận, tạm hoãn NVQS).
+  - Các khối thống kê trực quan: Điểm GPA hệ 10 & hệ 4, Điểm rèn luyện, Tiến độ tích lũy tín chỉ (trên tổng số 145 TC).
+  - Lịch học tuần tương tác và lịch học tháng đầy đủ.
+  - Bảng thông báo học vụ, lịch thi học kỳ, tra cứu văn bản quy chế.
+- **Hiệu ứng nhắc Deadline 3D (3D Airplane)**: Mô hình máy bay thương mại UTH 3D kéo banner thông báo các bài tập cận hạn; tích hợp thuật toán Cooldown 30 phút theo phiên làm việc, không làm phiền sinh viên khi chuyển trang.
 
-### 3. Phân Hệ Đào Tạo Trực Tuyến (Elearning UTH)
-- Quản lý danh sách các môn học đang theo học kỳ hiện tại.
-- Danh sách bài tập trực tuyến phân loại theo trạng thái: **Cần nộp gấp trong 3 ngày (🚨 Deadline)**, **Đang mở** và **Đã nộp/Đã chấm điểm**.
-- Xem điểm số thành phần và lời nhận xét chi tiết của giảng viên.
-- Modal nộp bài trực tuyến kèm kéo thả file và đường link bài làm.
+### 2. Phân Hệ Đào Tạo Trực Tuyến & Quản Lý Deadline (Elearning UTH)
+- Danh mục toàn bộ các học phần sinh viên đang theo học trong học kỳ.
+- Phân loại bài tập thông minh: **🚨 Cần nộp gấp (dưới 3 ngày)**, **Đang mở** và **Đã hoàn thành/Đã có điểm**.
+- Xem chi tiết điểm số thành phần và nhận xét bài làm từ giảng viên.
+- Form nộp bài trực tuyến: Hỗ trợ kéo thả tệp tin đính kèm và đường link bài làm (GitHub/Drive).
 
-### 4. Tra Cứu Công Nợ & Học Phí Khác Chuẩn UTH
-- **Bảng 1 - Học phí ngành đào tạo**: Hiển thị tổng học phí theo số tín chỉ đăng ký, số tiền đã nộp và dư nợ.
-- **Bảng 2 - Học phí khác (Màu Teal `#00695c` đặc trưng UTH)**: 
-  - Chi tiết 5 khoản thu cố định chuẩn UTH: *Tài liệu thư viện số (TVS90)*, *Quét trùng lặp Turnitin*, *Bảo hiểm y tế 15 tháng (BHYT23)*, *Bảo hiểm tai nạn (BHTN)*, *Sinh hoạt chính trị đầu khóa (SHCT)* — Tổng định mức: **1.440.500 VNĐ**.
-  - Hiển thị ngày nộp, mức thu và trạng thái công nợ chuẩn xác.
-- Tích hợp cổng hướng dẫn chuyển khoản Vietcombank chính thức của trường.
+### 3. Tra Cứu Học Phí & 5 Khoản Thu Cố Định Chuẩn UTH
+Giao diện phân định minh bạch theo quy chuẩn tài chính của Trường ĐH Giao thông Vận tải TP.HCM:
+- **Bảng 1 - Học phí đào tạo**: Tính toán theo tổng số tín chỉ đăng ký thực tế, số tiền đã đóng và công nợ còn lại.
+- **Bảng 2 - Học phí khác (Thiết kế màu Teal `#008272` đặc trưng UTH)**:
+  - Chi tiết 5 khoản thu cố định bắt buộc:
+    1. *Tài liệu thư viện số (TVS90)*: 90.000 đ
+    2. *Quét trùng lặp Turnitin*: 80.000 đ
+    3. *Bảo hiểm y tế 15 tháng (BHYT23)*: 1.107.000 đ
+    4. *Bảo hiểm tai nạn (BHTN)*: 63.500 đ
+    5. *Sinh hoạt chính trị đầu khóa (SHCT)*: 100.000 đ
+  - Tổng định mức: **1.440.500 đ**.
+- Tích hợp cổng hướng dẫn thanh toán học phí qua mã QR tài khoản Vietcombank chính thức của Nhà trường.
 
-### 5. Cổng Tra Cứu Tiến Độ Dành Cho Phụ Huynh (Parent Portal)
-- Xác thực an toàn hai yếu tố: **CCCD của phụ huynh** + **Mã sinh viên của con em**.
-- Theo dõi toàn bộ kết quả học tập, điểm rèn luyện, tình trạng hoàn thành học phí của con em mà không can thiệp vào quyền thao tác học vụ nội bộ của sinh viên.
+### 4. Đăng Ký Học Phần & Xem Chương Trình Khung Đào Tạo
+- **Đăng ký học phần**: Tra cứu các môn mở trong kỳ, chọn lớp học phần phù hợp với thời khóa biểu, kiểm tra điều kiện môn tiên quyết và môn học trước, cảnh báo trùng lịch học tự động.
+- **Chương trình khung (Curriculum)**: Hiển thị sơ đồ đào tạo toàn khóa 8 học kỳ, trực quan hóa lộ trình các môn đại cương, cơ sở ngành và chuyên ngành.
 
-### 6. Bàn Điều Khiển Quản Trị & Trung Tâm Sao Lưu (Admin Studio)
-- **Quản lý 919 Sinh viên**: Tìm kiếm, lọc theo khoa/chuyên ngành, xem chi tiết và chỉnh sửa điểm số, học phí.
-- **Quản lý Cơ sở tri thức (Knowledge Base RAG)**: Thêm, sửa, xóa các mục tri thức quy chế, import/export JSON hàng loạt.
-- **AI Playground & Pipeline Diagnostics**: Kiểm thử truy vấn AI đa vai trò, đo lường độ trễ (latency), kiểm tra lá chắn Prompt Injection và Audit Logs thời gian thực.
-- **Backup & Recovery Center**: Sao lưu toàn bộ CSDL nén `.uthbak.gz` và khôi phục 1-click an toàn.
+### 5. Cổng Tra Cứu Dành Cho Phụ Huynh (Parent Portal)
+- Xác thực 2 bước đơn giản nhưng bảo mật: Nhập **Số CCCD Phụ huynh** + **Mã sinh viên của con**.
+- Cho phép phụ huynh theo dõi sát sao: Kết quả học tập từng kỳ, Điểm rèn luyện, Tình trạng đóng học phí và thông tin cảnh báo học vụ kịp thời.
+
+### 6. Bàn Điều Khiển Quản Trị Hệ Thống (UTH Admin Studio)
+- **Quản lý danh sách sinh viên**: Tìm kiếm, lọc đa tiêu chí (Khoa, Khóa học, Tình trạng học phí, Xếp loại), xem hồ sơ chi tiết, thêm mới và chỉnh sửa điểm số, học phí, bài tập Elearning.
+- **Trung tâm Cơ sở tri thức AI (Knowledge Base RAG)**: Nạp tri thức học vụ mới, duyệt và loại bỏ câu hỏi trùng lặp, hỗ trợ Import/Export file JSON, CSV hàng loạt.
+- **AI Playground & Pipeline Diagnostics**: Môi trường kiểm thử độ chính xác của bot, giả lập các vai trò (Khách, Sinh viên, Phụ huynh), kiểm tra thời gian phản hồi (latency) và kiểm duyệt an ninh.
+- **Trung tâm Sao lưu & Khôi phục CSDL (Backup & Recovery Center)**: Tạo bản sao lưu nén định dạng `.uthbak.gz`, khôi phục 1-click an toàn có snapshot bảo vệ.
 
 ---
 
-## 🛡️ KIẾN TRÚC MULTI-PROVIDER AI & LÁ CHẮN BẢO MẬT
+## 👥 TÀI KHOẢN MẪU TRẢI NGHIỆM (DEMO ACCOUNTS)
+
+Hệ thống đã tích hợp sẵn các tài khoản mẫu với dữ liệu học vụ thực tế để bạn trải nghiệm ngay trên website [https://botuth.xyz](https://botuth.xyz):
+
+| Vai trò | Tên đăng nhập (CCCD / Mã SV) | Mật khẩu | Họ và tên | Ngành đào tạo | Điểm nổi bật để trải nghiệm |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 👑 **Quản trị viên** | `admin` | `Admin!@123` | Quản trị Hệ Thống | Ban Đào Tạo UTH | Truy cập Admin Studio, RAG tri thức, Quản lý CSDL |
+| 🎓 **Sinh viên 1** | `056205008344` | `123456` | Hoàng Gia Bảo | Kỹ thuật Xây dựng Cầu đường | GPA 3.25 (Khá), đã hoàn thành 100% học phí |
+| 🎓 **Sinh viên 2** | `056202007744` | `123456` | Huỳnh Tấn Phát | Kỹ thuật Công trình Thủy | GPA 3.18 (Khá), còn nợ 1.500.000 đ học phí |
+| 🎓 **Sinh viên 3** | `056203001155` | `123456` | Trịnh Mỹ Duyên | Kinh tế Vận tải biển quốc tế | GPA 3.92 (Xuất sắc), Điểm rèn luyện 98 |
+| 🎓 **Sinh viên 4** | `056203007711` | `123456` | Vũ Minh Đạt | Kỹ thuật Điều khiển & Tự động hóa | GPA 3.55 (Giỏi), có bài tập Elearning cần nộp |
+| 🎓 **Sinh viên 5** | `056204001234` | `123456` | Lê Hoàng Minh | Logistics và Quản lý chuỗi cung ứng | GPA 3.45 (Khá), còn nợ học phí 4.500.000 đ |
+| 👨‍👩‍👧 **Phụ huynh** | CCCD Phụ huynh + Mã `056205008344` | *(Không cần MK)* | Phụ huynh SV | - | Tra cứu học tập và học phí của con em |
+
+*(Hệ thống hỗ trợ nạp dữ liệu quy mô lớn với đầy đủ hồ sơ sinh viên trên CSDL đám mây PostgreSQL).*
+
+---
+
+## 📐 KIẾN TRÚC KỸ THUẬT TỔNG THỂ
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       GIAO DIỆN NGƯỜI DÙNG (FRONTEND)                       │
-│     React 19 + TypeScript + Vite + Tailwind CSS v4 + Lucide Icons           │
-│     - Public Portal          - Student Portal         - Elearning View      │
-│     - Debt Lookup (Teal)     - Parent Portal          - Admin Studio        │
-│     - 3D Airplane (30m CD)   - Actionable AI Copilot  - Shimmer Loading     │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ RESTful API & Server-Sent Events (SSE)
-┌──────────────────────────────────────▼──────────────────────────────────────┐
-│                        TẦNG MÁY CHỦ BACKEND (FASTAPI)                       │
-│                                                                             │
-│  [1. Lá Chắn An Ninh Đa Tầng (Security Shield)]                             │
-│  ├── Anti-Burst & Debouncing (Chặn spam liên tục <1.2s)                     │
-│  ├── Sliding Window Rate Limiter (15 - 35 request/phút)                     │
-│  ├── Profanity & Abuse Filter (Lọc ngôn từ thô tục, quấy rối)               │
-│  ├── Anti-Prompt Injection & Jailbreak Guard (Bảo vệ System Prompt)         │
-│  └── PII Privacy Guard (Tự động che giấu CCCD, SĐT của khách)               │
-│                                                                             │
-│  [2. Cổng Điều Phối AI Thông Minh (Multi-Provider AI Gateway)]              │
-│  ├── Zero-Token In-Memory Cache (Cache câu hỏi tương tự 180s, 0 token)      │
-│  ├── Token Context Compactor (Chỉ gửi 3 tin gần nhất, cắt ngắn text <200 ký tự)
-│  ├── Circuit Breaker (Ngắt mạch tự động 60s khi gặp lỗi 429 / Quota)        │
-│  ├── Priority 1: OpenAI GPT-4o-mini (Suy luận logic & tính toán What-if)    │
-│  ├── Priority 2: Google Gemini 3.8-flash / 3.5-flash (Dự phòng Cloud)       │
-│  └── Priority 3: Offline Python NLP Engine (Toán học tín chỉ & RAG nội bộ)  │
-│                                                                             │
-│  [3. Tầng Dữ Liệu & Lưu Trữ (Data Layer)]                                   │
-│  ├── Neon.tech PostgreSQL Serverless (pgvector, Pooled Connection)          │
-│  ├── CSDL Quy mô lớn: 919 Hồ sơ sinh viên + 100+ Tri thức RAG UTH           │
-│  └── Audit Logger: Ghi vết thời gian thực mọi truy vấn an ninh              │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                       GIAO DIỆN NGƯỜI DÙNG (FRONTEND CLIENT)                    │
+│   Công nghệ: React 19 + TypeScript + Vite + Tailwind CSS v4 + Lucide Icons       │
+│   Host tại: Vercel Edge Network (https://botuth.xyz)                            │
+│                                                                                 │
+│   ├── Cổng Sinh Viên (Dashboard, Thời khóa biểu, Điểm số, Đăng ký môn)         │
+│   ├── Phân Hệ Elearning (Bài tập trực tuyến, Deadline, Nộp bài)                │
+│   ├── Tra Cứu Công Nợ (Học phí ngành & 5 khoản học phí khác màu Teal)          │
+│   ├── Cổng Phụ Huynh & Cổng Tuyển Sinh Công Khai                               │
+│   ├── Bàn Điều Khiển Quản Trị Admin Studio & Backup Center                      │
+│   └── 🤖 Widget Trợ Lý Ảo Actionable AI Copilot (Interactive Action Cards)     │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │ HTTPS / JSON RESTful API & Preflight CORS
+┌────────────────────────────────────────▼────────────────────────────────────────┐
+│                        TẦNG DỊCH VỤ BACKEND (FASTAPI PYTHON)                    │
+│   Công nghệ: FastAPI + Python 3.11 + Pydantic v2 + SQLAlchemy                   │
+│   Host tại: Render Cloud Web Service (https://bot-uth.onrender.com)             │
+│                                                                                 │
+│   [1. Lá Chắn An Ninh & Kiểm Soát Truy Cập]                                     │
+│   ├── CORS Middleware (Bảo vệ truy cập cho botuth.xyz và vercel.app)            │
+│   ├── Anti-Burst & Sliding Window Rate Limiter (Ngăn chặn spam request)         │
+│   ├── Profanity & Abuse Filter (Lọc ngôn từ độc hại)                            │
+│   └── Anti-Prompt Injection & PII Masking (Bảo vệ thông tin cá nhân)             │
+│                                                                                 │
+│   [2. Bộ Điều Phối AI Gateway Đa Tầng (Multi-Provider AI Gateway)]              │
+│   ├── Zero-Token In-Memory Cache (Phản hồi <5ms với câu hỏi lặp lại)            │
+│   ├── Token Context Compactor (Cắt tỉa lịch sử hội thoại, tiết kiệm 75% token)  │
+│   ├── Circuit Breaker (Tự động ngắt mạch an toàn khi gặp lỗi Quota/429)         │
+│   ├── Dynamic Context Injector (Nạp dữ liệu học vụ thực tế của sinh viên)       │
+│   ├── RAG Engine (Tìm kiếm ngữ nghĩa trong 62+ cẩm nang quy chế UTH)            │
+│   └── Multi-LLM Router: OpenAI GPT-4o-mini / Gemini Flash -> Offline NLP Fallback│
+│                                                                                 │
+│   [3. Tầng Dữ Liệu & Lưu Trữ]                                                   │
+│   ├── Neon.tech Serverless PostgreSQL (Pooled Connections via PgBouncer)        │
+│   ├── Local SQLite Engine (Tự động chuyển đổi mượt mà khi chạy offline)         │
+│   └── Audit Logger (Ghi nhật ký bảo mật và giám sát truy vấn thời gian thực)     │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -151,72 +273,63 @@ Hệ thống tích hợp cổng kết nối AI thông minh thế hệ mới:
 
 ```text
 cổng-sinh-viên-&-trợ-lý-ảo-uth/
-├── backend/                       # 🐍 BACKEND PYTHON FASTAPI
+├── backend/                       # 🐍 MÃ NGUỒN BACKEND FASTAPI (PYTHON)
 │   ├── app/
-│   │   ├── api/v1/                # Endpoint điều khiển: auth, student, parent, admin, chat
-│   │   ├── core/                  # Cấu hình bảo mật JWT, CORS, biến môi trường
-│   │   ├── db/                    # Session CSDL Neon PostgreSQL, script seed dữ liệu
-│   │   ├── models/                # SQLAlchemy Models & Pydantic Schemas
-│   │   └── services/              # Multi-Provider AI Gateway, Token Optimizer, NLP Engine
-│   ├── data/                      # File seed 919 sinh viên (students_seed.json)
-│   ├── requirements.txt           # Thư viện Python phụ thuộc
-│   └── run.py                     # Entry point chạy backend (Port 8000)
+│   │   ├── api/v1/                # Các bộ điều khiển API RESTful
+│   │   │   ├── admin.py           # Quản lý sinh viên, tri thức RAG, AI playground
+│   │   │   ├── auth.py            # Đăng nhập JWT, xác thực sinh viên/admin
+│   │   │   ├── backup.py          # Sao lưu và phục hồi CSDL
+│   │   │   ├── campus.py          # Dữ liệu 3 cơ sở đào tạo UTH
+│   │   │   ├── chat.py            # Endpoint xử lý hội thoại AI Agent & Action Cards
+│   │   │   ├── parent.py          # Tra cứu học vụ cho phụ huynh
+│   │   │   └── student.py         # Hồ sơ sinh viên, điểm số, học phí, Elearning
+│   │   ├── core/                  # Cấu hình hệ thống, JWT security, CORS origins
+│   │   ├── db/                    # Khởi tạo CSDL, session, scripts seed dữ liệu
+│   │   ├── models/                # Định nghĩa bảng dữ liệu (SQLAlchemy)
+│   │   └── services/              # AI Gateway, Token Optimizer, NLP Engine, Audit Logger
+│   ├── data/                      # Dữ liệu mẫu sinh viên và sao lưu CSDL
+│   ├── requirements.txt           # Danh mục thư viện Python phụ thuộc
+│   └── run.py                     # Script khởi chạy Backend cục bộ
 │
-├── frontend/                      # ⚛️ FRONTEND REACT 19 + VITE
-│   ├── public/                    # Tài nguyên tĩnh: Logo UTH, avatar Bot, ảnh máy bay 3D
+├── frontend/                      # ⚛️ MÃ NGUỒN FRONTEND REACT 19 (TYPESCRIPT + VITE)
+│   ├── public/                    # Tài nguyên tĩnh: Logo UTH, avatar Bot, ảnh 3D
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── admin/             # Bàn điều khiển quản trị Admin Studio & Backup Center
-│   │   │   ├── auth/              # Giao diện đăng nhập sinh viên
-│   │   │   ├── chat/              # Widget Trợ lý ảo UTH Assistant Copilot
-│   │   │   ├── portal/            # Dashboard sinh viên, ElearningView, DebtLookupView...
-│   │   │   │   └── AirplaneNotification/ # Máy bay 3D deadline & cooldown logic
-│   │   │   ├── parent/            # Cổng tra cứu phụ huynh
-│   │   │   └── public/            # Cổng tuyển sinh công khai
-│   │   ├── contexts/              # Quản lý phiên: AuthContext, ToastContext
-│   │   ├── services/              # API Clients: chatService, studentService, adminService...
-│   │   └── types/                 # Định nghĩa TypeScript interface
-│   ├── package.json               # Thư viện npm phụ thuộc
-│   └── vite.config.ts             # Cấu hình Vite & Proxy API
+│   │   │   ├── admin/             # Bàn quản trị Admin Studio, Backup, Knowledge Modal
+│   │   │   ├── auth/              # Màn hình đăng nhập sinh viên & phụ huynh
+│   │   │   ├── chat/              # Giao diện Widget Trợ lý ảo UTH Copilot
+│   │   │   ├── portal/            # Dashboard sinh viên, Elearning, Học phí Teal, ĐK học phần
+│   │   │   └── common/            # ErrorBoundary, Skeleton loading, NotFoundView
+│   │   ├── contexts/              # React Context: AuthContext, ToastContext
+│   │   ├── services/              # API Clients: chatService, studentService, adminService
+│   │   └── types/                 # Kiểu dữ liệu TypeScript: uth.ts, courseRegistration.ts
+│   ├── package.json               # Danh mục thư viện npm
+│   ├── vercel.json                # Cấu hình routing SPA cho Vercel Deployment
+│   └── vite.config.ts             # Cấu hình Vite, Server Proxy & Code Splitting
 │
-├── docs/                          # 📚 TÀI LIỆU KỸ THUẬT BỔ TRỢ
-├── chay_he_thong.bat              # 🚀 Chạy đồng thời Backend & Frontend bằng 1 cú nhấp
-├── chay_backend.bat               # Chạy riêng Backend FastAPI
-├── chay_frontend.bat              # Chạy riêng Frontend React
-├── run-dev.js                     # Script quản lý tiến trình đồng thời (Node.js)
-├── .env.example                   # Tệp mẫu cấu hình biến môi trường
+├── docs/                          # 📚 TÀI LIỆU KỸ THUẬT & CẨM NANG HỌC VỤ UTH
+├── render.yaml                    # Bản thiết kế cấu hình triển khai tự động trên Render
+├── chay_he_thong.bat              # File kích hoạt đồng thời cả 2 hệ thống bằng 1 click
+├── chay_backend.bat               # File chạy riêng Backend FastAPI
+├── chay_frontend.bat              # File chạy riêng Frontend React
 └── README.md                      # Tài liệu dự án
 ```
 
 ---
 
-## 👥 BẢNG TÀI KHOẢN MẪU TRẢI NGHIỆM (DEMO ACCOUNTS)
+## 🚀 HƯỚNG DẪN CÀI ĐẶT & CHẠY MÔI TRƯỜNG CỤC BỘ (LOCAL DEV)
 
-| Vai trò | Tên đăng nhập (CCCD / User) | Mật khẩu | Họ và tên | Chuyên ngành | Đặc điểm dữ liệu |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Quản trị viên** | `admin` | `admin123` | Quản trị Hệ Thống | Ban Đào Tạo UTH | Toàn quyền Admin Studio, RAG, Sao lưu |
-| **Sinh viên 1** | `056205008344` | `123456` | **Nguyễn Văn A** | Công nghệ thông tin | GPA 3.65 (Giỏi), có bài tập Elearning cận hạn |
-| **Sinh viên 2** | `056205008345` | `123456` | **Trần Thị B** | Logistics & Chuỗi cung ứng | GPA 3.82 (Xuất sắc), hoàn thành 100% học phí |
-| **Sinh viên 3** | `056205008346` | `123456` | **Lê Hoàng C** | Kỹ thuật ô tô | GPA 2.45 (Trung bình), còn nợ học phí |
-| **Sinh viên 4** | `056205008347` | `123456` | **Phạm Minh D** | Khoa học hàng hải | GPA 3.10 (Khá), lịch học mô phỏng buồng lái |
-| **Phụ huynh** | Nhập CCCD Phụ huynh + Mã SV `056205008344` | *Không cần MK* | Phụ huynh SV | - | Tra cứu an toàn tiến độ con em |
+Nếu bạn muốn chạy toàn bộ mã nguồn trên máy tính cá nhân để phát triển hoặc kiểm thử:
 
-*(Hệ thống đã đồng bộ toàn bộ **919 hồ sơ sinh viên** trên CSDL đám mây Neon PostgreSQL).*
-
----
-
-## 🚀 HƯỚNG DẪN CÀI ĐẶT & KHỞI CHẠY NHANH
-
-### 1. Yêu cầu hệ thống
-- **Node.js**: Phiên bản 18.x hoặc 20.x trở lên.
+### 1. Yêu cầu môi trường
+- **Node.js**: Phiên bản 18.x, 20.x hoặc mới hơn.
 - **Python**: Phiên bản 3.10 hoặc 3.11+.
-- **Hệ điều hành**: Windows 10/11, macOS hoặc Linux.
+- **Git**: Đã cài đặt trên máy.
 
 ### 2. Cài đặt các gói phụ thuộc
 
 #### Bước 2.1: Cài đặt thư viện Frontend
 ```bash
-npm install
 cd frontend
 npm install
 cd ..
@@ -230,73 +343,54 @@ cd ..
 ```
 
 ### 3. Cấu hình biến môi trường
-Tạo tệp `.env` tại thư mục gốc (hoặc sao chép từ `.env.example`):
+Sao chép file `.env.example` thành file `.env` tại thư mục gốc:
 ```bash
 cp .env.example .env
 ```
-Điền các khóa API của bạn vào tệp `.env` (xem chi tiết ở bảng bên dưới).
-
----
+Điền các khóa API của bạn (Gemini API Key hoặc OpenAI API Key nếu có). Nếu không điền khóa API bên ngoài, hệ thống sẽ tự động sử dụng **Offline NLP Engine** tích hợp sẵn để phục vụ sinh viên.
 
 ### 4. Khởi chạy hệ thống
 
-#### Cách 1: Khởi chạy 1 lệnh duy nhất (Khuyên dùng)
-```bash
-npm run dev
-```
-*Trình quản lý `run-dev.js` sẽ tự động khởi động đồng thời cả Backend FastAPI (Port 8000) và Frontend React Vite (Port 3000), tự động giải phóng port nếu bị chiếm dụng.*
+- **Cách 1: Khởi chạy bằng 1 cú nhấp (Windows)**:
+  Nhấp đúp chuột vào file: 👉 **`chay_he_thong.bat`**
+  *(File script sẽ tự động mở 2 cửa sổ: Backend cổng 8000 và Frontend cổng 3000)*.
 
-#### Cách 2: Khởi chạy bằng 1 cú nhấp chuột (Windows File .bat)
-Nhấp đúp chuột trực tiếp vào:  
-👉 **`chay_he_thong.bat`**
+- **Cách 2: Khởi chạy thủ công qua Terminal**:
+  - **Cửa sổ 1 (Khởi chạy Backend)**:
+    ```bash
+    cd backend
+    python run.py
+    ```
+  - **Cửa sổ 2 (Khởi chạy Frontend)**:
+    ```bash
+    cd frontend
+    npm run dev
+    ```
 
-#### Cách 3: Chạy độc lập từng phần
-- **Cửa sổ 1 (Backend FastAPI)**:
-  ```bash
-  cd backend
-  python run.py
-  ```
-- **Cửa sổ 2 (Frontend Vite)**:
-  ```bash
-  cd frontend
-  npm run dev
-  ```
-
----
-
-### 5. Địa chỉ truy cập các dịch vụ
-
-| Phân hệ / Dịch vụ | Địa chỉ truy cập | Ghi chú |
-| :--- | :--- | :--- |
-| **Cổng Sinh Viên & Trợ Lý Ảo** | [http://localhost:3000](http://localhost:3000) | Giao diện người dùng chính |
-| **Tài liệu API Swagger UI** | [http://localhost:8000/docs](http://localhost:8000/docs) | Kiểm thử trực tiếp 30+ endpoints |
-| **Tài liệu ReDoc** | [http://localhost:8000/redoc](http://localhost:8000/redoc) | Đặc tả kỹ thuật OpenAPI |
-| **Kiểm tra sức khỏe Backend** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | Trạng thái kết nối CSDL |
+Sau khi khởi chạy thành công, truy cập giao diện tại: **`http://localhost:3000`** hoặc **`http://localhost:5173`**.
 
 ---
 
 ## ⚙️ BẢNG CẤU HÌNH BIẾN MÔI TRƯỜNG (.ENV)
 
-| Tên biến | Bắt buộc | Mô tả | Giá trị mẫu |
+| Tên biến | Bắt buộc | Mục đích sử dụng | Giá trị tham khảo |
 | :--- | :---: | :--- | :--- |
-| `OPENAI_API_KEY` | Tùy chọn | Khóa API OpenAI (Ưu tiên số 1 cho AI Copilot) | `sk-proj-...` |
-| `OPENAI_MODEL` | Tùy chọn | Mô hình OpenAI sử dụng (Khuyên dùng gpt-4o-mini) | `gpt-4o-mini` |
-| `GEMINI_API_KEY` | Tùy chọn | Khóa Google AI Studio (Dự phòng cho Gemini 3.8) | `AIzaSy...` |
-| `DATABASE_URL` | Khuyên dùng | Chuỗi kết nối Neon PostgreSQL (Pooled Connection) | `postgresql://user:pass@ep-...neon.tech/neondb` |
-| `DATABASE_URL_UNPOOLED`| Tùy chọn | Chuỗi kết nối trực tiếp không qua PgBouncer | `postgresql://...` |
-| `JWT_SECRET_KEY` | Khuyên dùng | Khóa bí mật băm token xác thực đăng nhập | `chuỗi_ngẫu_nhiên_256bit` |
-| `PORT` | Không | Cổng chạy Backend FastAPI | `8000` |
-| `CORS_ORIGINS` | Không | Danh sách tên miền được phép gọi API | `http://localhost:3000,http://localhost:5173` |
+| `GEMINI_API_KEY` | Tùy chọn | Khóa kết nối Google AI Studio (Gemini 2.5 / Flash) | `AIzaSy...` |
+| `OPENAI_API_KEY` | Tùy chọn | Khóa kết nối OpenAI API (Mô hình GPT-4o-mini) | `sk-proj-...` |
+| `DATABASE_URL` | Khuyên dùng | Chuỗi kết nối CSDL Neon.tech PostgreSQL (Pooled) | `postgresql://user:pass@ep-...neon.tech/neondb` |
+| `JWT_SECRET_KEY` | Khuyên dùng | Khóa bí mật băm và xác thực chữ ký token JWT | `chuỗi_ngẫu_nhiên_bảo_mật_256bit` |
+| `PORT` | Không | Cổng dịch vụ của máy chủ Backend FastAPI | `8000` *(mặc định)* |
+| `CORS_ORIGINS` | Không | Danh sách nguồn gốc được phép gọi API (phân cách bằng dấu phẩy) | `https://botuth.xyz,https://www.botuth.xyz,https://bot-uth.vercel.app` |
 
 ---
 
 ## ⚖️ QUY CHUẨN DỰ ÁN
 
 1. **Bảo vệ mã hóa tiếng Việt (UTF-8 Protection)**:
-   - Toàn bộ mã nguồn, cấu hình JSON, tài liệu Markdown bắt buộc phải lưu ở bảng mã UTF-8 chuẩn.
-   - Bảo toàn 100% các dấu tiếng Việt, không làm lỗi font hay phát sinh hiện tượng mojibake.
-2. **Quy tắc an toàn Git (Git Safety Policy)**:
-   - Chỉ được phép thực hiện các thao tác `git add`, `git commit`, `git push` khi người dùng (USER) trực tiếp yêu cầu hoặc cho phép rõ ràng.
+   - Toàn bộ các file mã nguồn (`.py`, `.ts`, `.tsx`, `.json`, `.md`) bắt buộc phải lưu ở bảng mã UTF-8 chuẩn.
+   - Bảo toàn 100% các ký tự tiếng Việt có dấu, tuyệt đối không để phát sinh hiện tượng lỗi font (mojibake).
+2. **Quy định thao tác Git (Git Discipline)**:
+   - Nghiêm cấm tự ý chạy `git add`, `git commit`, `git push` khi chưa có yêu cầu hoặc sự cho phép rõ ràng từ người dùng.
 
 ---
 
@@ -304,6 +398,8 @@ Nhấp đúp chuột trực tiếp vào:
 
 **TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI THÀNH PHỐ HỒ CHÍ MINH (UTH)**  
 *Dự án Học Phần Doanh Nghiệp (HKDN) - Hệ Thống Cổng Sinh Viên & Trợ Lý Ảo Thông Minh*  
+🌐 Website chính thức: [https://botuth.xyz](https://botuth.xyz)
+
 Bản quyền © 2026 UTH. Bảo lưu mọi quyền.
 
 </div>
