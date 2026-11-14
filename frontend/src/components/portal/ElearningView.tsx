@@ -25,6 +25,7 @@ interface ElearningViewProps {
   student: StudentProfile;
   onBackToDashboard: () => void;
   onOpenBotWithQuery?: (query: string) => void;
+  onAssignmentsChange?: (newAssignments: StudentAssignment[]) => void;
 }
 
 // Hoa văn họa tiết cho từng thẻ môn học (mô phỏng chuẩn 100% đồ họa Elearning UTH trong ảnh thực tế)
@@ -173,21 +174,23 @@ export const ElearningView: React.FC<ElearningViewProps> = ({
       
       showToast(res.message || 'Nộp bài tập thành công!', 'success');
       
-      // Cập nhật trạng thái bài tập cục bộ
-      setAssignments((prev) =>
-        prev.map((a) =>
-          a.id === selectedAssignment.id
-            ? {
-                ...a,
-                status: 'submitted',
-                daysLeft: 0,
-                submissionDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
-                submissionNote,
-                attachmentUrl: attachmentLink
-              }
-            : a
-        )
+      // Cập nhật trạng thái bài tập cục bộ và đồng bộ lên Dashboard
+      const updatedAssignments: StudentAssignment[] = assignments.map((a) =>
+        a.id === selectedAssignment.id
+          ? {
+              ...a,
+              status: 'submitted',
+              daysLeft: 0,
+              submissionDate: new Date().toISOString().replace('T', ' ').slice(0, 16),
+              submissionNote,
+              attachmentUrl: attachmentLink
+            }
+          : a
       );
+      setAssignments(updatedAssignments);
+      if (onAssignmentsChange) {
+        onAssignmentsChange(updatedAssignments);
+      }
 
       setSelectedAssignment(null);
       setSubmissionNote('');

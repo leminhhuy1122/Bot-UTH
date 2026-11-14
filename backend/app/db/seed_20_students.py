@@ -4,6 +4,7 @@ from backend.app.core.security import hash_password
 from backend.app.db.session import engine, Base, SessionLocal
 from backend.app.models.user import User, StudentProfile
 from backend.app.models.knowledge import KnowledgeDocument
+from backend.app.db.seed_student_assignments import generate_assignments_for_student
 
 RAW_STUDENTS = [
     {
@@ -762,6 +763,9 @@ def seed_database():
                 profile.upcoming_courses = st["upcomingSubjects"]
                 profile.semesters_grades = sem_grades
 
+            student_asms = generate_assignments_for_student(profile)
+            profile.assignments = student_asms
+
             # Thêm vào danh sách xuất JSON để frontend dùng offline nếu cần
             student_export_list.append({
                 "mssv": st["mssv"],
@@ -790,7 +794,8 @@ def seed_database():
                 "schedule": schedule,
                 "registeredCourses": st["registeredSubjects"],
                 "upcomingCourses": st["upcomingSubjects"],
-                "semestersGrades": sem_grades
+                "semestersGrades": sem_grades,
+                "assignments": student_asms
             })
 
         db.commit()

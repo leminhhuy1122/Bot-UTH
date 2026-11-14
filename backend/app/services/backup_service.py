@@ -156,6 +156,10 @@ def serialize_student_profile(sp: StudentProfile) -> Dict[str, Any]:
         "registered_courses": sp.registered_courses,
         "upcoming_courses": sp.upcoming_courses,
         "semesters_grades": sp.semesters_grades,
+        "birth_place": getattr(sp, "birth_place", None),
+        "education_level": getattr(sp, "education_level", None),
+        "specialization": getattr(sp, "specialization", None),
+        "assignments": getattr(sp, "assignments", None),
         "extra_data": sp.extra_data
     }
 

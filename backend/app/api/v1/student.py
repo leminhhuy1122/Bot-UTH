@@ -68,6 +68,23 @@ def get_current_student(
 @router.get("/me")
 async def get_my_profile(student: StudentProfile = Depends(get_current_student)):
     """Lấy thông tin lý lịch cá nhân và chỉ số học tập của sinh viên hiện tại."""
+    raw_asms = getattr(student, "assignments", None)
+    parsed_asms = []
+    if isinstance(raw_asms, str):
+        try:
+            parsed_asms = json.loads(raw_asms)
+        except Exception:
+            parsed_asms = []
+    elif isinstance(raw_asms, list):
+        parsed_asms = raw_asms
+
+    if not parsed_asms:
+        try:
+            from backend.app.db.seed_student_assignments import generate_assignments_for_student
+            parsed_asms = generate_assignments_for_student(student)
+        except Exception:
+            parsed_asms = []
+
     return {
         "success": True,
         "data": {
@@ -101,7 +118,7 @@ async def get_my_profile(student: StudentProfile = Depends(get_current_student))
             "tuitionStatus": student.tuition_status or "Đã hoàn thành",
             "registeredCourses": student.registered_courses or [],
             "upcomingCourses": student.upcoming_courses or [],
-            "assignments": getattr(student, "assignments", None) or [],
+            "assignments": parsed_asms,
             "otherFees": (student.extra_data or {}).get("otherFees", [])
         }
     }
@@ -163,11 +180,27 @@ class SubmitAssignmentRequest(BaseModel):
 @router.get("/assignments")
 async def get_my_assignments(student: StudentProfile = Depends(get_current_student)):
     """Lấy danh sách các khóa học và bài tập trực tuyến (Elearning UTH) của sinh viên."""
+    asms = getattr(student, "assignments", None)
+    if isinstance(asms, str):
+        try:
+            asms = json.loads(asms)
+        except Exception:
+            asms = []
+    elif not isinstance(asms, list):
+        asms = []
+
+    if not asms:
+        try:
+            from backend.app.db.seed_student_assignments import generate_assignments_for_student
+            asms = generate_assignments_for_student(student)
+        except Exception:
+            asms = []
+
     return {
         "success": True,
         "mssv": student.mssv,
         "studentName": student.full_name,
-        "data": student.assignments or []
+        "data": asms or []
     }
 
 @router.post("/assignments/{assignment_id}/submit")

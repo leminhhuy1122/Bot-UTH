@@ -259,7 +259,11 @@ async def list_students(
                 StudentProfile.total_tuition,
                 StudentProfile.paid_amount,
                 StudentProfile.debt_amount,
-                StudentProfile.tuition_status
+                StudentProfile.tuition_status,
+                StudentProfile.birth_place,
+                StudentProfile.education_level,
+                StudentProfile.specialization,
+                StudentProfile.assignments
             )
         )
         .order_by(order_clause)
@@ -270,6 +274,22 @@ async def list_students(
     
     result = []
     for s in students:
+        asms = getattr(s, "assignments", None)
+        if isinstance(asms, str):
+            try:
+                asms = json.loads(asms)
+            except Exception:
+                asms = []
+        elif not isinstance(asms, list):
+            asms = []
+
+        if not asms:
+            try:
+                from backend.app.db.seed_student_assignments import generate_assignments_for_student
+                asms = generate_assignments_for_student(s)
+            except Exception:
+                asms = []
+
         result.append({
             "mssv": s.mssv,
             "name": s.full_name,
@@ -287,11 +307,7 @@ async def list_students(
             "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
             "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
             "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
-            "assignments": getattr(s, "assignments", None) or [],
-            "birthPlace": getattr(s, "birth_place", None) or "TP. Hồ Chí Minh",
-            "educationLevel": getattr(s, "education_level", None) or "Đại học - chính quy",
-            "specialization": getattr(s, "specialization", None) or s.major or "Công nghệ thông tin",
-            "assignments": getattr(s, "assignments", None) or [],
+            "assignments": asms or [],
             "accumulatedCredits": s.accumulated_credits,
             "requiredCredits": s.required_credits,
             "trainingPoint": s.training_point,
@@ -369,6 +385,22 @@ async def get_student_detail(
         except Exception:
             db.rollback()
 
+    asms = getattr(student, "assignments", None)
+    if isinstance(asms, str):
+        try:
+            asms = json.loads(asms)
+        except Exception:
+            asms = []
+    elif not isinstance(asms, list):
+        asms = []
+
+    if not asms:
+        try:
+            from backend.app.db.seed_student_assignments import generate_assignments_for_student
+            asms = generate_assignments_for_student(student)
+        except Exception:
+            asms = []
+
     return {
         "success": True,
         "data": {
@@ -386,11 +418,7 @@ async def get_student_detail(
             "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
             "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
             "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
-            "assignments": getattr(student, "assignments", None) or [],
-            "birthPlace": getattr(student, "birth_place", None) or "TP. Hồ Chí Minh",
-            "educationLevel": getattr(student, "education_level", None) or "Đại học - chính quy",
-            "specialization": getattr(student, "specialization", None) or student.major or "Công nghệ thông tin",
-            "assignments": getattr(student, "assignments", None) or [],
+            "assignments": asms,
             "avatarUrl": student.avatar_url,
             "status": student.status,
             "accumulatedCredits": student.accumulated_credits,

@@ -43,7 +43,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onLogout,
   onGoToPublicPortal
 }) => {
-  const { session } = useAuth();
+  const { session, updateStudentProfile } = useAuth();
   const initialStudent = session.student || initialStudentProfile;
 
   // Quản lý thông tin sinh viên hiển thị động (hỗ trợ cập nhật avatar tức thì)
@@ -176,6 +176,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             ...profData,
             avatarUrl: profData.avatarUrl || prev.avatarUrl,
           }));
+          updateStudentProfile(profData);
         }
         if (schedData && schedData.length > 0) {
           setEvents(schedData);
@@ -377,23 +378,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setIsServiceModalOpen(true);
   };
 
-  // Tìm bài tập cận hạn nhất từ CSDL thực tế của sinh viên (có fallback an toàn)
-  const mostUrgentAssignment = useMemo(() => {
-    const asms = (currentStudent?.assignments && currentStudent.assignments.length > 0)
-      ? currentStudent.assignments
-      : (initialStudentProfile.assignments || []);
+  // Đồng bộ danh sách bài tập khi sinh viên nộp bài trực tuyến trên Elearning
+  const handleAssignmentsChange = useCallback((newAssignments: any[]) => {
+    setCurrentStudent((prev) => ({
+      ...prev,
+      assignments: newAssignments,
+    }));
+    updateStudentProfile({ assignments: newAssignments });
+  }, [updateStudentProfile]);
 
-    const pendingList = asms.filter((a: any) => a.status === 'pending');
-    if (pendingList.length > 0) {
-      return [...pendingList].sort((a: any, b: any) => (a.daysLeft || 0) - (b.daysLeft || 0))[0];
+  // Tìm bài tập cận hạn nhất từ CSDL thực tế của sinh viên
+  // ĐIỀU KIỆN KÍCH HOẠT MÁY BAY:
+  // 1. Chỉ xuất hiện khi có bài tập đang chờ nộp (status === 'pending') và có hạn nộp dưới hoặc bằng 3 ngày (daysLeft <= 3 và >= 0)
+  // 2. Tài khoản sinh viên nào KHÔNG có bài tập cần nộp trong hạn (đã nộp hết hoặc hạn > 3 ngày) -> return null (máy bay tuyệt đối KHÔNG xuất hiện)
+  const mostUrgentAssignment = useMemo(() => {
+    const asms = currentStudent?.assignments;
+    if (!asms || !Array.isArray(asms) || asms.length === 0) {
+      return null;
     }
-    // Fallback bài tập mặc định UTH để luôn đảm bảo có dữ liệu nhắc nhở
-    return {
-      courseName: 'Quản trị mạng - CNS_CS1',
-      title: 'Bài tập lớn: Thiết kế hệ thống mạng doanh nghiệp vừa và nhỏ',
-      daysLeft: 3,
-    };
-  }, [currentStudent]);
+
+    const urgentPendingList = asms.filter((a: any) => {
+      if (a.status !== 'pending') return false;
+      const days = typeof a.daysLeft === 'number' ? a.daysLeft : parseInt(a.daysLeft, 10);
+      return !isNaN(days) && days >= 0 && days <= 3;
+    });
+
+    if (urgentPendingList.length === 0) {
+      return null;
+    }
+
+    // Sắp xếp bài tập gấp nhất lên đầu tiên (daysLeft nhỏ nhất)
+    return [...urgentPendingList].sort((a: any, b: any) => (a.daysLeft || 0) - (b.daysLeft || 0))[0];
+  }, [currentStudent?.assignments]);
 
   const handleOpenBotWithQuery = (query: string) => {
     setBotInitialQuery(query);
@@ -461,6 +477,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               student={currentStudent}
               onBackToDashboard={handleBackToDashboard}
               onOpenBotWithQuery={handleOpenBotWithQuery}
+              onAssignmentsChange={handleAssignmentsChange}
             />
           </Suspense>
         </main>

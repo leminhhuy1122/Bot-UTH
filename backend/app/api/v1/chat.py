@@ -186,6 +186,24 @@ def extract_live_student_data(st_record: StudentProfile) -> Dict[str, Any]:
                 "campus": item.get("campus", "")
             })
 
+    # Phân tích danh sách bài tập (assignments) an toàn, tự động nạp 4 bài tập chuẩn nếu rỗng
+    raw_asms = getattr(st_record, "assignments", None)
+    parsed_asms = []
+    if isinstance(raw_asms, str):
+        try:
+            parsed_asms = json.loads(raw_asms)
+        except Exception:
+            parsed_asms = []
+    elif isinstance(raw_asms, list):
+        parsed_asms = raw_asms
+
+    if not parsed_asms:
+        try:
+            from backend.app.db.seed_student_assignments import generate_assignments_for_student
+            parsed_asms = generate_assignments_for_student(st_record)
+        except Exception:
+            parsed_asms = []
+
     return {
         "name": st_record.full_name,
         "mssv": st_record.mssv,
@@ -212,39 +230,7 @@ def extract_live_student_data(st_record: StudentProfile) -> Dict[str, Any]:
         "upcomingCourses": st_record.upcoming_courses or [],
         "coursesDetail": courses_detail,
         "schedule": schedule_detail,
-        "assignments": (
-            json.loads(st_record.assignments) if isinstance(getattr(st_record, "assignments", None), str)
-            else (getattr(st_record, "assignments", None) or [
-                {
-                    "id": "asm-net-01",
-                    "courseCode": "012012300503",
-                    "courseName": "Quản trị mạng - CNS_CS1",
-                    "semester": "HKI2627",
-                    "title": "Bài tập lớn: Thiết kế hệ thống mạng doanh nghiệp vừa và nhỏ",
-                    "description": "Nộp file báo cáo PDF và file thiết kế mô phỏng Cisco Packet Tracer (.pkt).",
-                    "deadline": "2026-11-04 23:59",
-                    "daysLeft": 3,
-                    "status": "pending",
-                    "submissionDate": None,
-                    "score": None,
-                    "colorTheme": "cyan"
-                },
-                {
-                    "id": "asm-cloud-02",
-                    "courseCode": "010412303904",
-                    "courseName": "Điện toán đám mây - CLC CNTT",
-                    "semester": "HKI2627",
-                    "title": "Lab 04: Triển khai Docker Container và thiết lập CI/CD Pipeline",
-                    "description": "Nộp link repository GitHub và ảnh chụp minh chứng container chạy trên cloud.",
-                    "deadline": "2026-11-08 23:59",
-                    "daysLeft": 7,
-                    "status": "pending",
-                    "submissionDate": None,
-                    "score": None,
-                    "colorTheme": "purple"
-                }
-            ])
-        ),
+        "assignments": parsed_asms,
         "otherFees": (st_record.extra_data or {}).get("otherFees", [])
     }
 
@@ -581,6 +567,8 @@ def get_student_fallback_answer(
             # 3. Hỏi chung về danh sách bài tập / hạn nộp sắp tới
             pending_asms = [a for a in asms if a.get("status") == "pending"]
             if pending_asms:
+                # Sắp xếp các bài tập cận hạn nhất lên đầu tiên
+                pending_asms = sorted(pending_asms, key=lambda x: x.get("daysLeft", 999))
                 lines = [f"- **{a.get('courseName')}**: {a.get('title')} — Hạn: **{a.get('deadline')}** (còn **{a.get('daysLeft')} ngày**)" for a in pending_asms[:3]]
                 return f"Danh sách bài tập cần hoàn thành ({len(pending_asms)} bài):\n" + "\n".join(lines)
             else:

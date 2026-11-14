@@ -20,6 +20,23 @@ def serialize_student_profile(p: StudentProfile, email: Optional[str] = None) ->
     if not p:
         return {}
     
+    raw_asms = getattr(p, 'assignments', None)
+    parsed_asms = []
+    if isinstance(raw_asms, str):
+        try:
+            parsed_asms = json.loads(raw_asms)
+        except Exception:
+            parsed_asms = []
+    elif isinstance(raw_asms, list):
+        parsed_asms = raw_asms
+
+    if not parsed_asms:
+        try:
+            from backend.app.db.seed_student_assignments import generate_assignments_for_student
+            parsed_asms = generate_assignments_for_student(p)
+        except Exception:
+            parsed_asms = []
+
     return {
         "mssv": p.mssv,
         "name": p.full_name,
@@ -56,7 +73,7 @@ def serialize_student_profile(p: StudentProfile, email: Optional[str] = None) ->
         "registeredCourses": p.registered_courses or [],
         "upcomingCourses": p.upcoming_courses or [],
         "semestersGrades": p.semesters_grades or [],
-        "assignments": getattr(p, 'assignments', None) or [],
+        "assignments": parsed_asms,
     }
 
 def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> Optional[User]:

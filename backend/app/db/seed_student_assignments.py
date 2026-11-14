@@ -15,6 +15,71 @@ def generate_assignments_for_student(student: StudentProfile) -> list:
     faculty = (student.faculty or "").lower()
     major = (student.major or "").lower()
 
+    # Trường hợp tài khoản sinh viên mẫu không có bài tập cận hạn (đã nộp hoặc hạn > 3 ngày) để kiểm thử máy bay
+    if mssv == '056204005678':
+        return [
+            {
+                "id": f"asm-{mssv}-01",
+                "courseCode": "012022300101",
+                "courseName": "Quản trị kinh doanh vận tải - VTB_01",
+                "semester": "HKI2627",
+                "title": "Tiểu luận: Chiến lược quản trị doanh nghiệp vận tải đa phương thức",
+                "description": "Nộp file báo cáo PDF theo quy chuẩn của Khoa Vận tải.",
+                "deadline": "2026-10-30 23:59",
+                "daysLeft": 0,
+                "status": "submitted",
+                "submissionDate": "2026-10-29 18:20",
+                "score": None,
+                "feedback": "Đã tiếp nhận bài nộp đúng quy định.",
+                "colorTheme": "cyan"
+            },
+            {
+                "id": f"asm-{mssv}-02",
+                "courseCode": "012022300102",
+                "courseName": "Kinh tế vận tải & Bảo hiểm - VTB_02",
+                "semester": "HKI2627",
+                "title": "Bài tập lớn: Phân tích hợp đồng bảo hiểm hàng hải quốc tế Incoterms 2020",
+                "description": "Phân tích tình huống bồi thường tổn thất trong vận tải đường biển.",
+                "deadline": "2026-11-20 23:59",
+                "daysLeft": 18,
+                "status": "pending",
+                "submissionDate": None,
+                "score": None,
+                "feedback": "",
+                "colorTheme": "amber"
+            },
+            {
+                "id": f"asm-{mssv}-03",
+                "courseCode": "010412620229",
+                "courseName": "Học kỳ doanh nghiệp - Tổng công ty Tân Cảng",
+                "semester": "HKI2627",
+                "title": "Báo cáo thực tập chuyên ngành tuần 7",
+                "description": "Nộp file báo cáo tiến độ và bảng chấm công thực tập.",
+                "deadline": "2026-10-25 23:59",
+                "daysLeft": 0,
+                "status": "graded",
+                "submissionDate": "2026-10-24 16:45",
+                "score": 9.2,
+                "feedback": "Thực tập xuất sắc, có nhận xét tốt từ lãnh đạo cảng.",
+                "colorTheme": "blue"
+            },
+            {
+                "id": f"asm-{mssv}-04",
+                "courseCode": "012022300104",
+                "courseName": "Thị trường vận tải quốc tế - VTB_03",
+                "semester": "HKI2627",
+                "title": "Thuyết trình nhóm: Xu hướng chuyển đổi số logistics xanh tại Việt Nam",
+                "description": "Slide thuyết trình PowerPoint kèm tài liệu tóm tắt.",
+                "deadline": "2026-10-18 23:59",
+                "daysLeft": 0,
+                "status": "graded",
+                "submissionDate": "2026-10-17 14:10",
+                "score": 8.8,
+                "feedback": "Bài trình bày sáng tạo, số liệu dẫn chứng cập nhật.",
+                "colorTheme": "emerald"
+            }
+        ]
+
     if any(k in faculty or k in major for k in ['công nghệ thông tin', 'cntt', 'phần mềm', 'mạng', 'khoa học máy tính', 'an toàn']):
         return [
             {

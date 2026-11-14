@@ -25,8 +25,8 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
   className,
 }) => {
   const getRemainingText = (days: number): string => {
-    if (days <= 0) return 'Đã quá hạn';
-    if (days < 1) return 'Sắp đến hạn';
+    if (days < 0) return 'Đã quá hạn';
+    if (days === 0) return 'Hạn chót hôm nay';
     return `Còn ${days} ngày`;
   };
 

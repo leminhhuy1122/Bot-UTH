@@ -23,6 +23,7 @@ interface AuthContextType {
   quickLoginStudent: () => Promise<void>;
   quickLoginAdmin: () => Promise<void>;
   continueAsGuest: () => void;
+  updateStudentProfile: (updatedProfile: Partial<StudentProfile>) => void;
   logout: () => void;
 }
 
@@ -253,6 +254,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(GUEST_SESSION);
   };
 
+  const updateStudentProfile = (updatedProfile: Partial<StudentProfile>) => {
+    setSession((prev) => {
+      if (prev.role !== 'student' || !prev.student) return prev;
+      const newStudent = { ...prev.student, ...updatedProfile };
+      const newSession: UserSession = { ...prev, student: newStudent };
+      try {
+        localStorage.setItem('uth_session_data', JSON.stringify(newSession));
+      } catch (e) {}
+      return newSession;
+    });
+  };
+
   const logout = () => {
     logoutApi();
     try {
@@ -294,6 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         quickLoginStudent,
         quickLoginAdmin,
         continueAsGuest,
+        updateStudentProfile,
         logout,
       }}
     >
