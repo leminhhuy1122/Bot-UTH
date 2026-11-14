@@ -1,18 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  ArrowLeft, 
   Search, 
   ChevronDown, 
   MoreVertical, 
   Calendar, 
   Clock, 
   CheckCircle2, 
-  AlertTriangle, 
   Upload, 
   FileText, 
   ExternalLink,
   BookOpen,
-  Sparkles,
   Check,
   X,
   AlertCircle
@@ -202,64 +199,8 @@ export const ElearningView: React.FC<ElearningViewProps> = ({
     }
   };
 
-  // Đếm bài tập sắp hết hạn
-  const urgentCount = useMemo(() => {
-    return assignments.filter((a) => a.status === 'pending' && a.daysLeft <= 3).length;
-  }, [assignments]);
-
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 pb-16">
-      {/* Top Navigation Bar UTH Elearning */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={onBackToDashboard}
-              className="flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200/80 transition-all cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Cổng sinh viên</span>
-            </button>
-
-            <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-4 text-xs font-medium text-slate-600">
-              <span className="font-bold text-[#008272]">UTH Elearning</span>
-              <span className="text-slate-300">/</span>
-              <span className="hover:text-teal-700 cursor-pointer">Hướng dẫn ▾</span>
-              <span className="text-slate-300">/</span>
-              <span className="hover:text-teal-700 cursor-pointer">Quét trùng lặp</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {urgentCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full animate-pulse">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                <span>{urgentCount} bài tập cận hạn!</span>
-              </span>
-            )}
-
-            {onOpenBotWithQuery && (
-              <button
-                onClick={() => onOpenBotWithQuery('Kiểm tra giúp tôi các bài tập sắp tới hạn nộp')}
-                className="hidden md:inline-flex items-center gap-1 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-lg border border-teal-200 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>AI Nhắc bài tập</span>
-              </button>
-            )}
-
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-[#008272] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {student.name ? student.name.split(' ').pop()?.slice(0, 2).toUpperCase() : 'SV'}
-              </div>
-              <span className="text-xs font-semibold text-slate-700 hidden lg:inline-block">
-                {student.name}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Pastel Teal Banner "Khóa học của tôi" - Chuẩn 100% Ảnh 1 */}
       <div className="bg-[#d5eee7] border-b border-[#bde4da] py-8 sm:py-10 px-4 relative overflow-hidden">
         {/* Bong bóng trang trí pastel mờ */}

@@ -7,6 +7,7 @@ import {
   LogOut,
   IdCard,
   ArrowRight,
+  ArrowLeft,
   CheckCheck,
   Clock
 } from 'lucide-react';
@@ -20,6 +21,7 @@ interface HeaderProps {
   onOpenScheduleModal?: () => void;
   weeklyScheduleCount?: number;
   onGoHome?: () => void;
+  onBackToDashboard?: () => void;
   onOpenNotifications?: () => void;
   onOpenPayment?: () => void;
   onOpenDebt?: () => void;
@@ -38,6 +40,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onOpenScheduleModal,
   weeklyScheduleCount = 1,
   onGoHome,
+  onBackToDashboard,
   onOpenNotifications,
   onOpenPayment,
   onOpenDebt,
@@ -123,6 +126,21 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 <span>HOCHIMINH CITY</span>
               </div>
             </div>
+
+            {/* Nút quay lại Cổng sinh viên chuyển lên trên Header (tối ưu không gian, xóa phần dư thừa) */}
+            {onBackToDashboard && (
+              <div className="flex items-center pl-2 sm:pl-3 border-l border-slate-200">
+                <button
+                  type="button"
+                  onClick={onBackToDashboard}
+                  className="flex items-center gap-1.5 text-xs font-bold text-teal-800 hover:text-teal-950 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg border border-teal-200/90 transition-all cursor-pointer shadow-2xs hover:shadow-xs active:scale-98"
+                  title="Quay lại Cổng sinh viên"
+                >
+                  <ArrowLeft className="w-4 h-4 text-teal-700 stroke-[2.2]" />
+                  <span>Cổng sinh viên</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ================= GÓC PHẢI: LỊCH, THÔNG BÁO, TÀI KHOẢN ================= */}

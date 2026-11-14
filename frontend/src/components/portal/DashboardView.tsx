@@ -425,6 +425,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onOpenScheduleModal={handleOpenFullSchedule}
         weeklyScheduleCount={weeklyScheduleCount}
         onGoHome={handleBackToDashboard}
+        onBackToDashboard={activeView !== 'dashboard' ? handleBackToDashboard : undefined}
         onOpenNotifications={handleOpenNotifications}
         onOpenPayment={handleOpenPayment}
         onOpenDebt={handleOpenDebt}
