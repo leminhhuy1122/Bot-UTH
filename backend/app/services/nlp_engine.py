@@ -46,8 +46,8 @@ def classify_intent(query: str) -> tuple[str, float]:
         'BOT_CAPABILITIES': [
             ('lam duoc gi', 5.0), ('co the lam gi', 5.0), ('lam nhung gi', 5.0),
             ('chuc nang', 4.5), ('giup duoc gi', 5.0), ('ho tro duoc gi', 5.0),
-            ('ban la ai', 4.5), ('gioi thieu', 4.0), ('nang luc', 4.5),
-            ('huong dan su dung', 4.5), ('tinh nang', 4.5), ('tro ly ao la gi', 4.5)
+            ('ban la ai', 4.5), ('gioi thieu ban than', 4.5), ('gioi thieu ve bot', 4.5),
+            ('nang luc', 4.5), ('huong dan su dung', 4.5), ('tinh nang', 4.5), ('tro ly ao la gi', 4.5)
         ],
         'GPA': [
             ('diem gpa', 3.5), ('diem cpa', 3.5), ('gpa', 3.0), ('cpa', 3.0),
@@ -78,12 +78,15 @@ def classify_intent(query: str) -> tuple[str, float]:
         'ADMISSION': [
             ('xet tuyen', 3.0), ('tuyen sinh', 3.0), ('nganh hoc', 2.5),
             ('diem chuan', 3.0), ('hoc ba', 2.5), ('danh gia nang luc', 3.0),
-            ('dgnl', 2.5), ('chi tieu', 2.0), ('to hop', 2.0)
+            ('dgnl', 2.5), ('chi tieu', 2.0), ('to hop', 2.0),
+            ('thac si', 4.5), ('sau dai hoc', 4.5), ('van bang 2', 5.0),
+            ('nganh thu hai', 5.0), ('hoc tiep nganh khac', 5.5), ('hoc tiep', 3.5), ('hoc len', 3.5)
         ],
         'GRADUATION': [
             ('tot nghiep', 3.0), ('xet tot nghiep', 3.5), ('chuan dau ra', 3.0),
             ('toeic', 3.0), ('b1', 2.5), ('tieng anh', 2.0), ('chung chi', 2.0),
-            ('tin hoc', 2.0), ('mos', 2.5)
+            ('tin hoc', 2.0), ('mos', 2.5), ('khoa luan', 5.5), ('khoa luan tot nghiep', 6.0),
+            ('do an tot nghiep', 6.0), ('tot nghiep tam thoi', 5.5), ('bang tot nghiep tam thoi', 6.0)
         ],
         'LIBRARY': [
             ('thu vien', 3.0), ('muon sach', 3.0), ('phong doc', 2.5),
@@ -95,11 +98,15 @@ def classify_intent(query: str) -> tuple[str, float]:
         ],
         'SCHOLARSHIP': [
             ('hoc bong', 3.5), ('kkht', 3.0), ('khen thuong', 2.5),
-            ('mien giam', 2.5), ('tro cap', 2.0)
+            ('mien giam', 2.5), ('tro cap', 2.0), ('vay von', 4.5),
+            ('ngan hang chinh sach', 4.5), ('hoc bong doanh nghiep', 5.0),
+            ('chinh sach hoc bong', 5.0), ('chinh sach xet hoc bong', 5.0)
         ],
         'PROCEDURES': [
             ('giay xac nhan', 3.0), ('nghia vu quan su', 3.0), ('nvqs', 3.0),
-            ('mot cua', 2.5), ('chuyen nganh', 2.0), ('the sinh vien', 3.0)
+            ('mot cua', 2.5), ('chuyen nganh', 2.0), ('the sinh vien', 3.0),
+            ('kham suc khoe', 5.5), ('ksk', 4.5), ('giay gioi thieu thuc tap', 6.0),
+            ('giay gioi thieu', 5.0), ('xin giay', 3.5), ('bieu mau', 4.0)
         ],
         'CLUBS_COMMUNITY': [
             ('clb', 3.5), ('cau lac bo', 3.5), ('fanpage', 3.5), ('facebook', 3.0),
@@ -120,20 +127,24 @@ def classify_intent(query: str) -> tuple[str, float]:
             ('nop bhyt', 5.0), ('dong bhyt', 5.0), ('tien bhyt', 4.5),
             ('bao hiem tai nan', 4.5), ('bhtn', 4.5), ('the bhyt', 4.0),
             ('vssid', 4.5), ('kham chua benh', 3.5), ('han nop bhyt', 5.0),
-            ('nop bao hiem', 5.0), ('dong bao hiem', 5.0), ('tien bao hiem', 4.5)
+            ('nop bao hiem', 5.0), ('dong bao hiem', 5.0), ('tien bao hiem', 4.5),
+            ('mua bhyt', 4.5), ('bhyt ben ngoai', 5.5), ('mua ngoai', 4.5)
         ],
         'COURSE_REGISTRATION': [
             ('dang ky hoc phan', 5.0), ('dkhp', 5.0), ('dang ky mon', 4.5),
             ('dang ky mon hoc', 5.0), ('huy mon', 3.5), ('rut hoc phan', 4.0),
-            ('mo lop', 3.0), ('rut mon', 3.5), ('hoc lai', 3.0),
-            ('cai thien', 3.0), ('tien quyet', 3.0), ('lop hoc phan', 3.5),
-            ('lich dang ky', 4.0), ('mo cong dang ky', 4.5)
+            ('mo lop', 3.0), ('rut mon', 3.5), ('hoc lai', 4.5),
+            ('cai thien', 4.0), ('tien quyet', 3.0), ('lop hoc phan', 3.5),
+            ('lich dang ky', 4.0), ('mo cong dang ky', 4.5),
+            ('clc ha xuong', 5.5), ('ha xuong dai tra', 5.5), ('chuyen xuong dai tra', 5.5)
         ],
         'CURRICULUM': [
             ('chuong trinh khung', 5.0), ('ctk', 4.5), ('chuong trinh dao tao', 5.0),
             ('ctdt', 4.5), ('khung dao tao', 4.5), ('ke hoach hoc tap', 3.5),
             ('cac mon trong nganh', 4.0), ('mon bat buoc', 3.5), ('mon tu chon', 3.5),
-            ('tong so tin chi nganh', 4.0), ('khung nganh', 4.0)
+            ('tong so tin chi nganh', 4.0), ('khung nganh', 4.0),
+            ('mon the chat', 5.5), ('giao duc the chat', 5.5), ('the chat', 4.5),
+            ('mon the duc', 4.5), ('fitness', 4.5), ('boi loi', 4.5)
         ]
     }
 
@@ -166,6 +177,17 @@ def classify_intent(query: str) -> tuple[str, float]:
         elif has_assignment and not has_tuition:
             scores['ASSIGNMENTS'] += 8.0
             scores['TUITION'] = max(0.0, scores['TUITION'] - 5.0)
+
+    # Cross-Intent Disambiguation: Khóa luận / Đồ án tốt nghiệp thuộc GRADUATION, không phải ASSIGNMENTS
+    if any(k in q_norm for k in ['khoa luan', 'do an tot nghiep', 'tot nghiep tam thoi']):
+        scores['GRADUATION'] = scores.get('GRADUATION', 0) + 10.0
+        scores['ASSIGNMENTS'] = max(0.0, scores.get('ASSIGNMENTS', 0) - 8.0)
+
+    # Cross-Intent Disambiguation: Giấy giới thiệu thực tập, khám sức khỏe thuộc PROCEDURES
+    if any(k in q_norm for k in ['giay gioi thieu', 'kham suc khoe', 'thuc tap']):
+        scores['PROCEDURES'] = scores.get('PROCEDURES', 0) + 10.0
+        scores['BOT_CAPABILITIES'] = max(0.0, scores.get('BOT_CAPABILITIES', 0) - 8.0)
+        scores['ASSIGNMENTS'] = max(0.0, scores.get('ASSIGNMENTS', 0) - 5.0)
 
     best_intent = max(scores, key=scores.get)
     max_score = scores[best_intent]

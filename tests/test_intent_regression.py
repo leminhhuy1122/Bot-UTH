@@ -230,6 +230,175 @@ TEST_CASES = [
         "must_contain": ["Chương trình khung", "tín chỉ"],
         "must_not_contain": ["Elearning", "Super-T"],
         "expected_action": "curriculum"
+    },
+    # === 21 TEST CASES CỦA NGƯỜI DÙNG (TC01 - TC21) ===
+    {
+        "id": 25,
+        "query": "Học lại thì điểm có cải thiện và xoá điểm cũ không",
+        "expected_intent": "COURSE_REGISTRATION",
+        "must_contain": ["Có cải thiện điểm số và điểm mới sẽ thay thế", "GPA tích lũy"],
+        "must_not_contain": ["Elearning", "Super-T"],
+        "expected_action": None
+    },
+    {
+        "id": 26,
+        "query": "Điểm GPA của tôi là 3.0, tôi muốn học cải thiện thì học mấy môn nâng lên 3.2",
+        "expected_intent": "GPA",
+        "must_contain": ["Đề xuất các môn ưu tiên học cải thiện", "3.0 lên 3.2"],
+        "must_not_contain": ["Elearning", "Super-T"],
+        "expected_action": None
+    },
+    {
+        "id": 27,
+        "query": "Tới hạn đóng học phí nhưng trang trường đóng học phí đang bảo trì thì sao",
+        "expected_intent": "TUITION",
+        "must_contain": ["Phòng Kế hoạch tài vụ", "Số 2 đường Võ Oanh"],
+        "must_not_contain": ["Bạn đã hoàn tất", "không có bài tập"],
+        "expected_action": None
+    },
+    {
+        "id": 28,
+        "query": " Đóng tiền rồi mà trong công nợ vẫn còn hiện là sao v ạ",
+        "expected_intent": "TUITION",
+        "must_contain": ["đối trừ khoản tiền", "1–2 ngày làm việc"],
+        "must_not_contain": ["Bạn đã hoàn tất 100% học phí"],
+        "expected_action": None
+    },
+    {
+        "id": 29,
+        "query": "Em có lịch khám sức khoẻ, nhưng k đi có bị sao k",
+        "expected_intent": "PROCEDURES",
+        "must_contain": ["Trạm Y tế", "Điểm rèn luyện", "khám bên ngoài"],
+        "must_not_contain": ["Học phí", "Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 30,
+        "query": "Học lực xuất sắc thì gpa bao nhiêu?",
+        "expected_intent": "GPA",
+        "must_contain": ["Thang điểm 4: Từ 3.60 đến 4.00", "Thang điểm 10: Từ 9.0 đến 10.0"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 31,
+        "query": "Tôi sắp ra trường thì học bổng kì vừa rồi có được nhận k?",
+        "expected_intent": "SCHOLARSHIP",
+        "must_contain": ["Có nhé", "chuẩn bị tốt nghiệp vẫn được xét và nhận học bổng"],
+        "must_not_contain": ["không được nhận"],
+        "expected_action": None
+    },
+    {
+        "id": 32,
+        "query": "Em có lịch khám sức khoẻ, nhưng k đi có bị sao k",
+        "expected_intent": "PROCEDURES",
+        "must_contain": ["Điểm rèn luyện", "Sức khỏe cá nhân"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 33,
+        "query": "Em muốn học tiếp ngành khác hoặc học lên thạc sĩ thì phải đăng ký như thế nào?",
+        "expected_intent": "ADMISSION",
+        "must_contain": ["Học ngành thứ hai", "tuyensinh.ut.edu.vn", "Học lên Thạc sĩ"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 34,
+        "query": "Em muốn in bằng tốt nghiệp tạm thời nhưng k lên trường được thì còn cách nào khác k?",
+        "expected_intent": "GRADUATION",
+        "must_contain": ["Cơ sở 1", "Phòng Đào tạo", "giấy hẹn ngày lấy kết quả"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 35,
+        "query": "mình muốn xin giấy giới thiệu thực tập ở đâu?",
+        "expected_intent": "PROCEDURES",
+        "must_contain": ["daotao.ut.edu.vn/bieu-mau", "Giấy giới thiệu thực tập"],
+        "must_not_contain": ["Quản trị mạng", "Super-T"],
+        "expected_action": None
+    },
+    {
+        "id": 36,
+        "query": "Em học xong rồi, em muốn học tiếp ngành khác hoặc học lên thạc sĩ thì phải đăng ký như thế nào?",
+        "expected_intent": "ADMISSION",
+        "must_contain": ["Học ngành thứ hai", "tuyensinh.ut.edu.vn", "Học lên Thạc sĩ"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 37,
+        "query": "Em mua bhyt bên ngoài trường được không?",
+        "expected_intent": "INSURANCE",
+        "must_contain": ["không cần mua BHYT thông qua trường", "Nhà nước đóng hoặc hỗ trợ", "công ty/doanh nghiệp"],
+        "must_not_contain": ["bắt buộc phải mua ở trường"],
+        "expected_action": None
+    },
+    {
+        "id": 38,
+        "query": "Trường hiện đang có những môn thể chất nào?",
+        "expected_intent": "CURRICULUM",
+        "must_contain": ["Bơi 1", "Bơi 2", "Fitness 1", "Fitness 2", "Vovinam"],
+        "must_not_contain": ["Elearning"],
+        "expected_action": None
+    },
+    {
+        "id": 39,
+        "query": "Học phí trung bình toàn khoá của trường là bao nhiêu?",
+        "expected_intent": "TUITION",
+        "must_contain": ["515.000 VNĐ/tín chỉ", "61.800.000 VNĐ", "1.120.000 VNĐ/tín chỉ", "134.400.000 VNĐ"],
+        "must_not_contain": ["0071000078912"],
+        "expected_action": None
+    },
+    {
+        "id": 40,
+        "query": "Trường có các chính sách học bổng khuyến khích học tập, học bổng doanh nghiệp hay hỗ trợ vay vốn sinh viên không?",
+        "expected_intent": "SCHOLARSHIP",
+        "must_contain": ["Học bổng khuyến khích học tập", "Học bổng doanh nghiệp", "vay vốn sinh viên"],
+        "must_not_contain": ["không có"],
+        "expected_action": None
+    },
+    {
+        "id": 41,
+        "query": "Điểm rèn luyện có ảnh hưởng gì đến gpa không?",
+        "expected_intent": "GPA",
+        "must_contain": ["Không ảnh hưởng", "GPA"],
+        "must_not_contain": ["bị trừ gpa"],
+        "expected_action": None
+    },
+    {
+        "id": 42,
+        "query": "trường hiện có các chính sách xét học bổng như thế nào?",
+        "expected_intent": "SCHOLARSHIP",
+        "must_contain": ["Học bổng khuyến khích học tập", "Học bổng đầu vào", "Học bổng tài năng"],
+        "must_not_contain": ["không có"],
+        "expected_action": None
+    },
+    {
+        "id": 43,
+        "query": "Sinh viên có bắt buộc phải làm khoá luận tốt nghiệp không, hay có thay thế bằng học phần bổ sung/đồ án tốt nghiệp?",
+        "expected_intent": "GRADUATION",
+        "must_contain": ["Không bắt buộc", "học phần thay thế", "Học kỳ doanh nghiệp"],
+        "must_not_contain": ["bắt buộc 100%"],
+        "expected_action": None
+    },
+    {
+        "id": 44,
+        "query": "Mức tăng học phí tối đa mỗi năm được quy định bằng văn bản là bao nhiêu %",
+        "expected_intent": "TUITION",
+        "must_contain": ["quy định của Nhà nước", "không tăng học phí trong 3 năm đầu"],
+        "must_not_contain": ["0071000078912"],
+        "expected_action": None
+    },
+    {
+        "id": 45,
+        "query": "Từ bậc CLC hạ xuống bậc đại trà được k?",
+        "expected_intent": "COURSE_REGISTRATION",
+        "must_contain": ["không được chuyển ngược từ CLC xuống đại trà", "chỉ được đăng ký nâng bậc"],
+        "must_not_contain": ["được phép chuyển xuống"],
+        "expected_action": None
     }
 ]
 
