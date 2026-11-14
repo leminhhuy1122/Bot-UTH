@@ -27,6 +27,28 @@ def init_database():
 
     Base.metadata.create_all(bind=engine)
 
+    # Đảm bảo các cột mở rộng (assignments, birth_place, specialization, education_level) luôn tồn tại
+    with engine.connect() as conn:
+        try:
+            if is_postgres:
+                conn.execute(text("ALTER TABLE student_profiles ADD COLUMN IF NOT EXISTS birth_place VARCHAR(100) DEFAULT 'TP. Hồ Chí Minh';"))
+                conn.execute(text("ALTER TABLE student_profiles ADD COLUMN IF NOT EXISTS education_level VARCHAR(50) DEFAULT 'Đại học - chính quy';"))
+                conn.execute(text("ALTER TABLE student_profiles ADD COLUMN IF NOT EXISTS specialization VARCHAR(100) DEFAULT 'Công nghệ thông tin';"))
+                conn.execute(text("ALTER TABLE student_profiles ADD COLUMN IF NOT EXISTS assignments JSONB DEFAULT '[]'::jsonb;"))
+            else:
+                cols = [row[1] for row in conn.execute(text("PRAGMA table_info(student_profiles);")).fetchall()]
+                if 'birth_place' not in cols:
+                    conn.execute(text("ALTER TABLE student_profiles ADD COLUMN birth_place VARCHAR(100) DEFAULT 'TP. Hồ Chí Minh';"))
+                if 'education_level' not in cols:
+                    conn.execute(text("ALTER TABLE student_profiles ADD COLUMN education_level VARCHAR(50) DEFAULT 'Đại học - chính quy';"))
+                if 'specialization' not in cols:
+                    conn.execute(text("ALTER TABLE student_profiles ADD COLUMN specialization VARCHAR(100) DEFAULT 'Công nghệ thông tin';"))
+                if 'assignments' not in cols:
+                    conn.execute(text("ALTER TABLE student_profiles ADD COLUMN assignments JSON DEFAULT '[]';"))
+            conn.commit()
+        except Exception:
+            pass
+
     # Tự động tạo các B-Tree Indexes phục vụ tối ưu hóa truy vấn quy mô lớn
     index_statements = [
         "CREATE INDEX IF NOT EXISTS ix_student_profiles_full_name ON student_profiles (full_name);",

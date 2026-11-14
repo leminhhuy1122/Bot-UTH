@@ -1275,7 +1275,7 @@ async def update_config(data: ConfigUpdateSchema):
 class TestQueryRequest(BaseModel):
     query: str
     role: Optional[str] = "student" # "guest", "student", "parent"
-    mssv: Optional[str] = "056205008344"
+    mssv: Optional[str] = "056205001234"
 
 @router.post("/test-query")
 async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
@@ -1283,15 +1283,14 @@ async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
     Trung tâm Thử nghiệm AI (Role-Based Testing Center):
     Kiểm tra luồng xử lý toàn diện theo từng vai trò (Khách, Sinh viên, Phụ huynh):
     1. Kiểm tra an ninh (PII Guard, Chống lăng mạ, Chống Jailbreak).
-    mssv: Optional[str] = "056205008344"
-    mssv: Optional[str] = "056205001234"
+    2. Phân loại Ý định (Intent Classification < 5ms).
     3. Truy xuất Tri thức (RAG Document Matching từ SQLite).
     4. Cá nhân hóa Dữ liệu Học tập (Student Profile Context).
     5. Phản hồi thực tế từ Google Gemini 3.5 AI.
     """
     start = time.time()
     role = (req.role or "student").lower()
-    mssv = req.mssv or "056205008344"
+    mssv = req.mssv or "056205001234"
 
     # 1. KIỂM TRA LÁ CHẮN AN NINH (SECURITY SHIELD)
     is_blocked = False
@@ -1299,8 +1298,6 @@ async def test_query(req: TestQueryRequest, db: Session = Depends(get_db)):
     block_reason = None
     ai_answer = None
 
-    mssv = req.mssv or "056205008344"
-    mssv = req.mssv or "056205001234"
     is_abuse, abuse_msg = is_profanity_or_abuse(req.query)
     if is_abuse:
         is_blocked = True
