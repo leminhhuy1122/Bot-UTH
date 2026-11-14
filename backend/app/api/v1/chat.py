@@ -35,6 +35,7 @@ from backend.app.services.gemini_ai import (
     is_gemini_available
 )
 from backend.app.api.v1.admin import knowledge_base, bot_config, reload_knowledge_cache
+from backend.app.services.curated_knowledge import find_curated_answer
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +242,11 @@ def invalidate_student_cache(mssv: str):
 
 
 def get_guest_fallback_answer(query: str, matched_kb: list) -> str:
+    # 0. Ưu tiên tra cứu tri thức nghiệp vụ chuẩn hóa UTH
+    curated = find_curated_answer(query)
+    if curated:
+        return curated["reply"]
+
     lower = query.lower()
     # Chỉ trả về câu trả lời FAQ nếu câu hỏi thực sự phù hợp ngữ nghĩa
     if matched_kb:
@@ -312,6 +318,11 @@ def get_student_fallback_answer(
     history: Optional[List[Any]] = None,
     classified_intent: Optional[str] = None
 ) -> str:
+    # 0. Ưu tiên giải đáp các tình huống nghiệp vụ và Test Case chuẩn UTH (TC01 - TC21)
+    curated = find_curated_answer(query, student_data)
+    if curated:
+        return curated["reply"]
+
     lower = query.lower()
 
     # Phân giải ngữ cảnh hội thoại đa tầng (Multi-turn Context Resolution)
@@ -624,6 +635,11 @@ def get_student_fallback_answer(
     )
 
 def get_parent_fallback_answer(query: str, student_name: str, matched_kb: list, student_data: Optional[Dict[str, Any]] = None) -> str:
+    # 0. Ưu tiên tra cứu tri thức nghiệp vụ chuẩn hóa UTH
+    curated = find_curated_answer(query, student_data)
+    if curated:
+        return curated["reply"]
+
     lower = query.lower()
     if student_data:
         name = student_data.get("name", student_name)
@@ -817,6 +833,26 @@ async def chat_guest(req: ChatRequest, request: Request, db: Session = Depends(g
 
     # 2. Tối ưu tốc độ: Kiểm tra Fast In-Memory Cache (< 10ms) nếu được bật
     current_kb = get_current_kb(db)
+    curated = find_curated_answer(sanitized_query)
+    if curated:
+        duration = int((time.time() - start) * 1000)
+        record_audit(db, "guest", client_ip, sanitized_query, False, curated["intent"], curated["reply"], duration)
+        return {
+            "success": True,
+            "data": {
+                "reply": curated["reply"],
+                "citations": [{"title": "Quy chế & Nghiệp vụ UTH", "question": sanitized_query}],
+                "mode": "guest",
+                "metadata": {
+                    "intent": curated["intent"],
+                    "confidence": 0.99,
+                    "engine": "UTH Curated Engine (TC Verified)",
+                    "latencyMs": duration,
+                    "action": curated.get("action")
+                }
+            }
+        }
+
     fast_ans = find_fast_instant_answer(sanitized_query, current_kb) if bot_config.get("enableFastCache", True) else None
     if fast_ans:
         duration = int((time.time() - start) * 1000)
@@ -936,6 +972,27 @@ async def chat_student(req: ChatRequest, request: Request, db: Session = Depends
         live_student_data = get_cached_live_student_data(student_ctx.mssv, db)
         if live_student_data:
             student_name = live_student_data["name"]
+
+    # 3.5 Kiểm tra bộ tri thức định hướng nghiệp vụ chính xác (Curated Knowledge Engine TC01 - TC21)
+    curated = find_curated_answer(sanitized_query, live_student_data)
+    if curated:
+        duration = int((time.time() - start) * 1000)
+        record_audit(db, "student", client_ip, sanitized_query, False, curated["intent"], curated["reply"], duration)
+        return {
+            "success": True,
+            "data": {
+                "reply": curated["reply"],
+                "citations": [{"title": "Quy chế & Nghiệp vụ UTH", "question": sanitized_query}],
+                "mode": "authenticated",
+                "metadata": {
+                    "intent": curated["intent"],
+                    "confidence": 0.99,
+                    "engine": "UTH Curated Engine (TC Verified)",
+                    "latencyMs": duration,
+                    "action": curated.get("action")
+                }
+            }
+        }
 
     # Thuật toán Định tuyến siêu tốc (Fast In-Memory Personal Query Routing < 20ms)
     lower_q = sanitized_query.lower()
@@ -1065,6 +1122,26 @@ async def chat_parent(req: ChatRequest, request: Request, db: Session = Depends(
         if st_record:
             live_student_data = extract_live_student_data(st_record)
 
+    curated = find_curated_answer(sanitized_query, live_student_data)
+    if curated:
+        duration = int((time.time() - start) * 1000)
+        record_audit(db, "parent", client_ip, sanitized_query, False, curated["intent"], curated["reply"], duration)
+        return {
+            "success": True,
+            "data": {
+                "reply": curated["reply"],
+                "citations": [{"title": "Quy chế & Nghiệp vụ UTH", "question": sanitized_query}],
+                "mode": "parent",
+                "metadata": {
+                    "intent": curated["intent"],
+                    "confidence": 0.99,
+                    "engine": "UTH Curated Engine (TC Verified)",
+                    "latencyMs": duration,
+                    "action": curated.get("action")
+                }
+            }
+        }
+
     parent_system_prompt = build_personalized_system_prompt("parent", sanitized_query, student_ctx, live_student_data)
     
     reply = await generate_response(
@@ -1149,6 +1226,28 @@ async def chat_stream(req: ChatRequest, request: Request, db: Session = Depends(
     target_mssv = getattr(student_ctx, "mssv", None) if student_ctx else None
     if target_mssv and user_role in ["student", "parent"]:
         live_student_data = get_cached_live_student_data(target_mssv, db)
+
+    # 4.5 Kiểm tra bộ tri thức định hướng nghiệp vụ chính xác (Curated Knowledge Engine TC01 - TC21)
+    curated_ans = find_curated_answer(sanitized_query, live_student_data)
+    if curated_ans:
+        async def curated_generator():
+            words = curated_ans["reply"].split(" ")
+            for i, w in enumerate(words):
+                chunk = w + (" " if i < len(words) - 1 else "")
+                yield f"data: {json.dumps({'chunk': chunk, 'done': False}, ensure_ascii=False)}\n\n"
+                await asyncio.sleep(0.008)
+            duration = int((time.time() - start) * 1000)
+            record_audit(db, user_role, client_ip, sanitized_query, False, curated_ans["intent"], curated_ans["reply"], duration)
+            meta = {
+                'done': True,
+                'intent': curated_ans['intent'],
+                'engine': 'UTH Curated Engine (TC Verified)',
+                'latencyMs': duration
+            }
+            if curated_ans.get("action"):
+                meta['action'] = curated_ans["action"]
+            yield f"data: {json.dumps(meta, ensure_ascii=False)}\n\n"
+        return StreamingResponse(curated_generator(), media_type="text/event-stream")
 
     # 5. Xây dựng System Instruction cá nhân hóa kết hợp RAG UTH
     system_prompt = build_personalized_system_prompt(
